@@ -1,0 +1,43 @@
+modLoader = "javafml"
+loaderVersion = "[${minForgeVersion},)"
+license = "${modLicense}"
+issueTrackerURL = "${modIssueUrl}"
+
+[[mods]]
+modId = "${modId}"
+displayName = "${modName}"
+description = "${modDescription}"
+version = "${modVersion}"
+authors = "${modAuthor}"
+displayURL = "${modSourceUrl}"
+displayTest = "${modForgeDisplayTest}"
+
+[[dependencies.${modId}]]
+    modId = "forge"
+    mandatory = true
+    versionRange = "[${minForgeVersion},)"
+    ordering = "NONE"
+    side = "BOTH"
+
+[[dependencies.${modId}]]
+    modId = "minecraft"
+    mandatory = true
+    versionRange = "[${minecraftVersion}]"
+    ordering = "NONE"
+    side = "BOTH"
+
+# 硬依赖一：Embeddium（渲染主力，用户自行安装——D1 裁决，仅 mandatory 声明）
+[[dependencies.${modId}]]
+    modId = "embeddium"
+    mandatory = true
+    versionRange = "[${embeddiumVersion},)"
+    ordering = "NONE"
+    side = "CLIENT"
+
+# 硬依赖二：ModernFix（区块装载优化，用户自行安装——D1 裁决，仅 mandatory 声明）
+[[dependencies.${modId}]]
+    modId = "modernfix"
+    mandatory = true
+    versionRange = "[${modernfixVersion},)"
+    ordering = "NONE"
+    side = "CLIENT"

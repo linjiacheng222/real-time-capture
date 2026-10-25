@@ -1,0 +1,79 @@
+plugins {
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+}
+
+version = modVersion
+group = modMavenGroup
+
+base {
+    archivesName = modId
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+minecraft {
+    // 红线 2：统一 Mojang 官方映射（Mojmap），禁用 Connector 类混合加载器
+    mappings channel: 'official', version: minecraftVersion
+    copyIdeResources = true
+
+    runs {
+        configureEach {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+            mods {
+                "${modId}" {
+                    source sourceSets.main
+                }
+            }
+        }
+        client {
+            // 纯客户端模组：仅提供 client 运行配置（附录E §2.1）
+        }
+    }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraftVersion}-${minForgeVersion}"
+    // 硬依赖 Embeddium / ModernFix 由用户自行安装（D1 裁决），本工程不引入其编译期依赖，
+    // 仅在 mods.toml 中声明 mandatory（运行时校验），适配工作经 Mixin/事件在源码级完成。
+}
+
+tasks.named('processResources', ProcessResources).configure {
+    var replaceProperties = [
+            minecraftVersion   : minecraftVersion,
+            minForgeVersion    : minForgeVersion,
+            modId              : modId,
+            modName            : modName,
+            modVersion         : modVersion,
+            modAuthor          : modAuthor,
+            modDescription     : modDescription,
+            modLicense         : modLicense,
+            modSourceUrl       : modSourceUrl,
+            modIssueUrl        : modIssueUrl,
+            modForgeDisplayTest: modForgeDisplayTest,
+            embeddiumVersion   : embeddiumVersion,
+            modernfixVersion   : modernfixVersion
+    ]
+    inputs.properties replaceProperties
+    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
+        expand replaceProperties
+    }
+}
+
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes([
+                'Specification-Title'   : modId,
+                'Specification-Vendor'  : modAuthor,
+                'Specification-Version' : '1',
+                'Implementation-Title'  : project.name,
+                'Implementation-Version': project.jar.archiveVersion,
+                'Implementation-Vendor' : modAuthor
+        ])
+    }
+    finalizedBy 'reobfJar'
+}
