@@ -8,9 +8,9 @@
 
 | 项目 | 作者 | 源码仓库 | 协议（已实物核验 2026-10-24） | 在本项目中的角色 | 复用方式 |
 |---|---|---|---|---|---|
-| Record-able | JoEusebe 等（Capable Creations Group） | github.com/JoEusebe/record-able | **MIT**（`MIT-Record-able.txt`） | M3 音频采集移植基准（OpenAL 环回、环形缓冲、监听器同步、时间戳） | 代码可直接复用，保留原版权声明 |
-| DebugBridge | use-ai-for-mc | github.com/use-ai-for-mc/debugbridge | **MIT**（`MIT-DebugBridge.txt`） | M4 网络与性能移植基准（PBO 双缓冲、JPEG、帧缓存、HTTP/WS） | 代码可直接复用，保留原版权声明 |
-| Pixelshot | Fuzs（Fuzss）等 | github.com/Fuzss/pixelshot（1.20.1 分支） | **MPL-2.0**（仓库无 LICENSE 文件，以 gradle.properties `modLicense=MPL-2.0` 及 Modrinth/CurseForge 标注为准；原文见 `MPL-2.0.txt`） | M2 视频流主移植基准（离屏渲染、相机矩阵、状态保护） | 代码可复用：被复用文件保持 MPL-2.0 并在文件头标注来源；可与本项目其余 MIT 文件混合发布 |
+| Record-able | JoEusebe 等（Capable Creations Group） | github.com/JoEusebe/record-able | **MIT**（`MIT-Record-able.txt`） | M3 音频结构基准（ALC_SOFT_loopback 接管 + Java Sound 中继、监听器同步、时间戳；参考快照为 Fabric 1.20.4，1.20.1 注入层需重写） | 结构可参考/复用，保留原版权声明；不宣称原样移植 |
+| DebugBridge | use-ai-for-mc | github.com/use-ai-for-mc/debugbridge | **MIT**（`MIT-DebugBridge.txt`） | M4 网络框架选型基准（JDK HttpServer、Java-WebSocket、ImageIO JPEG；无 PBO/帧缓存/广播/鉴权，后者为本项目自研增量） | 代码可直接复用，保留原版权声明 |
+| Pixelshot | Fuzs（Fuzss）等 | github.com/Fuzss/pixelshot（1.20.1 分支） | **MPL-2.0**（仓库无 LICENSE 文件，以 gradle.properties `modLicense=MPL-2.0` 及 Modrinth/CurseForge 标注为准；原文见 `MPL-2.0.txt`） | 设计参考（仅一次性截图入口 `GameRenderer#renderLevel` 先例；无离屏循环/FBO 复用/相机矩阵/光影分支可复用） | 如需复用其代码：被复用文件保持 MPL-2.0 并在文件头标注来源；当前尚无代码复用 |
 | PuzzlesLib | Fuzs（Fuzss） | github.com/Fuzss/puzzleslib（1.20.1 分支） | **代码 MPL-2.0**（`MPL-2.0.txt`）；**资产 All Rights Reserved**（`LICENSE-ASSETS.md`） | Pixelshot 前置库（本项目不依赖，仅了解其结构） | 代码复用规则同上；**资产（图标/贴图等）禁止复用** |
 | Mineshot Revived | pascallj / chixvv1 | github.com/chixvv1/mineshot-revived-fabric | **GPL-3.0**（`GPL-3.0.txt`） | 设计参考（Pixelshot 的思路前身） | **禁止复制任何代码**：GPL-3.0 具强传染性，复制会把整个模组拖入 GPL，与本项目 MIT 声明直接冲突；仅参考公开的设计思路与行为描述 |
 | Embeddium | embeddedt | github.com/embeddedt/embeddium（20.1/forge 分支） | **GPL-3.0 / LGPL-3.0 双许可**（COPYING / COPYING.LESSER，原文见 `GPL-3.0.txt` / `LGPL-3.0.txt`） | 硬依赖（渲染主力，用户自行安装） | 仅作运行时依赖声明（mandatory），不复制、不修改其代码 |
@@ -18,7 +18,7 @@
 | Oculus | Asek3 | github.com/Asek3/Oculus（1.20.1-new 分支） | **LGPL-3.0**（README 声明；原文见 `LGPL-3.0.txt`） | 光影兼容适配对象（非依赖） | 不复制代码 |
 | Rubidium | Asek3 | github.com/Asek3/Rubidium（1.20/dev 分支） | **LGPL-3.0**（`LGPL-3.0.txt`） | 参考（与 Embeddium 互斥，不可同装） | 不复制代码 |
 
-## 复用规则摘要（总监 2026-10-24 授权"代码可以视情况复用"）
+## 复用规则摘要（依据 2026-10-24 版权裁决）
 
 1. **MIT 源**（Record-able、DebugBridge）：可自由复制与改写，原版权与许可声明随文件保留；
 2. **MPL-2.0 源**（Pixelshot）：可复制与改写；**被复用的文件保持 MPL-2.0**（文件头加注 `// SPDX-License-Identifier: MPL-2.0` 与来源说明），并在本文件登记；MPL 为文件级弱传染，允许与其余 MIT 文件混合发布；

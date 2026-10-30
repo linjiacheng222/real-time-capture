@@ -14,6 +14,11 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
+// 源码统一 UTF-8（否则平台默认 GBK 会把中文注释按不可映射字符告警/乱码）
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
 minecraft {
     // 红线 2：统一 Mojang 官方映射（Mojmap），禁用 Connector 类混合加载器
     mappings channel: 'official', version: minecraftVersion
@@ -24,6 +29,12 @@ minecraft {
             workingDirectory project.file('run')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
+            // dev 环境（Mojmap named）加载 run/mods 中的生产（SRG/reobf）模组时，需要
+            // 让 Mixin 用 SRG→named 映射表重映射第三方 jar 的 refmap，否则 @Shadow 的
+            // SRG 名（如 m_5601_）在 named 目标类中找不到，会在 early display 阶段崩溃。
+            // createSrgToMcp 由 ForgeGradle 在 run 任务图中生成。
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             mods {
                 "${modId}" {
                     source sourceSets.main
@@ -37,12 +48,14 @@ minecraft {
 }
 
 dependencies {
-    minecraft "net.minecraftforge:forge:${minecraftVersion}-${minForgeVersion}"
+    // dev Forge：用已缓存的 47.4.23 mapped（D-BUILD-3 已裁决），发布下限仍由 mods.toml 的 minForgeVersion 控制
+    minecraft "net.minecraftforge:forge:${minecraftVersion}-${devForgeVersion}"
     // 硬依赖 Embeddium / ModernFix 由用户自行安装（D1 裁决），本工程不引入其编译期依赖，
     // 仅在 mods.toml 中声明 mandatory（运行时校验），适配工作经 Mixin/事件在源码级完成。
 }
 
 tasks.named('processResources', ProcessResources).configure {
+    filteringCharset = 'UTF-8'
     var replaceProperties = [
             minecraftVersion   : minecraftVersion,
             minForgeVersion    : minForgeVersion,
