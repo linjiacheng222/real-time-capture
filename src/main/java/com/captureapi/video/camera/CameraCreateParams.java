@@ -31,7 +31,7 @@ public final class CameraCreateParams {
     private final double offsetX;
     private final double offsetY;
     private final double offsetZ;
-    private final String projectionId;
+    private final ShapeModel shape;
 
     private CameraCreateParams(Builder builder) {
         this.x = builder.x;
@@ -47,7 +47,7 @@ public final class CameraCreateParams {
         this.offsetX = builder.offsetX;
         this.offsetY = builder.offsetY;
         this.offsetZ = builder.offsetZ;
-        this.projectionId = Objects.requireNonNull(builder.projectionId, "projectionId");
+        this.shape = Objects.requireNonNull(builder.shape, "shape");
     }
 
     public static Builder builder() {
@@ -111,7 +111,11 @@ public final class CameraCreateParams {
     }
 
     public String projectionId() {
-        return projectionId;
+        return shape.type();
+    }
+
+    public ShapeModel shape() {
+        return shape;
     }
 
     /** @return 绝对位置（仅用于日志/调试） */
@@ -139,7 +143,7 @@ public final class CameraCreateParams {
         private double offsetX;
         private double offsetY;
         private double offsetZ;
-        private String projectionId = DEFAULT_PROJECTION_ID;
+        private ShapeModel shape = ShapeModel.rect();
 
         public Builder position(double x, double y, double z) {
             this.x = x;
@@ -175,7 +179,12 @@ public final class CameraCreateParams {
         }
 
         public Builder projectionId(String projectionId) {
-            this.projectionId = projectionId;
+            this.shape = ShapeModel.of(projectionId, 0.0D, 0.0D, 0.0F, 0.0F);
+            return this;
+        }
+
+        public Builder shape(ShapeModel shape) {
+            this.shape = Objects.requireNonNull(shape, "shape");
             return this;
         }
 

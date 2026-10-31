@@ -4,6 +4,7 @@ import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.video.camera.CameraCreateParams;
 import com.captureapi.video.camera.CameraManager;
 import com.captureapi.video.camera.CameraSpec;
+import com.captureapi.video.camera.ShapeModel;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -178,7 +179,29 @@ public final class ControlCommandDispatcher {
         if (shape.isEmpty()) {
             throw new ControlException(ControlErrorCode.E_PARAM_RANGE, "shape 不能为空");
         }
-        builder.projectionId(shape);
+        if (ShapeModel.SPHERE_CONE.equals(shape)) {
+            if (!params.has("angle") || params.get("angle").isJsonNull()) {
+                throw new ControlException(ControlErrorCode.E_MISSING_PARAM, "缺少参数：angle（球面锥开角）");
+            }
+            if (!params.has("axisLength") || params.get("axisLength").isJsonNull()) {
+                throw new ControlException(ControlErrorCode.E_MISSING_PARAM, "缺少参数：axisLength（球面锥轴长）");
+            }
+            double angle = optDouble(params, "angle", 0.0D);
+            double axisLength = optDouble(params, "axisLength", 0.0D);
+            float axisYaw = (float) optDouble(params, "axisYaw", 0.0D);
+            float axisPitch = (float) optDouble(params, "axisPitch", 0.0D);
+            try {
+                builder.shape(ShapeModel.sphereCone(angle, axisLength, axisYaw, axisPitch));
+            } catch (IllegalArgumentException e) {
+                throw new ControlException(ControlErrorCode.E_PARAM_RANGE, e.getMessage());
+            }
+        } else {
+            try {
+                builder.shape(ShapeModel.of(shape, 0.0D, 0.0D, 0.0F, 0.0F));
+            } catch (IllegalArgumentException e) {
+                throw new ControlException(ControlErrorCode.E_PARAM_RANGE, e.getMessage());
+            }
+        }
         if (params.has("boundEntity") && !params.get("boundEntity").isJsonNull()) {
             String uuidText = params.get("boundEntity").getAsString();
             UUID uuid;
@@ -211,6 +234,12 @@ public final class ControlCommandDispatcher {
         json.addProperty("height", spec.height());
         json.addProperty("paused", spec.paused());
         json.addProperty("shape", spec.projectionId());
+        if (spec.shape().isSphereCone()) {
+            json.addProperty("angle", spec.shape().angleDegrees());
+            json.addProperty("axisLength", spec.shape().axisLength());
+            json.addProperty("axisYaw", spec.shape().axisYaw());
+            json.addProperty("axisPitch", spec.shape().axisPitch());
+        }
         if (spec.boundEntityUuid() != null) {
             json.addProperty("boundEntity", spec.boundEntityUuid().toString());
             json.addProperty("offsetX", spec.boundOffsetX());
