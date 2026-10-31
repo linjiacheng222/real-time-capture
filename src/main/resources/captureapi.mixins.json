@@ -8,7 +8,8 @@
   "client": [
     "MinecraftMixin",
     "ClientLevelAccessor",
-    "CameraAccessor"
+    "CameraAccessor",
+    "GameRendererAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
