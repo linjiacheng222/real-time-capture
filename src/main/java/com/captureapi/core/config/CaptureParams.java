@@ -72,6 +72,8 @@ public final class CaptureParams {
                 CaptureConfig.RECORDING_OUTPUT_DIR.get(),
                 CaptureConfig.FFMPEG_PATH.get(),
                 CaptureConfig.RECORDING_FORMAT.get(),
+                CaptureConfig.SYNC_MONITOR_ENABLED.get(),
+                CaptureConfig.WARN_THRESHOLD_MS.get(),
                 CaptureConfig.LOG_RESOURCE_LIFECYCLE.get(),
                 CaptureConfig.LOG_FRAME_EVENTS.get(),
                 CaptureConfig.LOG_FRAME_DROPS.get(),
@@ -100,6 +102,7 @@ public final class CaptureParams {
                 next.netPort(), next.bindLocalOnly(), next.lanEnabled(), next.tokenEnabled(),
                 next.maxConnections(), next.maxQps(), next.frameCacheTtlSec(), next.recordingOutputDir(),
                 next.ffmpegPath(), next.recordingFormat(),
+                next.syncMonitorEnabled(), next.warnThresholdMs(),
                 next.logResourceLifecycle(), next.logFrameEvents(), next.logFrameDrops(),
                 next.logPipelineTiming(), next.logBufferWatermark(), next.logGlThreadViolation(),
                 next.clockLogging());
@@ -259,6 +262,16 @@ public final class CaptureParams {
         return current().recordingFormat();
     }
 
+    /** @return 音画同步偏差监测开关（T5.3） */
+    public boolean syncMonitorEnabled() {
+        return current().syncMonitorEnabled();
+    }
+
+    /** @return 音画同步告警阈值（毫秒，T5.3） */
+    public int warnThresholdMs() {
+        return current().warnThresholdMs();
+    }
+
     public boolean logResourceLifecycle() {
         return current().logResourceLifecycle();
     }
@@ -361,6 +374,8 @@ public final class CaptureParams {
             String recordingOutputDir,
             String ffmpegPath,
             String recordingFormat,
+            boolean syncMonitorEnabled,
+            int warnThresholdMs,
             boolean logResourceLifecycle,
             boolean logFrameEvents,
             boolean logFrameDrops,

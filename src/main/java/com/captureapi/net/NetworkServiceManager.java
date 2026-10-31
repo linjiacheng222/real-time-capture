@@ -299,6 +299,10 @@ public final class NetworkServiceManager {
         json.addProperty("audio_ring_silent", com.captureapi.audio.AudioRingBuffer.get().silentPolls());
         json.addProperty("pipeline_failed_frames", com.captureapi.video.render.OffscreenRenderPipeline.failedFrames());
         json.addProperty("render_backpressure", "drop_old_keep_latest");
+        json.addProperty("sync_delta_ms_avg", com.captureapi.audio.sync.SyncDeviationMonitor.get().averageDeltaMs());
+        json.addProperty("sync_delta_samples", com.captureapi.audio.sync.SyncDeviationMonitor.get().deltaSamples());
+        json.addProperty("sync_regressions", com.captureapi.audio.sync.SyncDeviationMonitor.get().regressions());
+        json.addProperty("sync_warnings", com.captureapi.audio.sync.SyncDeviationMonitor.get().warnings());
         send(exchange, 200, "application/json; charset=utf-8", json.toString());
     }
 

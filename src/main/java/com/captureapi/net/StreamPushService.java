@@ -2,6 +2,7 @@ package com.captureapi.net;
 
 import com.captureapi.audio.AudioRingBuffer;
 import com.captureapi.audio.timestamp.AudioChunk;
+import com.captureapi.audio.sync.SyncDeviationMonitor;
 import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.net.protocol.AudioChunkCodec;
 import com.captureapi.net.protocol.VideoFrameCodec;
@@ -85,15 +86,17 @@ public final class StreamPushService {
                         AudioRingBuffer.get().readChunk(AUDIO_READ_TIMEOUT_MS);
                 if (result.status() == AudioRingBuffer.ReadStatus.DATA && result.chunk() != null) {
                     AudioChunk chunk = result.chunk();
+                    SyncDeviationMonitor.get().onAudio(chunk);
                     if (server.connectionCount() > 0) {
                         server.broadcastBinary(AudioChunkCodec.encode(chunk));
                         audioChunks.incrementAndGet();
                     }
                 }
-                if (server.connectionCount() > 0) {
-                    JpegFrame frame = VideoFrameBus.get().latest();
-                    if (frame != null && frame.timestampNanos() > lastVideoTimestamp) {
-                        lastVideoTimestamp = frame.timestampNanos();
+                JpegFrame frame = VideoFrameBus.get().latest();
+                if (frame != null && frame.timestampNanos() > lastVideoTimestamp) {
+                    lastVideoTimestamp = frame.timestampNanos();
+                    SyncDeviationMonitor.get().onVideo(lastVideoTimestamp);
+                    if (server.connectionCount() > 0) {
                         server.broadcastBinary(VideoFrameCodec.encode(frame));
                         videoFrames.incrementAndGet();
                     }

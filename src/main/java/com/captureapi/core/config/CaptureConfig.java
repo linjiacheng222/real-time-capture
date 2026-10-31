@@ -52,6 +52,8 @@ public final class CaptureConfig {
     static final ForgeConfigSpec.ConfigValue<String> RECORDING_OUTPUT_DIR;
     static final ForgeConfigSpec.ConfigValue<String> FFMPEG_PATH;
     static final ForgeConfigSpec.ConfigValue<String> RECORDING_FORMAT;
+    static final ForgeConfigSpec.BooleanValue SYNC_MONITOR_ENABLED;
+    static final ForgeConfigSpec.IntValue WARN_THRESHOLD_MS;
 
     // ===== [log] =====
     static final ForgeConfigSpec.BooleanValue LOG_RESOURCE_LIFECYCLE;
@@ -148,6 +150,12 @@ public final class CaptureConfig {
         RECORDING_FORMAT = builder
                 .comment("录像容器格式（默认 mp4；T4.10）")
                 .defineInList("recording_format", "mp4", java.util.List.of("mp4"));
+        SYNC_MONITOR_ENABLED = builder
+                .comment("音画同步偏差监测开关（T5.3，默认 false=零开销）")
+                .define("sync_monitor_enabled", false);
+        WARN_THRESHOLD_MS = builder
+                .comment("音画同步告警阈值（毫秒，T5.3，建议值）")
+                .defineInRange("warn_threshold_ms", 50, 1, 5000);
         builder.pop();
 
         builder.comment("诊断日志开关（默认关闭；排障时按需开启）").push("log");
