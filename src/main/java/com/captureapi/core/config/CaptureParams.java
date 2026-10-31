@@ -66,6 +66,7 @@ public final class CaptureParams {
                 CaptureConfig.BIND_LOCAL_ONLY.get(),
                 CaptureConfig.LAN_ENABLED.get(),
                 CaptureConfig.TOKEN_ENABLED.get(),
+                CaptureConfig.MAX_CONNECTIONS.get(),
                 CaptureConfig.LOG_RESOURCE_LIFECYCLE.get(),
                 CaptureConfig.LOG_FRAME_EVENTS.get(),
                 CaptureConfig.LOG_FRAME_DROPS.get(),
@@ -81,6 +82,7 @@ public final class CaptureParams {
                         + "audio_enabled={}, sample_rate={}, bit_depth={}, channels={}, "
                         + "poll_interval_ms={}, thread_priority={}, ring_capacity_sec={}, "
                         + "net_port={}, bind_local_only={}, lan_enabled={}, token_enabled={}, "
+                        + "max_connections={}, "
                         + "log_resource_lifecycle={}, log_frame_events={}, log_frame_drops={}, "
                         + "log_pipeline_timing={}, log_buffer_watermark={}, log_gl_thread_violation={}, "
                         + "clock_logging={}",
@@ -91,6 +93,7 @@ public final class CaptureParams {
                 next.audioEnabled(), next.sampleRate(), next.bitDepth(), next.channels(),
                 next.pollIntervalMs(), next.threadPriority(), next.ringCapacitySec(),
                 next.netPort(), next.bindLocalOnly(), next.lanEnabled(), next.tokenEnabled(),
+                next.maxConnections(),
                 next.logResourceLifecycle(), next.logFrameEvents(), next.logFrameDrops(),
                 next.logPipelineTiming(), next.logBufferWatermark(), next.logGlThreadViolation(),
                 next.clockLogging());
@@ -220,6 +223,11 @@ public final class CaptureParams {
         return current().tokenEnabled();
     }
 
+    /** @return WS 并发连接上限（T4.1.4） */
+    public int maxConnections() {
+        return current().maxConnections();
+    }
+
     public boolean logResourceLifecycle() {
         return current().logResourceLifecycle();
     }
@@ -316,6 +324,7 @@ public final class CaptureParams {
             boolean bindLocalOnly,
             boolean lanEnabled,
             boolean tokenEnabled,
+            int maxConnections,
             boolean logResourceLifecycle,
             boolean logFrameEvents,
             boolean logFrameDrops,

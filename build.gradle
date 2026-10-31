@@ -9,6 +9,7 @@ plugins {
 
 // Mixin 注解处理器/运行库来源（Sponge 官方 maven；plugin portal 不收录 mixingradle）
 repositories {
+    mavenCentral()
     maven {
         name = 'Sponge'
         url = 'https://repo.spongepowered.org/repository/maven-public/'
@@ -78,6 +79,7 @@ dependencies {
 
     // 硬依赖 Embeddium / ModernFix 由用户自行安装（D1 裁决），本工程不引入其编译期依赖，
     // 仅在 mods.toml 中声明 mandatory（运行时校验），适配工作经 Mixin/事件在源码级完成。
+
 }
 
 tasks.named('processResources', ProcessResources).configure {

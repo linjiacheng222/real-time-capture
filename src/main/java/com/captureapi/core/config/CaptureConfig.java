@@ -46,6 +46,7 @@ public final class CaptureConfig {
     static final ForgeConfigSpec.BooleanValue BIND_LOCAL_ONLY;
     static final ForgeConfigSpec.BooleanValue LAN_ENABLED;
     static final ForgeConfigSpec.BooleanValue TOKEN_ENABLED;
+    static final ForgeConfigSpec.IntValue MAX_CONNECTIONS;
 
     // ===== [log] =====
     static final ForgeConfigSpec.BooleanValue LOG_RESOURCE_LIFECYCLE;
@@ -124,6 +125,9 @@ public final class CaptureConfig {
         TOKEN_ENABLED = builder
                 .comment("token 鉴权开关（默认关）")
                 .define("token_enabled", false);
+        MAX_CONNECTIONS = builder
+                .comment("WS 并发连接上限（T4.1.4）")
+                .defineInRange("max_connections", 16, 1, 128);
         builder.pop();
 
         builder.comment("诊断日志开关（默认关闭；排障时按需开启）").push("log");
