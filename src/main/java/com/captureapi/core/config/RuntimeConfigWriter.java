@@ -64,6 +64,9 @@ public final class RuntimeConfigWriter {
         values.put("max_qps", p.maxQps());
         values.put("frame_cache_ttl_sec", p.frameCacheTtlSec());
         values.put("recording_output_dir", p.recordingOutputDir());
+        values.put("filter_directory", p.filterDirectory());
+        values.put("overlay_directory", p.overlayDirectory());
+        values.put("overlay_enabled", p.overlayEnabled());
         values.put("ffmpeg_path", p.ffmpegPath());
         values.put("recording_format", p.recordingFormat());
         values.put("sync_monitor_enabled", p.syncMonitorEnabled());
@@ -144,6 +147,15 @@ public final class RuntimeConfigWriter {
                 }
                 case "persist_changes" -> {
                     return boolValue(key, value, CaptureConfig.PERSIST_CHANGES);
+                }
+                case "filter_directory" -> {
+                    return stringValue(key, value, CaptureConfig.FILTER_DIRECTORY);
+                }
+                case "overlay_directory" -> {
+                    return stringValue(key, value, CaptureConfig.OVERLAY_DIRECTORY);
+                }
+                case "overlay_enabled" -> {
+                    return boolValue(key, value, CaptureConfig.OVERLAY_ENABLED);
                 }
                 case "recording_output_dir" -> {
                     return stringValue(key, value, CaptureConfig.RECORDING_OUTPUT_DIR);

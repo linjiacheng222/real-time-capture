@@ -7,6 +7,8 @@ import com.captureapi.video.camera.CameraSpec;
 import com.captureapi.video.camera.ShapeModel;
 import com.captureapi.core.config.RuntimeConfigWriter;
 import com.captureapi.video.filter.FilterRegistry;
+import com.captureapi.video.overlay.OverlayModel;
+import com.captureapi.video.overlay.OverlayRegistry;
 import com.captureapi.net.recording.RecordingParams;
 import com.captureapi.net.recording.RecordingSession;
 import com.captureapi.net.recording.RecordingStatus;
@@ -96,6 +98,10 @@ public final class ControlCommandDispatcher {
             case "filter.list" -> filterList();
             case "filter.set" -> filterSet(params);
             case "filter.reload" -> filterReload();
+            case "overlay.list" -> overlayList();
+            case "overlay.reload" -> overlayReload();
+            case "overlay.show" -> overlayShow(params);
+            case "overlay.clear" -> overlayClear();
             default -> throw new ControlException(ControlErrorCode.E_UNKNOWN_ACTION, "未知 action：" + action);
         };
     }
@@ -229,6 +235,59 @@ public final class ControlCommandDispatcher {
     private JsonElement filterReload() {
         FilterRegistry.get().reload();
         return filterList();
+    }
+
+    private JsonElement overlayList() {
+        JsonObject result = new JsonObject();
+        var images = new com.google.gson.JsonArray();
+        for (String image : OverlayRegistry.get().images()) {
+            images.add(image);
+        }
+        result.add("images", images);
+        result.addProperty("enabled", com.captureapi.core.config.CaptureParams.get().overlayEnabled());
+        var layerArray = new com.google.gson.JsonArray();
+        for (OverlayModel layer : OverlayRegistry.get().layers()) {
+            JsonObject layerJson = new JsonObject();
+            layerJson.addProperty("image", layer.image());
+            layerJson.addProperty("x", layer.x());
+            layerJson.addProperty("y", layer.y());
+            layerJson.addProperty("scaleX", layer.scaleX());
+            layerJson.addProperty("scaleY", layer.scaleY());
+            layerJson.addProperty("rotation", layer.rotation());
+            layerJson.addProperty("opacity", layer.opacity());
+            layerArray.add(layerJson);
+        }
+        result.add("layers", layerArray);
+        return result;
+    }
+
+    private JsonElement overlayReload() {
+        OverlayRegistry.get().reload();
+        return overlayList();
+    }
+
+    private JsonElement overlayShow(JsonObject params) {
+        String image = optString(params, "image", "");
+        if (image.isEmpty()) {
+            throw new ControlException(ControlErrorCode.E_MISSING_PARAM, "缺少参数：image");
+        }
+        OverlayModel model;
+        try {
+            model = new OverlayModel(image, optDouble(params, "x", 0.5D), optDouble(params, "y", 0.5D),
+                    optDouble(params, "scaleX", 1.0D), optDouble(params, "scaleY", 1.0D),
+                    optDouble(params, "rotation", 0.0D), optDouble(params, "opacity", 1.0D));
+        } catch (IllegalArgumentException e) {
+            throw new ControlException(ControlErrorCode.E_PARAM_RANGE, e.getMessage());
+        }
+        if (!OverlayRegistry.get().show(model)) {
+            throw new ControlException(ControlErrorCode.E_NOT_FOUND, "叠加贴图不存在：" + image);
+        }
+        return overlayList();
+    }
+
+    private JsonElement overlayClear() {
+        OverlayRegistry.get().clear();
+        return overlayList();
     }
 
     private JsonElement recordingStart(JsonObject params) {

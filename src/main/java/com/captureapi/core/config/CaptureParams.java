@@ -71,6 +71,8 @@ public final class CaptureParams {
                 CaptureConfig.FRAME_CACHE_TTL_SEC.get(),
                 CaptureConfig.RECORDING_OUTPUT_DIR.get(),
                 CaptureConfig.FILTER_DIRECTORY.get(),
+                CaptureConfig.OVERLAY_DIRECTORY.get(),
+                CaptureConfig.OVERLAY_ENABLED.get(),
                 CaptureConfig.FFMPEG_PATH.get(),
                 CaptureConfig.RECORDING_FORMAT.get(),
                 CaptureConfig.SYNC_MONITOR_ENABLED.get(),
@@ -103,7 +105,8 @@ public final class CaptureParams {
                 next.pollIntervalMs(), next.threadPriority(), next.ringCapacitySec(),
                 next.netPort(), next.bindLocalOnly(), next.lanEnabled(), next.tokenEnabled(),
                 next.maxConnections(), next.maxQps(), next.frameCacheTtlSec(), next.recordingOutputDir(),
-                next.filterDirectory(), next.ffmpegPath(), next.recordingFormat(),
+                next.filterDirectory(), next.overlayDirectory(), next.overlayEnabled(),
+                next.ffmpegPath(), next.recordingFormat(),
                 next.syncMonitorEnabled(), next.warnThresholdMs(), next.persistChanges(),
                 next.logResourceLifecycle(), next.logFrameEvents(), next.logFrameDrops(),
                 next.logPipelineTiming(), next.logBufferWatermark(), next.logGlThreadViolation(),
@@ -259,6 +262,16 @@ public final class CaptureParams {
         return current().filterDirectory();
     }
 
+    /** @return 叠加贴图目录（相对游戏目录，T8.2） */
+    public String overlayDirectory() {
+        return current().overlayDirectory();
+    }
+
+    /** @return 叠加功能总开关（T8.2） */
+    public boolean overlayEnabled() {
+        return current().overlayEnabled();
+    }
+
     /** @return FFmpeg 可执行路径（T4.10） */
     public String ffmpegPath() {
         return current().ffmpegPath();
@@ -390,6 +403,8 @@ public final class CaptureParams {
             int frameCacheTtlSec,
             String recordingOutputDir,
             String filterDirectory,
+            String overlayDirectory,
+            boolean overlayEnabled,
             String ffmpegPath,
             String recordingFormat,
             boolean syncMonitorEnabled,
