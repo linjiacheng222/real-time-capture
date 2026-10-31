@@ -50,6 +50,8 @@ public final class CaptureConfig {
     static final ForgeConfigSpec.IntValue MAX_QPS;
     static final ForgeConfigSpec.IntValue FRAME_CACHE_TTL_SEC;
     static final ForgeConfigSpec.ConfigValue<String> RECORDING_OUTPUT_DIR;
+    static final ForgeConfigSpec.ConfigValue<String> FFMPEG_PATH;
+    static final ForgeConfigSpec.ConfigValue<String> RECORDING_FORMAT;
 
     // ===== [log] =====
     static final ForgeConfigSpec.BooleanValue LOG_RESOURCE_LIFECYCLE;
@@ -140,6 +142,12 @@ public final class CaptureConfig {
         RECORDING_OUTPUT_DIR = builder
                 .comment("帧/录像默认输出目录（相对游戏目录）")
                 .define("recording_output_dir", "config/captureapi/recordings");
+        FFMPEG_PATH = builder
+                .comment("FFmpeg 可执行路径（默认 PATH 中的 ffmpeg）")
+                .define("ffmpeg_path", "ffmpeg");
+        RECORDING_FORMAT = builder
+                .comment("录像容器格式（默认 mp4；T4.10）")
+                .defineInList("recording_format", "mp4", java.util.List.of("mp4"));
         builder.pop();
 
         builder.comment("诊断日志开关（默认关闭；排障时按需开启）").push("log");
