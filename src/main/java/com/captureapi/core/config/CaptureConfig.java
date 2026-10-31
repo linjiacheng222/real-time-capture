@@ -37,6 +37,8 @@ public final class CaptureConfig {
     static final ForgeConfigSpec.IntValue SAMPLE_RATE;
     static final ForgeConfigSpec.ConfigValue<Integer> BIT_DEPTH;
     static final ForgeConfigSpec.IntValue CHANNELS;
+    static final ForgeConfigSpec.IntValue POLL_INTERVAL_MS;
+    static final ForgeConfigSpec.IntValue THREAD_PRIORITY;
 
     // ===== [server] =====
     static final ForgeConfigSpec.IntValue NET_PORT;
@@ -96,6 +98,12 @@ public final class CaptureConfig {
         CHANNELS = builder
                 .comment("声道数（1=单声道，2=立体声）")
                 .defineInRange("channels", 2, 1, 2);
+        POLL_INTERVAL_MS = builder
+                .comment("环回采集轮询间隔（毫秒，T3.1.4）")
+                .defineInRange("poll_interval_ms", 10, 2, 100);
+        THREAD_PRIORITY = builder
+                .comment("采集线程优先级（Java 1~10；默认 9=MAX-1，T3.1.3）")
+                .defineInRange("thread_priority", 9, 1, 10);
         builder.pop();
 
         builder.comment("对外网络服务参数（M4 使用）").push("server");

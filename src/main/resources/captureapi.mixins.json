@@ -9,7 +9,8 @@
     "MinecraftMixin",
     "ClientLevelAccessor",
     "CameraAccessor",
-    "GameRendererAccessor"
+    "GameRendererAccessor",
+    "AudioLibraryMixin"
   ],
   "injectors": {
     "defaultRequire": 1
