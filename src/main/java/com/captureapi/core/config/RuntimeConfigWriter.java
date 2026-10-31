@@ -67,6 +67,12 @@ public final class RuntimeConfigWriter {
         values.put("filter_directory", p.filterDirectory());
         values.put("overlay_directory", p.overlayDirectory());
         values.put("overlay_enabled", p.overlayEnabled());
+        values.put("render_blacklist_file", p.renderBlacklistFile());
+        values.put("render_whitelist_file", p.renderWhitelistFile());
+        values.put("log_render_filter", p.logRenderFilter());
+        values.put("audio_blacklist_file", p.audioBlacklistFile());
+        values.put("audio_whitelist_file", p.audioWhitelistFile());
+        values.put("max_cameras", p.maxCameras());
         values.put("ffmpeg_path", p.ffmpegPath());
         values.put("recording_format", p.recordingFormat());
         values.put("sync_monitor_enabled", p.syncMonitorEnabled());
@@ -156,6 +162,24 @@ public final class RuntimeConfigWriter {
                 }
                 case "overlay_enabled" -> {
                     return boolValue(key, value, CaptureConfig.OVERLAY_ENABLED);
+                }
+                case "render_blacklist_file" -> {
+                    return stringValue(key, value, CaptureConfig.RENDER_BLACKLIST_FILE);
+                }
+                case "render_whitelist_file" -> {
+                    return stringValue(key, value, CaptureConfig.RENDER_WHITELIST_FILE);
+                }
+                case "log_render_filter" -> {
+                    return boolValue(key, value, CaptureConfig.LOG_RENDER_FILTER);
+                }
+                case "audio_blacklist_file" -> {
+                    return stringValue(key, value, CaptureConfig.AUDIO_BLACKLIST_FILE);
+                }
+                case "audio_whitelist_file" -> {
+                    return stringValue(key, value, CaptureConfig.AUDIO_WHITELIST_FILE);
+                }
+                case "max_cameras" -> {
+                    return intValue(key, value, 1, 8, CaptureConfig.MAX_CAMERAS);
                 }
                 case "recording_output_dir" -> {
                     return stringValue(key, value, CaptureConfig.RECORDING_OUTPUT_DIR);

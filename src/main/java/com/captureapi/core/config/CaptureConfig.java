@@ -53,6 +53,12 @@ public final class CaptureConfig {
     static final ForgeConfigSpec.ConfigValue<String> FILTER_DIRECTORY;
     static final ForgeConfigSpec.ConfigValue<String> OVERLAY_DIRECTORY;
     static final ForgeConfigSpec.BooleanValue OVERLAY_ENABLED;
+    static final ForgeConfigSpec.ConfigValue<String> RENDER_BLACKLIST_FILE;
+    static final ForgeConfigSpec.ConfigValue<String> RENDER_WHITELIST_FILE;
+    static final ForgeConfigSpec.BooleanValue LOG_RENDER_FILTER;
+    static final ForgeConfigSpec.ConfigValue<String> AUDIO_BLACKLIST_FILE;
+    static final ForgeConfigSpec.ConfigValue<String> AUDIO_WHITELIST_FILE;
+    static final ForgeConfigSpec.IntValue MAX_CAMERAS;
     static final ForgeConfigSpec.ConfigValue<String> FFMPEG_PATH;
     static final ForgeConfigSpec.ConfigValue<String> RECORDING_FORMAT;
     static final ForgeConfigSpec.BooleanValue SYNC_MONITOR_ENABLED;
@@ -157,6 +163,24 @@ public final class CaptureConfig {
         OVERLAY_ENABLED = builder
                 .comment("叠加功能总开关（T8.2，默认 false）")
                 .define("overlay_enabled", false);
+        RENDER_BLACKLIST_FILE = builder
+                .comment("渲染黑名单文件（T8.3，文本，每行一个 ID/#tag）")
+                .define("render_blacklist_file", "config/captureapi/render_blacklist.txt");
+        RENDER_WHITELIST_FILE = builder
+                .comment("渲染白名单文件（T8.3）")
+                .define("render_whitelist_file", "config/captureapi/render_whitelist.txt");
+        LOG_RENDER_FILTER = builder
+                .comment("渲染名单命中计数日志（T8.3，默认 false）")
+                .define("log_render_filter", false);
+        AUDIO_BLACKLIST_FILE = builder
+                .comment("音频黑名单文件（T8.4，文本）")
+                .define("audio_blacklist_file", "config/captureapi/audio_blacklist.txt");
+        AUDIO_WHITELIST_FILE = builder
+                .comment("音频白名单文件（T8.4）")
+                .define("audio_whitelist_file", "config/captureapi/audio_whitelist.txt");
+        MAX_CAMERAS = builder
+                .comment("多相机并发上限（T8.5，默认 1=单路）")
+                .defineInRange("max_cameras", 1, 1, 8);
         FFMPEG_PATH = builder
                 .comment("FFmpeg 可执行路径（默认 PATH 中的 ffmpeg）")
                 .define("ffmpeg_path", "ffmpeg");
