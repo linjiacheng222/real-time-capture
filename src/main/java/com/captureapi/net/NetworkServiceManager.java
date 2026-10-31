@@ -161,6 +161,7 @@ public final class NetworkServiceManager {
         }
         running.set(false);
         StreamPushService.get().stop();
+        com.captureapi.net.recording.RecordingSession.get().stop();
         if (webSocketServer != null) {
             try {
                 webSocketServer.stop(1000);

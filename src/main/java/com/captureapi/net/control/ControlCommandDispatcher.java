@@ -5,6 +5,9 @@ import com.captureapi.video.camera.CameraCreateParams;
 import com.captureapi.video.camera.CameraManager;
 import com.captureapi.video.camera.CameraSpec;
 import com.captureapi.video.camera.ShapeModel;
+import com.captureapi.net.recording.RecordingParams;
+import com.captureapi.net.recording.RecordingSession;
+import com.captureapi.net.recording.RecordingStatus;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -83,6 +86,9 @@ public final class ControlCommandDispatcher {
             case "camera.delete" -> delete(params);
             case "camera.list" -> list();
             case "camera.status" -> status();
+            case "recording.start" -> recordingStart(params);
+            case "recording.stop" -> recordingStop();
+            case "recording.status" -> recordingStatus();
             default -> throw new ControlException(ControlErrorCode.E_UNKNOWN_ACTION, "未知 action：" + action);
         };
     }
@@ -138,6 +144,52 @@ public final class ControlCommandDispatcher {
         }
         result.add("cameras", array);
         return result;
+    }
+
+    private JsonElement recordingStart(JsonObject params) {
+        int cameraId = optInt(params, "cameraId", 0);
+        int fps = optInt(params, "fps", com.captureapi.core.config.CaptureParams.get().fpsMax());
+        int quality = optInt(params, "jpegQuality",
+                com.captureapi.core.config.CaptureParams.get().jpegQuality());
+        boolean includeAudio = false;
+        if (params.has("includeAudio") && !params.get("includeAudio").isJsonNull()) {
+            try {
+                includeAudio = params.get("includeAudio").getAsBoolean();
+            } catch (RuntimeException e) {
+                throw new ControlException(ControlErrorCode.E_PARAM_RANGE, "includeAudio 必须为布尔值");
+            }
+        }
+        String outputPath = params.has("outputPath") && !params.get("outputPath").isJsonNull()
+                ? params.get("outputPath").getAsString() : null;
+        try {
+            RecordingStatus status = RecordingSession.get().start(
+                    new RecordingParams(cameraId, fps, quality, includeAudio, outputPath));
+            return recordingStatusJson(status);
+        } catch (RuntimeException e) {
+            throw new ControlException(ControlErrorCode.E_INTERNAL, e.getMessage());
+        }
+    }
+
+    private JsonElement recordingStop() {
+        return recordingStatusJson(RecordingSession.get().stop());
+    }
+
+    private JsonElement recordingStatus() {
+        return recordingStatusJson(RecordingSession.get().status());
+    }
+
+    private static JsonObject recordingStatusJson(RecordingStatus status) {
+        JsonObject json = new JsonObject();
+        json.addProperty("running", status.running());
+        json.addProperty("frames", status.frames());
+        if (status.outputPath() != null) {
+            json.addProperty("path", status.outputPath());
+        }
+        json.addProperty("audioAvailable", status.audioAvailable());
+        if (status.error() != null) {
+            json.addProperty("error", status.error());
+        }
+        return json;
     }
 
     private JsonElement status() {

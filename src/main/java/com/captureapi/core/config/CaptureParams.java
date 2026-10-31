@@ -70,6 +70,8 @@ public final class CaptureParams {
                 CaptureConfig.MAX_QPS.get(),
                 CaptureConfig.FRAME_CACHE_TTL_SEC.get(),
                 CaptureConfig.RECORDING_OUTPUT_DIR.get(),
+                CaptureConfig.FFMPEG_PATH.get(),
+                CaptureConfig.RECORDING_FORMAT.get(),
                 CaptureConfig.LOG_RESOURCE_LIFECYCLE.get(),
                 CaptureConfig.LOG_FRAME_EVENTS.get(),
                 CaptureConfig.LOG_FRAME_DROPS.get(),
@@ -97,6 +99,7 @@ public final class CaptureParams {
                 next.pollIntervalMs(), next.threadPriority(), next.ringCapacitySec(),
                 next.netPort(), next.bindLocalOnly(), next.lanEnabled(), next.tokenEnabled(),
                 next.maxConnections(), next.maxQps(), next.frameCacheTtlSec(), next.recordingOutputDir(),
+                next.ffmpegPath(), next.recordingFormat(),
                 next.logResourceLifecycle(), next.logFrameEvents(), next.logFrameDrops(),
                 next.logPipelineTiming(), next.logBufferWatermark(), next.logGlThreadViolation(),
                 next.clockLogging());
@@ -246,6 +249,16 @@ public final class CaptureParams {
         return current().recordingOutputDir();
     }
 
+    /** @return FFmpeg 可执行路径（T4.10） */
+    public String ffmpegPath() {
+        return current().ffmpegPath();
+    }
+
+    /** @return 录像容器格式（T4.10） */
+    public String recordingFormat() {
+        return current().recordingFormat();
+    }
+
     public boolean logResourceLifecycle() {
         return current().logResourceLifecycle();
     }
@@ -346,6 +359,8 @@ public final class CaptureParams {
             int maxQps,
             int frameCacheTtlSec,
             String recordingOutputDir,
+            String ffmpegPath,
+            String recordingFormat,
             boolean logResourceLifecycle,
             boolean logFrameEvents,
             boolean logFrameDrops,
