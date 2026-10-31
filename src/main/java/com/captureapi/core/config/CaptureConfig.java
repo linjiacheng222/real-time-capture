@@ -24,6 +24,7 @@ public final class CaptureConfig {
     static final ForgeConfigSpec.IntValue FPS_MAX;
     static final ForgeConfigSpec.ConfigValue<String> VIDEO_RESOLUTION;
     static final ForgeConfigSpec.IntValue JPEG_QUALITY;
+    static final ForgeConfigSpec.BooleanValue ENCODE_ASYNC;
     // M2/T2.1.2：相机投影裁剪面
     static final ForgeConfigSpec.DoubleValue NEAR_PLANE;
     static final ForgeConfigSpec.DoubleValue FAR_PLANE;
@@ -44,6 +45,7 @@ public final class CaptureConfig {
     static final ForgeConfigSpec.BooleanValue LOG_RESOURCE_LIFECYCLE;
     static final ForgeConfigSpec.BooleanValue LOG_FRAME_EVENTS;
     static final ForgeConfigSpec.BooleanValue LOG_FRAME_DROPS;
+    static final ForgeConfigSpec.BooleanValue LOG_PIPELINE_TIMING;
     static final ForgeConfigSpec.BooleanValue LOG_GL_THREAD_VIOLATION;
     static final ForgeConfigSpec.BooleanValue CLOCK_LOGGING;
 
@@ -61,6 +63,9 @@ public final class CaptureConfig {
         JPEG_QUALITY = builder
                 .comment("JPEG 编码质量（0–100）")
                 .defineInRange("jpeg_quality", 75, 0, 100);
+        ENCODE_ASYNC = builder
+                .comment("异步编码线程开关（默认 false=渲染线程内联；T2.5.2）")
+                .define("encode_async", false);
         NEAR_PLANE = builder
                 .comment("离屏投影近裁剪距离（建议 0.05，实测定稿）")
                 .defineInRange("near_plane", 0.05D, 0.001D, 16.0D);
@@ -109,6 +114,9 @@ public final class CaptureConfig {
         LOG_FRAME_DROPS = builder
                 .comment("离屏渲染丢帧统计日志（T2.2.1，默认 false）")
                 .define("log_frame_drops", false);
+        LOG_PIPELINE_TIMING = builder
+                .comment("流水线分段耗时统计日志（T2.5.3，默认 false）")
+                .define("log_pipeline_timing", false);
         LOG_GL_THREAD_VIOLATION = builder
                 .comment("GL 线程违规日志（T1.3，默认开启）")
                 .define("log_gl_thread_violation", true);

@@ -50,6 +50,7 @@ public final class CaptureParams {
                 CaptureConfig.FPS_MAX.get(),
                 CaptureConfig.VIDEO_RESOLUTION.get(),
                 CaptureConfig.JPEG_QUALITY.get(),
+                CaptureConfig.ENCODE_ASYNC.get(),
                 CaptureConfig.NEAR_PLANE.get(),
                 CaptureConfig.FAR_PLANE.get(),
                 CaptureConfig.AUDIO_ENABLED.get(),
@@ -63,24 +64,26 @@ public final class CaptureParams {
                 CaptureConfig.LOG_RESOURCE_LIFECYCLE.get(),
                 CaptureConfig.LOG_FRAME_EVENTS.get(),
                 CaptureConfig.LOG_FRAME_DROPS.get(),
+                CaptureConfig.LOG_PIPELINE_TIMING.get(),
                 CaptureConfig.LOG_GL_THREAD_VIOLATION.get(),
                 CaptureConfig.CLOCK_LOGGING.get());
         snapshot = next;
         loadedLatch.countDown();
         applyDiagnosticSwitches(next);
-        LOGGER.info("{} 参数快照{}：fps_max={}, video_resolution={}, jpeg_quality={}, "
+        LOGGER.info("{} 参数快照{}：fps_max={}, video_resolution={}, jpeg_quality={}, encode_async={}, "
                         + "near_plane={}, far_plane={}, "
                         + "audio_enabled={}, sample_rate={}, bit_depth={}, channels={}, "
                         + "net_port={}, bind_local_only={}, lan_enabled={}, token_enabled={}, "
-                        + "log_resource_lifecycle={}, log_frame_events={}, log_frame_drops={}, log_gl_thread_violation={}, clock_logging={}",
+                        + "log_resource_lifecycle={}, log_frame_events={}, log_frame_drops={}, "
+                        + "log_pipeline_timing={}, log_gl_thread_violation={}, clock_logging={}",
                 CaptureConstants.LOG_MARKER,
                 scope == ReloadScope.INITIAL_LOAD ? "建立（Loading）" : "刷新（Reloading）",
-                next.fpsMax(), next.videoResolution(), next.jpegQuality(),
+                next.fpsMax(), next.videoResolution(), next.jpegQuality(), next.encodeAsync(),
                 next.nearPlane(), next.farPlane(),
                 next.audioEnabled(), next.sampleRate(), next.bitDepth(), next.channels(),
                 next.netPort(), next.bindLocalOnly(), next.lanEnabled(), next.tokenEnabled(),
                 next.logResourceLifecycle(), next.logFrameEvents(), next.logFrameDrops(),
-                next.logGlThreadViolation(), next.clockLogging());
+                next.logPipelineTiming(), next.logGlThreadViolation(), next.clockLogging());
         onParamsReloaded(scope);
     }
 
@@ -123,6 +126,16 @@ public final class CaptureParams {
 
     public int jpegQuality() {
         return current().jpegQuality();
+    }
+
+    /** @return 是否启用异步编码线程（T2.5.2） */
+    public boolean encodeAsync() {
+        return current().encodeAsync();
+    }
+
+    /** @return 是否输出流水线分段耗时（T2.5.3） */
+    public boolean logPipelineTiming() {
+        return current().logPipelineTiming();
     }
 
     /** @return 投影近裁剪距离（T2.1.2） */
@@ -247,6 +260,7 @@ public final class CaptureParams {
             int fpsMax,
             String videoResolution,
             int jpegQuality,
+            boolean encodeAsync,
             double nearPlane,
             double farPlane,
             boolean audioEnabled,
@@ -260,6 +274,7 @@ public final class CaptureParams {
             boolean logResourceLifecycle,
             boolean logFrameEvents,
             boolean logFrameDrops,
+            boolean logPipelineTiming,
             boolean logGlThreadViolation,
             boolean clockLogging) {
     }
