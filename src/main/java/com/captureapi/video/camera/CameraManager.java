@@ -170,6 +170,21 @@ public final class CameraManager {
         return new int[] {params.videoWidth(), params.videoHeight()};
     }
 
+    /**
+     * 构造一次性临时相机（实时调取 I2.2.4；id=0，不注册进管理器、不占自增 id）。
+     *
+     * @param params 临时相机参数
+     * @return 临时 CameraSpec
+     */
+    public static CameraSpec buildTemporary(CameraCreateParams params) {
+        Objects.requireNonNull(params, "params");
+        int[] resolution = resolveResolution(params.width(), params.height());
+        return new CameraSpec(0, params.x(), params.y(), params.z(), params.yawDegrees(),
+                params.pitchDegrees(), params.rollDegrees(), params.fovDegrees(), resolution[0], resolution[1],
+                params.boundEntityUuid(), params.offsetX(), params.offsetY(), params.offsetZ(),
+                params.projectionId(), false);
+    }
+
     /** 便于调试：绑定实体是否为该相机（不解析世界）。 */
     public static boolean isBound(CameraSpec spec) {
         UUID uuid = spec.boundEntityUuid();

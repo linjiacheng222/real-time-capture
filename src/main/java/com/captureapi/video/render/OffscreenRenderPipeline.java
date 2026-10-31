@@ -1,5 +1,6 @@
 package com.captureapi.video.render;
 
+import com.captureapi.core.config.CaptureParams;
 import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.core.mixin.GameRendererAccessor;
 import com.captureapi.core.resource.WorldResourceManager;
@@ -10,11 +11,15 @@ import com.captureapi.video.FrameRateLimiter;
 import com.captureapi.video.OffscreenFboResource;
 import com.captureapi.video.PboPairResource;
 import com.captureapi.video.encode.EncodingPipeline;
+import com.captureapi.video.encode.JpegEncoder;
+import com.captureapi.video.frame.JpegFrame;
 import com.captureapi.video.frame.RawFrame;
 import com.captureapi.video.camera.CameraManager;
 import com.captureapi.video.camera.CameraMatrices;
 import com.captureapi.video.camera.CameraPose;
 import com.captureapi.video.camera.CameraSpec;
+import com.captureapi.video.stream.OneShotRequest;
+import com.captureapi.video.stream.VideoStreamHub;
 import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.vertex.PoseStack;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -48,6 +53,7 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
     private final AtomicLong renderedFrames = new AtomicLong();
     private final AtomicLong failedFrames = new AtomicLong();
     private final AtomicLong readbackFrames = new AtomicLong();
+    private final JpegEncoder oneShotEncoder = new JpegEncoder();
     private volatile RawFrame lastFrame;
     private volatile boolean firstFrameLogged;
 
@@ -84,6 +90,12 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
         if (rendering.get()) {
             return;
         }
+        // 实时调取优先且与流式同帧互斥：有请求时本帧只渲染临时相机
+        OneShotRequest oneShot = VideoStreamHub.get().pollPending();
+        if (oneShot != null) {
+            renderOneShot(oneShot, event.getPartialTick());
+            return;
+        }
         CameraSpec spec = CameraManager.get().active();
         if (spec == null || spec.paused()) {
             return;
@@ -96,6 +108,77 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
             return;
         }
         renderOffscreen(minecraft, spec, event.getPartialTick());
+    }
+
+    /**
+     * 实时调取：临时相机渲染一帧→立即回读→编码→完成 Future（I2.2.4）。
+     *
+     * <p>不受 fps 限流约束；不进 CameraManager；与流式同帧互斥（调用方已保证）。
+     * 失败/世界未就绪/回读失败均以异常完成 Future，不阻塞主画面。</p>
+     */
+    private void renderOneShot(OneShotRequest request, float partialTick) {
+        GlThreadGuard.checkGlThread("OffscreenRenderPipeline.renderOneShot");
+        if (!rendering.compareAndSet(false, true)) {
+            request.fail(new IllegalStateException("渲染线程重入，实时调取被拒绝"));
+            return;
+        }
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level == null || !WorldResourceManager.get().isWorldReady()) {
+            request.fail(new IllegalStateException("世界未就绪，实时调取失败"));
+            rendering.set(false);
+            return;
+        }
+        GameRenderer gameRenderer = minecraft.gameRenderer;
+        GameRendererAccessor gameRendererAccessor = (GameRendererAccessor) gameRenderer;
+        boolean previousRenderHand = gameRendererAccessor.captureapi$isRenderHand();
+        RenderStateSnapshot renderState = null;
+        CameraStateSnapshot cameraState = null;
+        OffscreenFboResource fbo = null;
+        try {
+            CameraSpec temporary = CameraManager.buildTemporary(request.params());
+            CameraPose pose = CameraMatrices.capture(temporary, partialTick);
+            renderState = RenderStateSnapshot.capture();
+            cameraState = CameraStateSnapshot.applyPose(gameRenderer.getMainCamera(), pose);
+            gameRendererAccessor.captureapi$setRenderHand(false);
+
+            fbo = WorldResourceManager.get().get(OffscreenFboResource.KEY, OffscreenFboResource.class);
+            TextureTarget target = fbo.target();
+            target.setClearColor(0.0F, 0.0F, 0.0F, 1.0F);
+            target.clear(true);
+            fbo.bind();
+            gameRenderer.renderLevel(partialTick, 0L, new PoseStack());
+            PboPairResource pbo = WorldResourceManager.get().get(PboPairResource.KEY, PboPairResource.class);
+            RawFrame raw = pbo.readbackImmediate();
+            fbo.unbind();
+            if (raw == null) {
+                throw new IllegalStateException("实时调取 PBO 回读失败");
+            }
+            byte[] jpeg = oneShotEncoder.encode(raw, CaptureParams.get().jpegQuality());
+            JpegFrame frame = new JpegFrame(jpeg, raw.width(), raw.height(), raw.timestampNanos());
+            if (request.complete(frame)) {
+                LOGGER.info("{} 实时调取完成：{}x{}，jpeg={} bytes，ts={}", CaptureConstants.LOG_MARKER,
+                        frame.width(), frame.height(), frame.jpeg().length, frame.timestampNanos());
+            }
+        } catch (Throwable t) {
+            request.fail(t);
+            LOGGER.error("{} 实时调取失败（已隔离）：{}", CaptureConstants.LOG_MARKER, t.toString());
+        } finally {
+            try {
+                if (fbo != null && fbo.isCreated()) {
+                    fbo.unbind();
+                }
+            } catch (Throwable ignored) {
+                // 忽略解绑异常
+            }
+            if (cameraState != null) {
+                cameraState.restore(gameRenderer.getMainCamera());
+            }
+            gameRendererAccessor.captureapi$setRenderHand(previousRenderHand);
+            if (renderState != null) {
+                renderState.restore();
+            }
+            rendering.set(false);
+        }
     }
 
     private void renderOffscreen(Minecraft minecraft, CameraSpec spec, float partialTick) {

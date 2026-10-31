@@ -10,6 +10,8 @@ import org.joml.Vector3d;
  * <p>纯 Java 数据（不含 MC 对象引用），可跨线程传递；参数变更走「新快照整体替换」而非原地修改
  * （I2.1.3）。{@code position} 在绑定实体时作为回退位置（实体卸载时使用最后已知位置）。</p>
  *
+ * <p>id=0 保留给实时调取的临时相机（不进 CameraManager、不占自增 id）。</p>
+ *
  * <p>角度约定：yaw/pitch/roll 单位为度；yaw 0=朝 +Z（南），yaw 90=朝 -X（西），pitch 正=向下，
  * roll 绕视线方向旋转。</p>
  */
@@ -32,8 +34,8 @@ public record CameraSpec(
         boolean paused) {
 
     public CameraSpec {
-        if (id <= 0) {
-            throw new IllegalArgumentException("相机 id 必须为正：id=" + id);
+        if (id < 0) {
+            throw new IllegalArgumentException("相机 id 不可为负：id=" + id);
         }
         if (!Double.isFinite(positionX) || !Double.isFinite(positionY) || !Double.isFinite(positionZ)) {
             throw new IllegalArgumentException("相机位置必须为有限数");
