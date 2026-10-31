@@ -294,6 +294,25 @@ public final class AudioRingBuffer implements ManagedResource {
     }
 
     /**
+     * 非消费地查看最近写入的音频块（API 只读/诊断；并发写入时可能看到正在写入的槽，按快照近似）。
+     *
+     * @return 最近音频块；无数据 null
+     */
+    public AudioChunk peekLatest() {
+        byte[] ring = slots;
+        if (ring == null || writeIndex == readIndex) {
+            return null;
+        }
+        int index = (writeIndex - 1 + slotCount) % slotCount;
+        if (slotStartNanos[index] == 0L) {
+            return null;
+        }
+        byte[] pcm = new byte[slotBytes];
+        System.arraycopy(ring, index * slotBytes, pcm, 0, slotBytes);
+        return new AudioChunk(slotStartNanos[index], slotEndNanos[index], slotSampleCounts[index], pcm);
+    }
+
+    /**
      * 带时间戳读结果。
      *
      * @param status 状态
