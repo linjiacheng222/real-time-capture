@@ -1,5 +1,6 @@
 package com.captureapi.video.camera;
 
+import com.captureapi.core.config.CaptureParams;
 import com.captureapi.core.constant.CaptureConstants;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -45,6 +46,11 @@ public final class CameraManager {
      */
     public CameraSpec create(CameraCreateParams params) {
         Objects.requireNonNull(params, "params");
+        int limit = CaptureParams.get().maxCameras();
+        if (cameras.size() >= limit) {
+            throw new IllegalStateException("E_CAMERA_LIMIT: max_cameras=" + limit
+                    + "，当前相机数=" + cameras.size());
+        }
         int id = nextId.getAndIncrement();
         int[] resolution = resolveResolution(params.width(), params.height());
         CameraSpec spec = new CameraSpec(id, params.x(), params.y(), params.z(), params.yawDegrees(),

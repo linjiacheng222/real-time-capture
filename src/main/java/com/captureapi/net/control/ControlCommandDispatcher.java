@@ -9,6 +9,8 @@ import com.captureapi.core.config.RuntimeConfigWriter;
 import com.captureapi.video.filter.FilterRegistry;
 import com.captureapi.video.overlay.OverlayModel;
 import com.captureapi.video.overlay.OverlayRegistry;
+import com.captureapi.video.filter.RenderFilterRegistry;
+import com.captureapi.audio.AudioFilterRegistry;
 import com.captureapi.net.recording.RecordingParams;
 import com.captureapi.net.recording.RecordingSession;
 import com.captureapi.net.recording.RecordingStatus;
@@ -102,13 +104,25 @@ public final class ControlCommandDispatcher {
             case "overlay.reload" -> overlayReload();
             case "overlay.show" -> overlayShow(params);
             case "overlay.clear" -> overlayClear();
+            case "renderfilter.list" -> renderFilterList();
+            case "renderfilter.reload" -> renderFilterReload();
+            case "audiofilter.list" -> audioFilterList();
+            case "audiofilter.reload" -> audioFilterReload();
             default -> throw new ControlException(ControlErrorCode.E_UNKNOWN_ACTION, "未知 action：" + action);
         };
     }
 
     private JsonElement create(JsonObject params) {
-        CameraSpec spec = CameraManager.get().create(buildParams(params));
-        return toJson(spec);
+        try {
+            CameraSpec spec = CameraManager.get().create(buildParams(params));
+            return toJson(spec);
+        } catch (IllegalStateException e) {
+            String message = e.getMessage() == null ? "相机创建失败" : e.getMessage();
+            if (message.startsWith("E_CAMERA_LIMIT")) {
+                throw new ControlException(ControlErrorCode.E_RATE_LIMIT, message);
+            }
+            throw new ControlException(ControlErrorCode.E_INTERNAL, message);
+        }
     }
 
     private JsonElement adjust(JsonObject params) {
@@ -288,6 +302,28 @@ public final class ControlCommandDispatcher {
     private JsonElement overlayClear() {
         OverlayRegistry.get().clear();
         return overlayList();
+    }
+
+    private JsonElement renderFilterList() {
+        JsonObject result = new JsonObject();
+        result.addProperty("summary", RenderFilterRegistry.get().summary());
+        return result;
+    }
+
+    private JsonElement renderFilterReload() {
+        RenderFilterRegistry.get().reload();
+        return renderFilterList();
+    }
+
+    private JsonElement audioFilterList() {
+        JsonObject result = new JsonObject();
+        result.addProperty("summary", AudioFilterRegistry.get().summary());
+        return result;
+    }
+
+    private JsonElement audioFilterReload() {
+        AudioFilterRegistry.get().reload();
+        return audioFilterList();
     }
 
     private JsonElement recordingStart(JsonObject params) {

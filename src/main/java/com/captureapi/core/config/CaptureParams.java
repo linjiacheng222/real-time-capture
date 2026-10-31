@@ -73,6 +73,12 @@ public final class CaptureParams {
                 CaptureConfig.FILTER_DIRECTORY.get(),
                 CaptureConfig.OVERLAY_DIRECTORY.get(),
                 CaptureConfig.OVERLAY_ENABLED.get(),
+                CaptureConfig.RENDER_BLACKLIST_FILE.get(),
+                CaptureConfig.RENDER_WHITELIST_FILE.get(),
+                CaptureConfig.LOG_RENDER_FILTER.get(),
+                CaptureConfig.AUDIO_BLACKLIST_FILE.get(),
+                CaptureConfig.AUDIO_WHITELIST_FILE.get(),
+                CaptureConfig.MAX_CAMERAS.get(),
                 CaptureConfig.FFMPEG_PATH.get(),
                 CaptureConfig.RECORDING_FORMAT.get(),
                 CaptureConfig.SYNC_MONITOR_ENABLED.get(),
@@ -106,6 +112,8 @@ public final class CaptureParams {
                 next.netPort(), next.bindLocalOnly(), next.lanEnabled(), next.tokenEnabled(),
                 next.maxConnections(), next.maxQps(), next.frameCacheTtlSec(), next.recordingOutputDir(),
                 next.filterDirectory(), next.overlayDirectory(), next.overlayEnabled(),
+                next.renderBlacklistFile(), next.renderWhitelistFile(), next.logRenderFilter(),
+                next.audioBlacklistFile(), next.audioWhitelistFile(), next.maxCameras(),
                 next.ffmpegPath(), next.recordingFormat(),
                 next.syncMonitorEnabled(), next.warnThresholdMs(), next.persistChanges(),
                 next.logResourceLifecycle(), next.logFrameEvents(), next.logFrameDrops(),
@@ -272,6 +280,36 @@ public final class CaptureParams {
         return current().overlayEnabled();
     }
 
+    /** @return 渲染黑名单文件（T8.3） */
+    public String renderBlacklistFile() {
+        return current().renderBlacklistFile();
+    }
+
+    /** @return 渲染白名单文件（T8.3） */
+    public String renderWhitelistFile() {
+        return current().renderWhitelistFile();
+    }
+
+    /** @return 渲染名单命中日志（T8.3） */
+    public boolean logRenderFilter() {
+        return current().logRenderFilter();
+    }
+
+    /** @return 音频黑名单文件（T8.4） */
+    public String audioBlacklistFile() {
+        return current().audioBlacklistFile();
+    }
+
+    /** @return 音频白名单文件（T8.4） */
+    public String audioWhitelistFile() {
+        return current().audioWhitelistFile();
+    }
+
+    /** @return 多相机并发上限（T8.5） */
+    public int maxCameras() {
+        return current().maxCameras();
+    }
+
     /** @return FFmpeg 可执行路径（T4.10） */
     public String ffmpegPath() {
         return current().ffmpegPath();
@@ -405,6 +443,12 @@ public final class CaptureParams {
             String filterDirectory,
             String overlayDirectory,
             boolean overlayEnabled,
+            String renderBlacklistFile,
+            String renderWhitelistFile,
+            boolean logRenderFilter,
+            String audioBlacklistFile,
+            String audioWhitelistFile,
+            int maxCameras,
             String ffmpegPath,
             String recordingFormat,
             boolean syncMonitorEnabled,
