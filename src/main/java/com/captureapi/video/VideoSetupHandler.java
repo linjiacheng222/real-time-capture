@@ -34,8 +34,9 @@ public final class VideoSetupHandler {
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         WorldResourceManager.get().registerWorldScoped(OffscreenFboResource.KEY, OffscreenFboResource::new);
+        WorldResourceManager.get().registerWorldScoped(PboPairResource.KEY, PboPairResource::new);
         OffscreenRenderPipeline.install();
-        LOGGER.info("{} 视频设施装配：离屏 FBO 已注册（{}），离屏渲染管线已挂接",
-                CaptureConstants.LOG_MARKER, OffscreenFboResource.KEY);
+        LOGGER.info("{} 视频设施装配：离屏 FBO/PBO 对已注册（{}，{}），离屏渲染管线已挂接",
+                CaptureConstants.LOG_MARKER, OffscreenFboResource.KEY, PboPairResource.KEY);
     }
 }
