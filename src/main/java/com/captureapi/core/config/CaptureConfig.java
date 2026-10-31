@@ -47,6 +47,7 @@ public final class CaptureConfig {
     static final ForgeConfigSpec.BooleanValue LAN_ENABLED;
     static final ForgeConfigSpec.BooleanValue TOKEN_ENABLED;
     static final ForgeConfigSpec.IntValue MAX_CONNECTIONS;
+    static final ForgeConfigSpec.IntValue MAX_QPS;
 
     // ===== [log] =====
     static final ForgeConfigSpec.BooleanValue LOG_RESOURCE_LIFECYCLE;
@@ -128,6 +129,9 @@ public final class CaptureConfig {
         MAX_CONNECTIONS = builder
                 .comment("WS 并发连接上限（T4.1.4）")
                 .defineInRange("max_connections", 16, 1, 128);
+        MAX_QPS = builder
+                .comment("HTTP 单帧轮询限速（QPS，T4.5.3；建议值）")
+                .defineInRange("max_qps", 30, 1, 1000);
         builder.pop();
 
         builder.comment("诊断日志开关（默认关闭；排障时按需开启）").push("log");

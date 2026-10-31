@@ -45,6 +45,7 @@ public final class NetworkServiceManager {
     private final AtomicLong rejectedConnections = new AtomicLong();
     private final AtomicLong errors = new AtomicLong();
     private final AtomicInteger httpStreams = new AtomicInteger();
+    private final AtomicLong httpSlowDisconnects = new AtomicLong();
 
     private HttpServer httpServer;
     private ExecutorService httpExecutor;
@@ -208,6 +209,11 @@ public final class NetworkServiceManager {
         errors.incrementAndGet();
     }
 
+    /** MJPEG 慢写断开计数（I4.4.3/I4.6.2）。 */
+    public void recordHttpSlowDisconnect() {
+        httpSlowDisconnects.incrementAndGet();
+    }
+
     /** @return 是否校验 token 请求 */
     public boolean tokenEnabled() {
         return token != null;
@@ -275,6 +281,7 @@ public final class NetworkServiceManager {
         json.addProperty("lan_enabled", !"127.0.0.1".equals(bindDescription));
         json.addProperty("connections", connectionCount());
         json.addProperty("max_connections", CaptureParams.get().maxConnections());
+        json.addProperty("max_qps", CaptureParams.get().maxQps());
         json.addProperty("rejected_connections", rejectedConnections.get());
         json.addProperty("errors", errors.get());
         long started = startedAtNanos.get();
@@ -284,6 +291,13 @@ public final class NetworkServiceManager {
         json.addProperty("token_required", tokenEnabled());
         json.addProperty("slow_disconnects", webSocketServer == null ? 0L : webSocketServer.slowDisconnectCount());
         json.addProperty("http_streams", httpStreams.get());
+        json.addProperty("http_slow_disconnects", httpSlowDisconnects.get());
+        json.addProperty("video_frames_published", com.captureapi.video.frame.VideoFrameBus.get().publishedCount());
+        json.addProperty("audio_ring_written", com.captureapi.audio.AudioRingBuffer.get().writtenPolls());
+        json.addProperty("audio_ring_dropped", com.captureapi.audio.AudioRingBuffer.get().droppedPolls());
+        json.addProperty("audio_ring_silent", com.captureapi.audio.AudioRingBuffer.get().silentPolls());
+        json.addProperty("pipeline_failed_frames", com.captureapi.video.render.OffscreenRenderPipeline.failedFrames());
+        json.addProperty("render_backpressure", "drop_old_keep_latest");
         send(exchange, 200, "application/json; charset=utf-8", json.toString());
     }
 

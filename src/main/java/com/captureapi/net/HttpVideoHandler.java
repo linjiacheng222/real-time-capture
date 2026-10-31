@@ -9,7 +9,6 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.atomic.AtomicLong;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.slf4j.Logger;
@@ -33,7 +32,7 @@ public final class HttpVideoHandler implements HttpHandler {
     private static final long SLOW_WRITE_NANOS = 5_000_000_000L;
 
     private final NetworkServiceManager manager;
-    private final AtomicLong streamSlowDisconnects = new AtomicLong();
+    private final FrameRateGate frameRateGate = new FrameRateGate();
 
     public HttpVideoHandler(NetworkServiceManager manager) {
         this.manager = manager;
@@ -87,6 +86,10 @@ public final class HttpVideoHandler implements HttpHandler {
     }
 
     private void handleFrame(HttpExchange exchange) throws IOException {
+        if (!frameRateGate.tryAcquire()) {
+            sendJson(exchange, 429, "{\"ok\":false,\"error\":{\"code\":\"E_RATE_LIMIT\"}}");
+            return;
+        }
         JpegFrame frame = VideoFrameBus.get().latest();
         if (frame == null) {
             sendNoContent(exchange);
@@ -133,7 +136,7 @@ public final class HttpVideoHandler implements HttpHandler {
                     lastWriteNanos = com.captureapi.core.time.CaptureClock.get().nowNanos();
                     long writeNanos = lastWriteNanos - writeStart;
                     if (writeNanos > SLOW_WRITE_NANOS) {
-                        streamSlowDisconnects.incrementAndGet();
+                        manager.recordHttpSlowDisconnect();
                         LOGGER.warn("{} [HTTP/MJPEG] 慢消费者写阻塞 {}ms，断开", CaptureConstants.LOG_MARKER,
                                 writeNanos / 1_000_000L);
                         return;
@@ -173,8 +176,24 @@ public final class HttpVideoHandler implements HttpHandler {
         }
     }
 
-    public long streamSlowDisconnects() {
-        return streamSlowDisconnects.get();
+    /** 单帧轮询限速（滑动 1 秒窗口；T4.5.3）。 */
+    private static final class FrameRateGate {
+        private long windowStartNanos;
+        private int count;
+
+        private synchronized boolean tryAcquire() {
+            long now = com.captureapi.core.time.CaptureClock.get().nowNanos();
+            if (now - windowStartNanos >= 1_000_000_000L) {
+                windowStartNanos = now;
+                count = 0;
+            }
+            int limit = com.captureapi.core.config.CaptureParams.get().maxQps();
+            if (count >= limit) {
+                return false;
+            }
+            count++;
+            return true;
+        }
     }
 
     private record Route(int cameraId, boolean stream) {
