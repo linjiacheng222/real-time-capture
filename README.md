@@ -17,7 +17,8 @@ Minecraft **1.20.1 Forge** 客户端模组：游戏内自定义相机位下，�
   `docs/附录A-映射对照表.md` + `scripts/verify-mappings.py`（全链校验 12/12 PASS）。
   下一阶段：MS1 收尾（人工世界内/热重载/听感）→ MS0 Spike → M2。
 - dev 依赖：`run/mods/` 放 named 变体（`embeddium-0.3.31…dev.jar`、`modernfix-5.27.89…dev.jar`）；生产 jar 存 `run/mods-original/`（D-BUILD-1/D-DEV-1）。
-- 验收证据：`docs/T1.1-验收记录.md`、`docs/T1.2-T1.3-验收记录.md`、`docs/T1.4-T1.5-验收记录.md`、`docs/T1.6-T1.7-验收记录.md`、`docs/红线核验记录.md`、`docs/线程边界规范.md`、`docs/反编译分析工作流.md`、`docs/映射校验流程.md`、`docs/evidence/`（T1.1 / T1.2-T1.3 / T1.4-T1.5 / T1.6-T1.7）。
+- 验收证据（报告视图）：[自动验证报告](<docs/自动验证报告/00-格式说明与索引.md>)（AVR-M1-01~05）、[人工校验报告](<docs/人工校验报告/00-格式说明与索引.md>)（MVR-M1-01~05，含操作步骤/理想反馈/待填写反馈区；失败修复在原目录追加）；原始证据在 `docs/evidence/`，验收记录原件为 `docs/T1.x-验收记录.md`。
+- 验收记录原件：`docs/T1.1-验收记录.md`、`docs/T1.2-T1.3-验收记录.md`、`docs/T1.4-T1.5-验收记录.md`、`docs/T1.6-T1.7-验收记录.md`、`docs/红线核验记录.md`、`docs/线程边界规范.md`、`docs/反编译分析工作流.md`、`docs/映射校验流程.md`。
 - Git 已安装：`E:\Tools\Git`（MinGit 2.56.0；`git.cmd` shim 已入 PATH）；FFmpeg 已安装：`E:\Tools\ffmpeg\bin\ffmpeg.exe`（7.1 essentials，含 libx264/AAC）。
 
 ## 构建
