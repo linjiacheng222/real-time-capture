@@ -13,6 +13,7 @@ import com.captureapi.video.PboPairResource;
 import com.captureapi.video.encode.EncodingPipeline;
 import com.captureapi.video.encode.JpegEncoder;
 import com.captureapi.video.frame.JpegFrame;
+import com.captureapi.video.filter.FilterRegistry;
 import com.captureapi.video.frame.RawFrame;
 import com.captureapi.video.camera.CameraManager;
 import com.captureapi.video.camera.CameraMatrices;
@@ -159,8 +160,10 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
             if (raw == null) {
                 throw new IllegalStateException("实时调取 PBO 回读失败");
             }
-            byte[] jpeg = oneShotEncoder.encode(raw, CaptureParams.get().jpegQuality());
-            JpegFrame frame = new JpegFrame(jpeg, raw.width(), raw.height(), raw.timestampNanos());
+            RawFrame filtered = FilterRegistry.get().applySelected(raw);
+            byte[] jpeg = oneShotEncoder.encode(filtered, CaptureParams.get().jpegQuality());
+            JpegFrame frame = new JpegFrame(jpeg, filtered.width(), filtered.height(),
+                    filtered.timestampNanos());
             if (request.complete(frame)) {
                 LOGGER.info("{} 实时调取完成：{}x{}，jpeg={} bytes，ts={}", CaptureConstants.LOG_MARKER,
                         frame.width(), frame.height(), frame.jpeg().length, frame.timestampNanos());

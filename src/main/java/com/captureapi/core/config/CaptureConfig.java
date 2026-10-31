@@ -50,6 +50,7 @@ public final class CaptureConfig {
     static final ForgeConfigSpec.IntValue MAX_QPS;
     static final ForgeConfigSpec.IntValue FRAME_CACHE_TTL_SEC;
     static final ForgeConfigSpec.ConfigValue<String> RECORDING_OUTPUT_DIR;
+    static final ForgeConfigSpec.ConfigValue<String> FILTER_DIRECTORY;
     static final ForgeConfigSpec.ConfigValue<String> FFMPEG_PATH;
     static final ForgeConfigSpec.ConfigValue<String> RECORDING_FORMAT;
     static final ForgeConfigSpec.BooleanValue SYNC_MONITOR_ENABLED;
@@ -145,6 +146,9 @@ public final class CaptureConfig {
         RECORDING_OUTPUT_DIR = builder
                 .comment("帧/录像默认输出目录（相对游戏目录）")
                 .define("recording_output_dir", "config/captureapi/recordings");
+        FILTER_DIRECTORY = builder
+                .comment("滤镜目录（相对游戏目录，T8.1）")
+                .define("filter_directory", "config/captureapi/filters");
         FFMPEG_PATH = builder
                 .comment("FFmpeg 可执行路径（默认 PATH 中的 ffmpeg）")
                 .define("ffmpeg_path", "ffmpeg");

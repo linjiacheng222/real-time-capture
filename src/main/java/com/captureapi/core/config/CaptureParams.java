@@ -70,6 +70,7 @@ public final class CaptureParams {
                 CaptureConfig.MAX_QPS.get(),
                 CaptureConfig.FRAME_CACHE_TTL_SEC.get(),
                 CaptureConfig.RECORDING_OUTPUT_DIR.get(),
+                CaptureConfig.FILTER_DIRECTORY.get(),
                 CaptureConfig.FFMPEG_PATH.get(),
                 CaptureConfig.RECORDING_FORMAT.get(),
                 CaptureConfig.SYNC_MONITOR_ENABLED.get(),
@@ -102,7 +103,7 @@ public final class CaptureParams {
                 next.pollIntervalMs(), next.threadPriority(), next.ringCapacitySec(),
                 next.netPort(), next.bindLocalOnly(), next.lanEnabled(), next.tokenEnabled(),
                 next.maxConnections(), next.maxQps(), next.frameCacheTtlSec(), next.recordingOutputDir(),
-                next.ffmpegPath(), next.recordingFormat(),
+                next.filterDirectory(), next.ffmpegPath(), next.recordingFormat(),
                 next.syncMonitorEnabled(), next.warnThresholdMs(), next.persistChanges(),
                 next.logResourceLifecycle(), next.logFrameEvents(), next.logFrameDrops(),
                 next.logPipelineTiming(), next.logBufferWatermark(), next.logGlThreadViolation(),
@@ -253,6 +254,11 @@ public final class CaptureParams {
         return current().recordingOutputDir();
     }
 
+    /** @return 滤镜目录（相对游戏目录，T8.1） */
+    public String filterDirectory() {
+        return current().filterDirectory();
+    }
+
     /** @return FFmpeg 可执行路径（T4.10） */
     public String ffmpegPath() {
         return current().ffmpegPath();
@@ -383,6 +389,7 @@ public final class CaptureParams {
             int maxQps,
             int frameCacheTtlSec,
             String recordingOutputDir,
+            String filterDirectory,
             String ffmpegPath,
             String recordingFormat,
             boolean syncMonitorEnabled,

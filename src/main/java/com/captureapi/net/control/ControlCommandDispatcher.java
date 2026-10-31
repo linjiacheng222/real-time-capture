@@ -6,6 +6,7 @@ import com.captureapi.video.camera.CameraManager;
 import com.captureapi.video.camera.CameraSpec;
 import com.captureapi.video.camera.ShapeModel;
 import com.captureapi.core.config.RuntimeConfigWriter;
+import com.captureapi.video.filter.FilterRegistry;
 import com.captureapi.net.recording.RecordingParams;
 import com.captureapi.net.recording.RecordingSession;
 import com.captureapi.net.recording.RecordingStatus;
@@ -92,6 +93,9 @@ public final class ControlCommandDispatcher {
             case "recording.status" -> recordingStatus();
             case "config.get" -> configGet(params);
             case "config.set" -> configSet(params);
+            case "filter.list" -> filterList();
+            case "filter.set" -> filterSet(params);
+            case "filter.reload" -> filterReload();
             default -> throw new ControlException(ControlErrorCode.E_UNKNOWN_ACTION, "未知 action：" + action);
         };
     }
@@ -197,6 +201,34 @@ public final class ControlCommandDispatcher {
         } else {
             target.addProperty(key, String.valueOf(value));
         }
+    }
+
+    private JsonElement filterList() {
+        JsonObject result = new JsonObject();
+        result.addProperty("selected", FilterRegistry.get().selected());
+        var array = new com.google.gson.JsonArray();
+        for (String name : FilterRegistry.get().names()) {
+            array.add(name);
+        }
+        result.add("filters", array);
+        return result;
+    }
+
+    private JsonElement filterSet(JsonObject params) {
+        String name = optString(params, "name", "");
+        boolean ok = FilterRegistry.get().select(name);
+        if (!ok) {
+            throw new ControlException(ControlErrorCode.E_NOT_FOUND,
+                    FilterRegistry.get().lastError());
+        }
+        JsonObject result = new JsonObject();
+        result.addProperty("selected", FilterRegistry.get().selected());
+        return result;
+    }
+
+    private JsonElement filterReload() {
+        FilterRegistry.get().reload();
+        return filterList();
     }
 
     private JsonElement recordingStart(JsonObject params) {
