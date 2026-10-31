@@ -53,6 +53,8 @@ public final class CaptureParams {
                 CaptureConfig.ENCODE_ASYNC.get(),
                 CaptureConfig.NEAR_PLANE.get(),
                 CaptureConfig.FAR_PLANE.get(),
+                CaptureConfig.SOUND_RANGE.get(),
+                CaptureConfig.CHUNK_RESCAN_MS.get(),
                 CaptureConfig.AUDIO_ENABLED.get(),
                 CaptureConfig.SAMPLE_RATE.get(),
                 CaptureConfig.BIT_DEPTH.get(),
@@ -71,7 +73,7 @@ public final class CaptureParams {
         loadedLatch.countDown();
         applyDiagnosticSwitches(next);
         LOGGER.info("{} 参数快照{}：fps_max={}, video_resolution={}, jpeg_quality={}, encode_async={}, "
-                        + "near_plane={}, far_plane={}, "
+                        + "near_plane={}, far_plane={}, sound_range={}, chunk_rescan_ms={}, "
                         + "audio_enabled={}, sample_rate={}, bit_depth={}, channels={}, "
                         + "net_port={}, bind_local_only={}, lan_enabled={}, token_enabled={}, "
                         + "log_resource_lifecycle={}, log_frame_events={}, log_frame_drops={}, "
@@ -79,7 +81,7 @@ public final class CaptureParams {
                 CaptureConstants.LOG_MARKER,
                 scope == ReloadScope.INITIAL_LOAD ? "建立（Loading）" : "刷新（Reloading）",
                 next.fpsMax(), next.videoResolution(), next.jpegQuality(), next.encodeAsync(),
-                next.nearPlane(), next.farPlane(),
+                next.nearPlane(), next.farPlane(), next.soundRange(), next.chunkRescanMs(),
                 next.audioEnabled(), next.sampleRate(), next.bitDepth(), next.channels(),
                 next.netPort(), next.bindLocalOnly(), next.lanEnabled(), next.tokenEnabled(),
                 next.logResourceLifecycle(), next.logFrameEvents(), next.logFrameDrops(),
@@ -146,6 +148,16 @@ public final class CaptureParams {
     /** @return 投影远裁剪距离；0=自动（渲染距离×16，T2.1.2） */
     public double farPlane() {
         return current().farPlane();
+    }
+
+    /** @return 相机可听半径（格，T2.7.1） */
+    public int soundRange() {
+        return current().soundRange();
+    }
+
+    /** @return 摄制区块集合重扫周期（毫秒，T2.7.1） */
+    public int chunkRescanMs() {
+        return current().chunkRescanMs();
     }
 
     public boolean audioEnabled() {
@@ -263,6 +275,8 @@ public final class CaptureParams {
             boolean encodeAsync,
             double nearPlane,
             double farPlane,
+            int soundRange,
+            int chunkRescanMs,
             boolean audioEnabled,
             int sampleRate,
             int bitDepth,
