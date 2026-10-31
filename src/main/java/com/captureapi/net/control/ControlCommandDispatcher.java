@@ -1,0 +1,291 @@
+package com.captureapi.net.control;
+
+import com.captureapi.core.constant.CaptureConstants;
+import com.captureapi.video.camera.CameraCreateParams;
+import com.captureapi.video.camera.CameraManager;
+import com.captureapi.video.camera.CameraSpec;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import java.util.List;
+import java.util.UUID;
+import java.util.function.Consumer;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * WS 控制指令分发与校验（I4.3.2/I4.3.3）。
+ *
+ * <p>信封 `{id, action, params}`；action 白名单路由到 {@link CameraManager}；参数在入口校验
+ * （范围/类型/UUID），非法即结构化错误码拒绝。权限：当前客户端为 SP/LAN（T4.3 约定恒通过），
+ * 专用服权限归 M9/T4.3 follow-up。响应 `{id, ok, result?}` 或 `{id, ok:false, error:{code,message}}`。</p>
+ */
+@OnlyIn(Dist.CLIENT)
+public final class ControlCommandDispatcher {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CaptureConstants.LOG_MARKER);
+    private static final Gson GSON = new Gson();
+    private static final ControlCommandDispatcher INSTANCE = new ControlCommandDispatcher();
+
+    private ControlCommandDispatcher() {
+    }
+
+    public static ControlCommandDispatcher get() {
+        return INSTANCE;
+    }
+
+    /**
+     * 处理一条 WS 文本消息并发送响应。
+     *
+     * @param message  原始 JSON
+     * @param response 响应发送器（客户端 WS 文本发送）
+     */
+    public void handle(String message, Consumer<String> response) {
+        String id = "";
+        try {
+            JsonObject root = JsonParser.parseString(message).getAsJsonObject();
+            id = optString(root, "id", "");
+            String action = optString(root, "action", "").trim();
+            JsonObject params = root.has("params") && root.get("params").isJsonObject()
+                    ? root.getAsJsonObject("params") : new JsonObject();
+            if (action.isEmpty()) {
+                response.accept(error(id, ControlErrorCode.E_MISSING_PARAM, "缺少 action"));
+                return;
+            }
+            JsonElement result = dispatch(action, params);
+            JsonObject ok = new JsonObject();
+            ok.addProperty("id", id);
+            ok.addProperty("ok", true);
+            if (result != null) {
+                ok.add("result", result);
+            }
+            response.accept(GSON.toJson(ok));
+        } catch (ControlException e) {
+            response.accept(error(id, e.code, e.getMessage()));
+        } catch (Throwable t) {
+            LOGGER.warn("{} [CTRL] 指令处理异常", CaptureConstants.LOG_MARKER, t);
+            response.accept(error(id, ControlErrorCode.E_INTERNAL, "内部错误"));
+        }
+    }
+
+    private JsonElement dispatch(String action, JsonObject params) {
+        return switch (action) {
+            case "camera.create" -> create(params);
+            case "camera.adjust" -> adjust(params);
+            case "camera.activate" -> activate(params);
+            case "camera.pause" -> pauseResume(params, true);
+            case "camera.resume" -> pauseResume(params, false);
+            case "camera.delete" -> delete(params);
+            case "camera.list" -> list();
+            case "camera.status" -> status();
+            default -> throw new ControlException(ControlErrorCode.E_UNKNOWN_ACTION, "未知 action：" + action);
+        };
+    }
+
+    private JsonElement create(JsonObject params) {
+        CameraSpec spec = CameraManager.get().create(buildParams(params));
+        return toJson(spec);
+    }
+
+    private JsonElement adjust(JsonObject params) {
+        int id = requiredInt(params, "id");
+        CameraSpec spec = CameraManager.get().adjust(id, buildParams(params));
+        return toJson(spec);
+    }
+
+    private JsonElement activate(JsonObject params) {
+        int id = requiredInt(params, "id");
+        try {
+            return toJson(CameraManager.get().activate(id));
+        } catch (IllegalArgumentException e) {
+            throw new ControlException(ControlErrorCode.E_NOT_FOUND, "相机不存在：" + id);
+        }
+    }
+
+    private JsonElement pauseResume(JsonObject params, boolean pause) {
+        int id = requiredInt(params, "id");
+        try {
+            return toJson(pause ? CameraManager.get().pause(id) : CameraManager.get().resume(id));
+        } catch (IllegalArgumentException e) {
+            throw new ControlException(ControlErrorCode.E_NOT_FOUND, "相机不存在：" + id);
+        }
+    }
+
+    private JsonElement delete(JsonObject params) {
+        int id = requiredInt(params, "id");
+        if (CameraManager.get().get(id) == null) {
+            throw new ControlException(ControlErrorCode.E_NOT_FOUND, "相机不存在：" + id);
+        }
+        CameraManager.get().delete(id);
+        JsonObject result = new JsonObject();
+        result.addProperty("deleted", id);
+        result.addProperty("active", CameraManager.get().activeCameraId());
+        return result;
+    }
+
+    private JsonElement list() {
+        List<CameraSpec> cameras = CameraManager.get().list();
+        JsonObject result = new JsonObject();
+        result.addProperty("active", CameraManager.get().activeCameraId());
+        JsonArray array = new JsonArray();
+        for (CameraSpec spec : cameras) {
+            array.add(toJson(spec));
+        }
+        result.add("cameras", array);
+        return result;
+    }
+
+    private JsonElement status() {
+        JsonObject result = new JsonObject();
+        result.addProperty("active", CameraManager.get().activeCameraId());
+        result.addProperty("count", CameraManager.get().size());
+        CameraSpec active = CameraManager.get().active();
+        if (active != null) {
+            result.add("camera", toJson(active));
+        }
+        return result;
+    }
+
+    private CameraCreateParams buildParams(JsonObject params) {
+        CameraCreateParams.Builder builder = CameraCreateParams.builder();
+        double x = optDouble(params, "x", 0.0D);
+        double y = optDouble(params, "y", 0.0D);
+        double z = optDouble(params, "z", 0.0D);
+        builder.position(x, y, z);
+        float yaw = (float) optDouble(params, "yaw", 0.0D);
+        float pitch = (float) optDouble(params, "pitch", 0.0D);
+        float roll = (float) optDouble(params, "roll", 0.0D);
+        if (pitch < -90.0F || pitch > 90.0F) {
+            throw new ControlException(ControlErrorCode.E_PARAM_RANGE, "pitch 必须在 [-90,90]");
+        }
+        builder.rotation(yaw, pitch, roll);
+        double fov = optDouble(params, "fov", CameraCreateParams.DEFAULT_FOV_DEGREES);
+        if (fov <= 1.0D || fov >= 179.0D) {
+            throw new ControlException(ControlErrorCode.E_PARAM_RANGE, "fov 必须在 (1,179)");
+        }
+        builder.fov(fov);
+        int width = optInt(params, "width", 0);
+        int height = optInt(params, "height", 0);
+        if ((width != 0 || height != 0) && (width <= 0 || height <= 0)) {
+            throw new ControlException(ControlErrorCode.E_PARAM_RANGE, "width/height 必须同时为正或同时省略");
+        }
+        builder.resolution(width, height);
+        String shape = optString(params, "shape", optString(params, "projectionId", "rect"));
+        if (shape.isEmpty()) {
+            throw new ControlException(ControlErrorCode.E_PARAM_RANGE, "shape 不能为空");
+        }
+        builder.projectionId(shape);
+        if (params.has("boundEntity") && !params.get("boundEntity").isJsonNull()) {
+            String uuidText = params.get("boundEntity").getAsString();
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(uuidText);
+            } catch (IllegalArgumentException e) {
+                throw new ControlException(ControlErrorCode.E_PARAM_RANGE, "boundEntity 不是合法 UUID");
+            }
+            builder.boundEntity(uuid, optDouble(params, "offsetX", 0.0D),
+                    optDouble(params, "offsetY", 0.0D), optDouble(params, "offsetZ", 0.0D));
+        }
+        try {
+            return builder.build();
+        } catch (RuntimeException e) {
+            throw new ControlException(ControlErrorCode.E_PARAM_RANGE, e.getMessage());
+        }
+    }
+
+    private static JsonObject toJson(CameraSpec spec) {
+        JsonObject json = new JsonObject();
+        json.addProperty("id", spec.id());
+        json.addProperty("x", spec.positionX());
+        json.addProperty("y", spec.positionY());
+        json.addProperty("z", spec.positionZ());
+        json.addProperty("yaw", spec.yawDegrees());
+        json.addProperty("pitch", spec.pitchDegrees());
+        json.addProperty("roll", spec.rollDegrees());
+        json.addProperty("fov", spec.fovDegrees());
+        json.addProperty("width", spec.width());
+        json.addProperty("height", spec.height());
+        json.addProperty("paused", spec.paused());
+        json.addProperty("shape", spec.projectionId());
+        if (spec.boundEntityUuid() != null) {
+            json.addProperty("boundEntity", spec.boundEntityUuid().toString());
+            json.addProperty("offsetX", spec.boundOffsetX());
+            json.addProperty("offsetY", spec.boundOffsetY());
+            json.addProperty("offsetZ", spec.boundOffsetZ());
+        }
+        return json;
+    }
+
+    private static String error(String id, String code, String message) {
+        JsonObject json = new JsonObject();
+        json.addProperty("id", id);
+        json.addProperty("ok", false);
+        JsonObject error = new JsonObject();
+        error.addProperty("code", code);
+        error.addProperty("message", message == null ? "" : message);
+        json.add("error", error);
+        return GSON.toJson(json);
+    }
+
+    private static String optString(JsonObject object, String name, String fallback) {
+        if (!object.has(name) || object.get(name).isJsonNull()) {
+            return fallback;
+        }
+        try {
+            return object.get(name).getAsString();
+        } catch (RuntimeException e) {
+            throw new ControlException(ControlErrorCode.E_PARAM_RANGE, name + " 类型错误");
+        }
+    }
+
+    private static double optDouble(JsonObject object, String name, double fallback) {
+        if (!object.has(name) || object.get(name).isJsonNull()) {
+            return fallback;
+        }
+        try {
+            double value = object.get(name).getAsDouble();
+            if (!Double.isFinite(value)) {
+                throw new NumberFormatException();
+            }
+            return value;
+        } catch (RuntimeException e) {
+            throw new ControlException(ControlErrorCode.E_PARAM_RANGE, name + " 必须为有限数");
+        }
+    }
+
+    private static int optInt(JsonObject object, String name, int fallback) {
+        if (!object.has(name) || object.get(name).isJsonNull()) {
+            return fallback;
+        }
+        try {
+            return object.get(name).getAsInt();
+        } catch (RuntimeException e) {
+            throw new ControlException(ControlErrorCode.E_PARAM_RANGE, name + " 必须为整数");
+        }
+    }
+
+    private static int requiredInt(JsonObject params, String name) {
+        if (!params.has(name) || params.get(name).isJsonNull()) {
+            throw new ControlException(ControlErrorCode.E_MISSING_PARAM, "缺少参数：" + name);
+        }
+        try {
+            return params.get(name).getAsInt();
+        } catch (RuntimeException e) {
+            throw new ControlException(ControlErrorCode.E_PARAM_RANGE, name + " 必须为整数");
+        }
+    }
+
+    /** 控制异常（携带稳定错误码）。 */
+    private static final class ControlException extends RuntimeException {
+        private final String code;
+
+        private ControlException(String code, String message) {
+            super(message);
+            this.code = code;
+        }
+    }
+}
