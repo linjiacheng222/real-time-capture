@@ -5,6 +5,7 @@ import com.captureapi.video.camera.CameraCreateParams;
 import com.captureapi.video.camera.CameraManager;
 import com.captureapi.video.camera.CameraSpec;
 import com.captureapi.video.camera.ShapeModel;
+import com.captureapi.core.config.RuntimeConfigWriter;
 import com.captureapi.net.recording.RecordingParams;
 import com.captureapi.net.recording.RecordingSession;
 import com.captureapi.net.recording.RecordingStatus;
@@ -89,6 +90,8 @@ public final class ControlCommandDispatcher {
             case "recording.start" -> recordingStart(params);
             case "recording.stop" -> recordingStop();
             case "recording.status" -> recordingStatus();
+            case "config.get" -> configGet(params);
+            case "config.set" -> configSet(params);
             default -> throw new ControlException(ControlErrorCode.E_UNKNOWN_ACTION, "未知 action：" + action);
         };
     }
@@ -144,6 +147,56 @@ public final class ControlCommandDispatcher {
         }
         result.add("cameras", array);
         return result;
+    }
+
+    private JsonElement configGet(JsonObject params) {
+        String key = optString(params, "key", "");
+        JsonObject result = new JsonObject();
+        if (key.isEmpty()) {
+            for (var entry : RuntimeConfigWriter.getAll().entrySet()) {
+                addValue(result, entry.getKey(), entry.getValue());
+            }
+            return result;
+        }
+        Object value = RuntimeConfigWriter.get(key).orElse(null);
+        if (value == null) {
+            throw new ControlException(ControlErrorCode.E_NOT_FOUND, "未知参数：" + key);
+        }
+        result.addProperty("key", key);
+        addValue(result, "value", value);
+        return result;
+    }
+
+    private JsonElement configSet(JsonObject params) {
+        String key = optString(params, "key", "");
+        if (key.isEmpty()) {
+            throw new ControlException(ControlErrorCode.E_MISSING_PARAM, "缺少参数：key");
+        }
+        if (!params.has("value")) {
+            throw new ControlException(ControlErrorCode.E_MISSING_PARAM, "缺少参数：value");
+        }
+        RuntimeConfigWriter.Result result = RuntimeConfigWriter.set(key, params.get("value"));
+        if (!result.applied()) {
+            throw new ControlException(ControlErrorCode.E_PARAM_RANGE, result.message());
+        }
+        JsonObject json = new JsonObject();
+        json.addProperty("key", result.key());
+        addValue(json, "value", result.value());
+        json.addProperty("persisted", result.persisted());
+        json.addProperty("message", result.message());
+        return json;
+    }
+
+    private static void addValue(JsonObject target, String key, Object value) {
+        if (value instanceof Boolean b) {
+            target.addProperty(key, b);
+        } else if (value instanceof Integer i) {
+            target.addProperty(key, i);
+        } else if (value instanceof Double d) {
+            target.addProperty(key, d);
+        } else {
+            target.addProperty(key, String.valueOf(value));
+        }
     }
 
     private JsonElement recordingStart(JsonObject params) {

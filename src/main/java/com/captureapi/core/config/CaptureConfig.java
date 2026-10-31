@@ -53,6 +53,7 @@ public final class CaptureConfig {
     static final ForgeConfigSpec.ConfigValue<String> FFMPEG_PATH;
     static final ForgeConfigSpec.ConfigValue<String> RECORDING_FORMAT;
     static final ForgeConfigSpec.BooleanValue SYNC_MONITOR_ENABLED;
+    static final ForgeConfigSpec.BooleanValue PERSIST_CHANGES;
     static final ForgeConfigSpec.IntValue WARN_THRESHOLD_MS;
 
     // ===== [log] =====
@@ -133,11 +134,11 @@ public final class CaptureConfig {
                 .comment("token 鉴权开关（默认关）")
                 .define("token_enabled", false);
         MAX_CONNECTIONS = builder
-                .comment("WS 并发连接上限（T4.1.4）")
-                .defineInRange("max_connections", 16, 1, 128);
+                .comment("WS 并发连接上限（T4.1.4；建议值）")
+                .defineInRange("max_connections", 8, 1, 64);
         MAX_QPS = builder
                 .comment("HTTP 单帧轮询限速（QPS，T4.5.3；建议值）")
-                .defineInRange("max_qps", 30, 1, 1000);
+                .defineInRange("max_qps", 30, 1, 240);
         FRAME_CACHE_TTL_SEC = builder
                 .comment("临时相机帧缓存 TTL（秒，T4.9.3/W-084）")
                 .defineInRange("frame_cache_ttl_sec", 30, 1, 600);
@@ -155,7 +156,10 @@ public final class CaptureConfig {
                 .define("sync_monitor_enabled", false);
         WARN_THRESHOLD_MS = builder
                 .comment("音画同步告警阈值（毫秒，T5.3，建议值）")
-                .defineInRange("warn_threshold_ms", 50, 1, 5000);
+                .defineInRange("warn_threshold_ms", 50, 5, 500);
+        PERSIST_CHANGES = builder
+                .comment("运行时改参是否写回 TOML（M6/T6.3.2，默认 false）")
+                .define("persist_changes", false);
         builder.pop();
 
         builder.comment("诊断日志开关（默认关闭；排障时按需开启）").push("log");

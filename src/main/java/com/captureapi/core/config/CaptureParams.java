@@ -74,6 +74,7 @@ public final class CaptureParams {
                 CaptureConfig.RECORDING_FORMAT.get(),
                 CaptureConfig.SYNC_MONITOR_ENABLED.get(),
                 CaptureConfig.WARN_THRESHOLD_MS.get(),
+                CaptureConfig.PERSIST_CHANGES.get(),
                 CaptureConfig.LOG_RESOURCE_LIFECYCLE.get(),
                 CaptureConfig.LOG_FRAME_EVENTS.get(),
                 CaptureConfig.LOG_FRAME_DROPS.get(),
@@ -102,7 +103,7 @@ public final class CaptureParams {
                 next.netPort(), next.bindLocalOnly(), next.lanEnabled(), next.tokenEnabled(),
                 next.maxConnections(), next.maxQps(), next.frameCacheTtlSec(), next.recordingOutputDir(),
                 next.ffmpegPath(), next.recordingFormat(),
-                next.syncMonitorEnabled(), next.warnThresholdMs(),
+                next.syncMonitorEnabled(), next.warnThresholdMs(), next.persistChanges(),
                 next.logResourceLifecycle(), next.logFrameEvents(), next.logFrameDrops(),
                 next.logPipelineTiming(), next.logBufferWatermark(), next.logGlThreadViolation(),
                 next.clockLogging());
@@ -272,6 +273,16 @@ public final class CaptureParams {
         return current().warnThresholdMs();
     }
 
+    /** @return 运行时改参是否写回 TOML（T6.3.2） */
+    public boolean persistChanges() {
+        return current().persistChanges();
+    }
+
+    /** 运行时改参后立即重建快照（T6.3.3 变更通知/生效）。 */
+    public void reloadForRuntimeChange() {
+        refreshFromSpec(ReloadScope.RELOAD);
+    }
+
     public boolean logResourceLifecycle() {
         return current().logResourceLifecycle();
     }
@@ -376,6 +387,7 @@ public final class CaptureParams {
             String recordingFormat,
             boolean syncMonitorEnabled,
             int warnThresholdMs,
+            boolean persistChanges,
             boolean logResourceLifecycle,
             boolean logFrameEvents,
             boolean logFrameDrops,
