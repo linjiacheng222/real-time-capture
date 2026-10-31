@@ -260,10 +260,12 @@ $minForgeVersion = Get-GradleProperty -Name 'minForgeVersion' -PropertiesPath $g
 $devForgeVersion = Get-GradleProperty -Name 'devForgeVersion' -PropertiesPath $gradleProps
 $embeddiumVersion = Get-GradleProperty -Name 'embeddiumVersion' -PropertiesPath $gradleProps
 $modernfixVersion = Get-GradleProperty -Name 'modernfixVersion' -PropertiesPath $gradleProps
+$minModernfixVersion = Get-GradleProperty -Name 'minModernfixVersion' -PropertiesPath $gradleProps
+if (-not $minModernfixVersion) { $minModernfixVersion = '5.18.0' }
 $modName = ConvertFrom-JavaEscapes (Get-GradleProperty -Name 'modName' -PropertiesPath $gradleProps)
 $modAuthor = ConvertFrom-JavaEscapes (Get-GradleProperty -Name 'modAuthor' -PropertiesPath $gradleProps)
 if (-not $modId -or -not $modVersion) { throw "gradle.properties 缺少 modId/modVersion：$gradleProps" }
-Write-StepLog ("元数据期望: modId=$modId modVersion=$modVersion modName=$modName minecraft=$minecraftVersion minForge=$minForgeVersion devForge=$devForgeVersion") STEP
+Write-StepLog ("元数据期望: modId=$modId modVersion=$modVersion modName=$modName minecraft=$minecraftVersion minForge=$minForgeVersion devForge=$devForgeVersion minModernfix=$minModernfixVersion") STEP
 
 # 3) 构建
 $tasks = if ($SkipClean) { 'build' } else { 'clean build' }
@@ -325,7 +327,7 @@ if ($tomlOk) {
     Add-Check -Name 'forge 依赖版本区间 = [47.3.0,)' -Ok ($toml -match 'versionRange\s*=\s*"\[47\.3\.0,\)"') -Detail 'minForgeVersion 控制'
     Add-Check -Name 'minecraft 依赖版本区间 = [1.20.1]' -Ok ($toml -match 'versionRange\s*=\s*"\[1\.20\.1\]"') -Detail '精确版本'
     Add-Check -Name 'embeddium 依赖版本区间 = [0.3.31,)' -Ok ($toml -match 'versionRange\s*=\s*"\[0\.3\.31,\)"') -Detail 'mandatory（运行时校验）'
-    Add-Check -Name 'modernfix 依赖版本区间 = [5.27.89,)' -Ok ($toml -match 'versionRange\s*=\s*"\[5\.27\.89,\)"') -Detail 'mandatory（运行时校验）'
+    Add-Check -Name ('modernfix 依赖版本区间 = [' + $minModernfixVersion + ',)') -Ok ($toml -match ('versionRange\s*=\s*"\[' + [regex]::Escape($minModernfixVersion) + ',\)"')) -Detail 'mandatory（运行时校验；D-MF-1：下限 5.18.0 / 本地实测锚 5.27.89）'
     Add-Check -Name '四个依赖 modId 齐全' -Ok (($toml -match 'modId\s*=\s*"forge"') -and ($toml -match 'modId\s*=\s*"minecraft"') -and ($toml -match 'modId\s*=\s*"embeddium"') -and ($toml -match 'modId\s*=\s*"modernfix"')) -Detail 'forge/minecraft/embeddium/modernfix'
     $loaderOk = ($toml -match 'modLoader\s*=\s*"javafml"')
     Add-Check -Name 'modLoader = "javafml"' -Ok $loaderOk -Detail 'Forge 装载器类型'
@@ -345,7 +347,36 @@ try {
     finally { $zip2.Dispose() }
 }
 catch { $classOk = $false }
-Add-Check -Name '主类 com/captureapi/CaptureInterface.class 已打包' -Ok $classOk -Detail '空壳主类（业务代码未开始，属当前预期）'
+Add-Check -Name '主类 com/captureapi/CaptureInterface.class 已打包' -Ok $classOk -Detail 'T1.1 主类（生命周期入口）'
+
+# 7) T1.1 Mixin/AT/refmap 基建与红线 2 核验（I1.1.1 / I1.1.5）
+$jarEntries = @()
+try {
+    $zip3 = [System.IO.Compression.ZipFile]::OpenRead($expectedJar)
+    try { $jarEntries = @($zip3.Entries | ForEach-Object { $_.FullName }) }
+    finally { $zip3.Dispose() }
+} catch { $jarEntries = @() }
+$hasEntry = { param($name) ($jarEntries -contains $name) }
+
+$mixinConfigText = $null
+try { $mixinConfigText = Get-JarEntryText -JarPath $expectedJar -EntryName ($modId + '.mixins.json') } catch { }
+Add-Check -Name ('Mixin 配置已打包（' + $modId + '.mixins.json）') -Ok ($null -ne $mixinConfigText) -Detail 'I1.1.1：MixinGradle config 注入'
+if ($null -ne $mixinConfigText) {
+    Add-Check -Name 'Mixin 配置 package = com.captureapi.core.mixin' -Ok ($mixinConfigText -match '"package"\s*:\s*"com\.captureapi\.core\.mixin"') -Detail 'mixin 类包路径'
+    Add-Check -Name 'Mixin 配置含 MinecraftMixin（基建自检）' -Ok ($mixinConfigText -match '"MinecraftMixin"') -Detail 'client 列表'
+}
+Add-Check -Name 'AT 配置已打包（META-INF/accesstransformer.cfg）' -Ok (& $hasEntry 'META-INF/accesstransformer.cfg') -Detail 'I2.3/T2.x 按需追加；当前为空模板'
+
+$refmapText = $null
+try { $refmapText = Get-JarEntryText -JarPath $expectedJar -EntryName ($modId + '.refmap.json') } catch { }
+$refmapOk = ($null -ne $refmapText) -and ($refmapText -match 'captureapi/core/mixin/MinecraftMixin') -and ($refmapText -match 'm_\d+_')
+Add-Check -Name 'refmap 已生成且含 SRG 映射（captureapi.refmap.json）' -Ok $refmapOk -Detail 'Mixin 注解处理器生成；生产环境按 refmap 重映射 SRG 名'
+
+$manifestText = $null
+try { $manifestText = Get-JarEntryText -JarPath $expectedJar -EntryName 'META-INF/MANIFEST.MF' } catch { }
+Add-Check -Name '清单含 MixinConfigs 属性' -Ok (($null -ne $manifestText) -and ($manifestText -match ('MixinConfigs:\s*' + [regex]::Escape($modId + '.mixins.json')))) -Detail '生产 jar Mixin 配置发现入口'
+
+Add-Check -Name '产物 jar 无 Fabric/Quilt 元数据（红线 2）' -Ok ((-not (& $hasEntry 'fabric.mod.json')) -and (-not (& $hasEntry 'quilt.mod.json'))) -Detail 'I1.1.5：禁 Connector 类混合加载器'
 
 # 7) 汇总
 $swTotal.Stop()

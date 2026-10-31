@@ -3,6 +3,16 @@ plugins {
     id 'idea'
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    // Mixin 基建（I1.1.1）：注解处理器生成 refmap、清单注入 MixinConfigs、dev 运行配置
+    id 'org.spongepowered.mixin' version '0.7.38'
+}
+
+// Mixin 注解处理器/运行库来源（Sponge 官方 maven；plugin portal 不收录 mixingradle）
+repositories {
+    maven {
+        name = 'Sponge'
+        url = 'https://repo.spongepowered.org/repository/maven-public/'
+    }
 }
 
 version = modVersion
@@ -35,6 +45,9 @@ minecraft {
             // createSrgToMcp 由 ForgeGradle 在 run 任务图中生成。
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+            // dev 自检开关（仅开发运行）：让 Mixin/AT/refmap 基建自检日志以 INFO 输出，
+            // 便于验收留证；生产运行不设置该属性、默认静默（DEBUG 级）。
+            property 'captureapi.debug.mixin', 'true'
             mods {
                 "${modId}" {
                     source sourceSets.main
@@ -47,9 +60,20 @@ minecraft {
     }
 }
 
+// Mixin 基建（I1.1.1）：注册 refmap 输出与 mixin 配置；
+// refmap 由 annotationProcessor 在编译期生成，reobf 后随生产 jar 发布。
+mixin {
+    add sourceSets.main, "${modId}.refmap.json"
+    config "${modId}.mixins.json"
+}
+
 dependencies {
     // dev Forge：用已缓存的 47.4.23 mapped（D-BUILD-3 已裁决），发布下限仍由 mods.toml 的 minForgeVersion 控制
     minecraft "net.minecraftforge:forge:${minecraftVersion}-${devForgeVersion}"
+
+    // Mixin 注解处理器：编译期生成 captureapi.refmap.json（MixinGradle 0.7.38 不自动注入该依赖）
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
     // 硬依赖 Embeddium / ModernFix 由用户自行安装（D1 裁决），本工程不引入其编译期依赖，
     // 仅在 mods.toml 中声明 mandatory（运行时校验），适配工作经 Mixin/事件在源码级完成。
 }
@@ -69,7 +93,8 @@ tasks.named('processResources', ProcessResources).configure {
             modIssueUrl        : modIssueUrl,
             modForgeDisplayTest: modForgeDisplayTest,
             embeddiumVersion   : embeddiumVersion,
-            modernfixVersion   : modernfixVersion
+            modernfixVersion   : modernfixVersion,
+            minModernfixVersion: minModernfixVersion
     ]
     inputs.properties replaceProperties
     filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {

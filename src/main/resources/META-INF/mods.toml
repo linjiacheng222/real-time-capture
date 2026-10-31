@@ -35,9 +35,10 @@ displayTest = "${modForgeDisplayTest}"
     side = "CLIENT"
 
 # 硬依赖二：ModernFix（区块装载优化，用户自行安装——D1 裁决，仅 mandatory 声明）
+# 版本区间下限 = minModernfixVersion（D-MF-1，兼容用户侧 ≥5.18.0）；本地 dev 实测锚 5.27.89
 [[dependencies.${modId}]]
     modId = "modernfix"
     mandatory = true
-    versionRange = "[${modernfixVersion},)"
+    versionRange = "[${minModernfixVersion},)"
     ordering = "NONE"
     side = "CLIENT"

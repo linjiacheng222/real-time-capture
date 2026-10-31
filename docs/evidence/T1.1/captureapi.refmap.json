@@ -1,0 +1,14 @@
+{
+  "mappings": {
+    "com/captureapi/core/mixin/MinecraftMixin": {
+      "run": "Lnet/minecraft/client/Minecraft;m_91374_()V"
+    }
+  },
+  "data": {
+    "searge": {
+      "com/captureapi/core/mixin/MinecraftMixin": {
+        "run": "Lnet/minecraft/client/Minecraft;m_91374_()V"
+      }
+    }
+  }
+}
