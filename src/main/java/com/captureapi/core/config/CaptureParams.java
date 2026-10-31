@@ -59,6 +59,8 @@ public final class CaptureParams {
                 CaptureConfig.SAMPLE_RATE.get(),
                 CaptureConfig.BIT_DEPTH.get(),
                 CaptureConfig.CHANNELS.get(),
+                CaptureConfig.POLL_INTERVAL_MS.get(),
+                CaptureConfig.THREAD_PRIORITY.get(),
                 CaptureConfig.NET_PORT.get(),
                 CaptureConfig.BIND_LOCAL_ONLY.get(),
                 CaptureConfig.LAN_ENABLED.get(),
@@ -75,6 +77,7 @@ public final class CaptureParams {
         LOGGER.info("{} 参数快照{}：fps_max={}, video_resolution={}, jpeg_quality={}, encode_async={}, "
                         + "near_plane={}, far_plane={}, sound_range={}, chunk_rescan_ms={}, "
                         + "audio_enabled={}, sample_rate={}, bit_depth={}, channels={}, "
+                        + "poll_interval_ms={}, thread_priority={}, "
                         + "net_port={}, bind_local_only={}, lan_enabled={}, token_enabled={}, "
                         + "log_resource_lifecycle={}, log_frame_events={}, log_frame_drops={}, "
                         + "log_pipeline_timing={}, log_gl_thread_violation={}, clock_logging={}",
@@ -83,6 +86,7 @@ public final class CaptureParams {
                 next.fpsMax(), next.videoResolution(), next.jpegQuality(), next.encodeAsync(),
                 next.nearPlane(), next.farPlane(), next.soundRange(), next.chunkRescanMs(),
                 next.audioEnabled(), next.sampleRate(), next.bitDepth(), next.channels(),
+                next.pollIntervalMs(), next.threadPriority(),
                 next.netPort(), next.bindLocalOnly(), next.lanEnabled(), next.tokenEnabled(),
                 next.logResourceLifecycle(), next.logFrameEvents(), next.logFrameDrops(),
                 next.logPipelineTiming(), next.logGlThreadViolation(), next.clockLogging());
@@ -174,6 +178,16 @@ public final class CaptureParams {
 
     public int channels() {
         return current().channels();
+    }
+
+    /** @return 环回采集轮询间隔（毫秒，T3.1.4） */
+    public int pollIntervalMs() {
+        return current().pollIntervalMs();
+    }
+
+    /** @return 采集线程优先级（1~10，T3.1.3） */
+    public int threadPriority() {
+        return current().threadPriority();
     }
 
     public int netPort() {
@@ -281,6 +295,8 @@ public final class CaptureParams {
             int sampleRate,
             int bitDepth,
             int channels,
+            int pollIntervalMs,
+            int threadPriority,
             int netPort,
             boolean bindLocalOnly,
             boolean lanEnabled,
