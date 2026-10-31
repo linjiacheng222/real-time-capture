@@ -2,15 +2,30 @@ package com.captureapi.net;
 
 import com.captureapi.audio.AudioRingBuffer;
 import com.captureapi.audio.timestamp.AudioChunk;
+import com.captureapi.core.config.CaptureParams;
 import com.captureapi.core.constant.CaptureConstants;
+import com.captureapi.core.thread.GlThreadGuard;
 import com.captureapi.video.camera.CameraCreateParams;
 import com.captureapi.video.camera.CameraManager;
 import com.captureapi.video.camera.CameraSpec;
 import com.captureapi.video.frame.JpegFrame;
 import com.captureapi.video.frame.VideoFrameBus;
 import com.captureapi.video.stream.VideoStreamHub;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import javax.imageio.ImageIO;
+import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.slf4j.Logger;
@@ -52,6 +67,130 @@ public final class CaptureApi {
      */
     public static CompletableFuture<JpegFrame> grabFrame(CameraCreateParams params, long timeoutMillis) {
         return VideoStreamHub.get().requestOneShot(params, timeoutMillis);
+    }
+
+    /**
+     * 统一帧获取入口（T4.9 / I4.9.1）：同步阻塞至帧就绪，按请求输出文件或 HTTP URL。
+     *
+     * <p>不可在渲染线程调用（临时调取依赖渲染线程完成 Future，阻塞会死锁）。</p>
+     *
+     * @param request 帧获取参数
+     * @return 文件路径或 HTTP URL＋元数据
+     * @throws IOException 编码/写文件/调取失败
+     */
+    public static FrameResult captureFrame(FrameRequest request) throws IOException {
+        if (GlThreadGuard.isOnRenderThread()) {
+            throw new IllegalStateException("captureFrame 不可在渲染线程调用（会阻塞渲染/调取完成）");
+        }
+        if (request.continuous()) {
+            throw new UnsupportedOperationException("continuous=true 持续帧获取未实现（流式请用 WS/MJPEG）");
+        }
+        if (request.includeAudio()) {
+            throw new UnsupportedOperationException("音频截面未实现（W-071）");
+        }
+        CameraSpec active = CameraManager.get().active();
+        boolean oneShot = request.temporary() || request.hasExplicitCamera() || active == null;
+        JpegFrame frame;
+        if (oneShot) {
+            if (active == null && !request.hasExplicitCamera()) {
+                throw new IOException("无 active 相机且未提供相机参数");
+            }
+            try {
+                frame = VideoStreamHub.get().requestOneShot(request.toCameraParams(active), request.timeoutMillis())
+                        .get(request.timeoutMillis(), TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IOException("帧获取被中断", e);
+            } catch (TimeoutException e) {
+                throw new IOException("帧获取超时（" + request.timeoutMillis() + "ms）", e);
+            } catch (ExecutionException e) {
+                throw new IOException("实时调取失败：" + e.getCause(), e.getCause());
+            }
+            if (frame == null) {
+                throw new IOException("实时调取未返回帧");
+            }
+        } else {
+            long deadline = com.captureapi.core.time.CaptureClock.get().nowNanos()
+                    + request.timeoutMillis() * 1_000_000L;
+            frame = VideoFrameBus.get().latest();
+            while (frame == null && com.captureapi.core.time.CaptureClock.get().nowNanos() < deadline) {
+                try {
+                    Thread.sleep(10L);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException("等待帧被中断", e);
+                }
+                frame = VideoFrameBus.get().latest();
+            }
+            if (frame == null) {
+                throw new IOException("等待帧超时（无流式帧）");
+            }
+        }
+        if (request.outputMethod() == FrameRequest.OutputMethod.HTTP) {
+            NetworkServiceManager service = NetworkServiceManager.get();
+            if (!service.isRunning()) {
+                throw new IOException("网络服务未运行，无法返回 HTTP URL");
+            }
+            if (oneShot) {
+                long ttlMs = Math.max(1L, CaptureParams.get().frameCacheTtlSec()) * 1000L;
+                VideoFrameBus.get().publishTemporary(frame, ttlMs);
+            }
+            String host = CaptureParams.get().bindLocalOnly() || !CaptureParams.get().lanEnabled()
+                    ? "127.0.0.1" : localHost();
+            String url = "http://" + host + ":" + service.httpPort() + "/camera/0/frame";
+            return FrameResult.http(url, frame.timestampNanos(), frame.width(), frame.height(), frame.jpeg().length);
+        }
+        byte[] output = request.format() == FrameRequest.Format.PNG ? toPng(frame) : frame.jpeg();
+        Path path = request.outputPath();
+        if (path == null) {
+            Path dir = FMLPaths.GAMEDIR.get().resolve(CaptureParams.get().recordingOutputDir());
+            Files.createDirectories(dir);
+            String extension = request.format() == FrameRequest.Format.PNG ? ".png" : ".jpg";
+            path = dir.resolve("capture_" + frame.timestampNanos() + extension);
+        } else if (path.getParent() != null) {
+            Files.createDirectories(path.getParent());
+        }
+        path = uniquePath(path);
+        Files.write(path, output, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING,
+                StandardOpenOption.WRITE);
+        return FrameResult.file(path, frame.timestampNanos(), frame.width(), frame.height(), output.length);
+    }
+
+    private static Path uniquePath(Path path) {
+        if (!Files.exists(path)) {
+            return path;
+        }
+        String name = path.getFileName().toString();
+        int dot = name.lastIndexOf('.');
+        String base = dot < 0 ? name : name.substring(0, dot);
+        String suffix = dot < 0 ? "" : name.substring(dot);
+        for (int i = 1; i < 10000; i++) {
+            Path candidate = path.resolveSibling(base + "_" + i + suffix);
+            if (!Files.exists(candidate)) {
+                return candidate;
+            }
+        }
+        return path;
+    }
+
+    private static byte[] toPng(JpegFrame frame) throws IOException {
+        BufferedImage image = ImageIO.read(new ByteArrayInputStream(frame.jpeg()));
+        if (image == null) {
+            throw new IOException("JPEG 解码失败，无法输出 PNG");
+        }
+        ByteArrayOutputStream output = new ByteArrayOutputStream(frame.jpeg().length);
+        if (!ImageIO.write(image, "png", output)) {
+            throw new IOException("PNG 编码器不可用");
+        }
+        return output.toByteArray();
+    }
+
+    private static String localHost() {
+        try {
+            return InetAddress.getLocalHost().getHostAddress();
+        } catch (Exception e) {
+            return "127.0.0.1";
+        }
     }
 
     // ===== 音频 =====

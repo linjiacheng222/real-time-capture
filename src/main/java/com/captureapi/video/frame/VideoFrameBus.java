@@ -15,6 +15,8 @@ public final class VideoFrameBus {
 
     private final LatestValueChannel<JpegFrame> channel = new LatestValueChannel<>();
     private final AtomicLong published = new AtomicLong();
+    private volatile JpegFrame temporaryFrame;
+    private volatile long temporaryExpiresAtNanos;
 
     private VideoFrameBus() {
     }
@@ -25,12 +27,33 @@ public final class VideoFrameBus {
 
     /** 发布最新帧（M2 编码完成时调用；覆盖旧值）。 */
     public void publish(JpegFrame frame) {
+        temporaryFrame = null;
         channel.publish(frame);
         published.incrementAndGet();
     }
 
-    /** @return 最新帧；从未发布或已清空时 null */
+    /**
+     * 发布临时帧（T4.9.3 实时调取 HTTP 输出；TTL 内可被 HTTP 路由读取）。
+     *
+     * @param frame     临时帧
+     * @param ttlMillis 存活毫秒
+     */
+    public void publishTemporary(JpegFrame frame, long ttlMillis) {
+        temporaryFrame = frame;
+        temporaryExpiresAtNanos = com.captureapi.core.time.CaptureClock.get().nowNanos()
+                + Math.max(1L, ttlMillis) * 1_000_000L;
+        published.incrementAndGet();
+    }
+
+    /** @return 最新帧（优先未过期临时帧；从未发布/已清空/过期则 null） */
     public JpegFrame latest() {
+        JpegFrame temporary = temporaryFrame;
+        if (temporary != null) {
+            if (com.captureapi.core.time.CaptureClock.get().nowNanos() <= temporaryExpiresAtNanos) {
+                return temporary;
+            }
+            temporaryFrame = null;
+        }
         return channel.latest();
     }
 
@@ -41,6 +64,7 @@ public final class VideoFrameBus {
 
     /** 清空（世界卸载/测试）。 */
     public void clear() {
+        temporaryFrame = null;
         channel.clear();
     }
 }
