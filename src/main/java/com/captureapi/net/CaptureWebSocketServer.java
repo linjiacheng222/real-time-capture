@@ -16,7 +16,9 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +40,10 @@ public final class CaptureWebSocketServer {
     private final InetSocketAddress address;
     private final NetworkServiceManager manager;
     private final Map<Client, ConnectionInfo> connections = new ConcurrentHashMap<>();
+
+    private static final int SEND_QUEUE_CAPACITY = 32;
+
+    private final AtomicLong slowDisconnects = new AtomicLong();
 
     private volatile boolean running;
     private ServerSocket serverSocket;
@@ -232,18 +238,23 @@ public final class CaptureWebSocketServer {
         return Map.copyOf(connections);
     }
 
-    /** 广播文本（控制响应/T4.2 入口）。 */
+    /** 广播文本（控制响应/T4.2 入口；逐连接入队，慢连接断开）。 */
     public void broadcastText(String message) {
         for (Client client : connections.keySet()) {
             client.sendText(message);
         }
     }
 
-    /** 广播二进制（视频/音频帧 T4.2 入口）。 */
+    /** 广播二进制（视频/音频帧 T4.2 入口；逐连接入队，慢连接断开）。 */
     public void broadcastBinary(byte[] payload) {
         for (Client client : connections.keySet()) {
             client.sendBinary(payload);
         }
+    }
+
+    /** @return 因发送队列满被断开的慢连接数 */
+    public long slowDisconnectCount() {
+        return slowDisconnects.get();
     }
 
     /** 生成随机 token（32 hex chars）。 */
@@ -264,17 +275,38 @@ public final class CaptureWebSocketServer {
     public record ConnectionInfo(String remoteAddress, long openedAtNanos) {
     }
 
+    private record Outbound(int opcode, byte[] payload) {
+    }
+
     /** 单个 WS 连接（服务端帧不加掩码；客户端帧按 RFC 要求去掩码）。 */
     private final class Client {
         private final Socket socket;
         private final BufferedInputStream input;
         private final OutputStream output;
+        private final ArrayBlockingQueue<Outbound> outbound = new ArrayBlockingQueue<>(SEND_QUEUE_CAPACITY);
+        private final Thread writer;
         private volatile boolean open = true;
 
         private Client(Socket socket, BufferedInputStream input, OutputStream output) {
             this.socket = socket;
             this.input = input;
             this.output = output;
+            this.writer = new Thread(this::writeLoop, "captureapi-ws-writer");
+            this.writer.setDaemon(true);
+            this.writer.start();
+        }
+
+        private void writeLoop() {
+            try {
+                while (open) {
+                    Outbound message = outbound.take();
+                    sendFrame(message.opcode(), message.payload());
+                }
+            } catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+            } catch (Throwable t) {
+                close(1011, "write error");
+            }
         }
 
         private void readLoop() throws IOException {
@@ -339,11 +371,25 @@ public final class CaptureWebSocketServer {
         }
 
         private void sendText(String message) {
-            sendFrame(0x1, message.getBytes(StandardCharsets.UTF_8));
+            enqueue(0x1, message.getBytes(StandardCharsets.UTF_8));
         }
 
         private void sendBinary(byte[] payload) {
-            sendFrame(0x2, payload);
+            enqueue(0x2, payload);
+        }
+
+        private boolean enqueue(int opcode, byte[] payload) {
+            if (!open) {
+                return true;
+            }
+            if (!outbound.offer(new Outbound(opcode, payload))) {
+                slowDisconnects.incrementAndGet();
+                LOGGER.warn("{} [NET/WS] 慢连接发送队列满（{}），断开：{}", CaptureConstants.LOG_MARKER,
+                        SEND_QUEUE_CAPACITY, socket.getRemoteSocketAddress());
+                close(1013, "slow consumer");
+                return false;
+            }
+            return true;
         }
 
         private synchronized void sendFrame(int opcode, byte[] payload) {
@@ -384,6 +430,7 @@ public final class CaptureWebSocketServer {
             System.arraycopy(reasonBytes, 0, payload, 2, payload.length - 2);
             sendFrame(0x8, payload);
             open = false;
+            writer.interrupt();
             try {
                 socket.close();
             } catch (IOException ignored) {
