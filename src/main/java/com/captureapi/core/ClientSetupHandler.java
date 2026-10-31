@@ -9,11 +9,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 客户端生命周期挂载（I1.1.2）。
+ * 客户端生命周期挂载（I1.1.2 / I1.3.x 装配点）。
  *
  * <p>纯客户端模组：所有事件订阅类必须显式声明 {@code value = Dist.CLIENT}，防止在
- * 物理服务端歧义加载；本类只在客户端 setup 阶段打印一次基线就绪日志，后续 T1.2/T1.3
- * 的服务装配点在此集中接入。</p>
+ * 物理服务端歧义加载；本类在客户端 setup 阶段完成：</p>
+ * <ol>
+ *   <li>打印一次基线就绪日志（I1.1.2 验收标准）；</li>
+ *   <li>按需调度 M1 核心设施自检（{@link CoreSelfTest}，仅 dev 属性开启时）。</li>
+ * </ol>
  */
 @Mod.EventBusSubscriber(modid = CaptureInterface.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class ClientSetupHandler {
@@ -25,13 +28,14 @@ public final class ClientSetupHandler {
     }
 
     /**
-     * 客户端 setup 基线日志（验收标准 I1.1.2⑧：日志出现带 {@code [CaptureAPI]} 前缀的就绪行）。
+     * 客户端 setup：基线日志 + M1 设施自检入口。
      *
      * @param event Forge 客户端 setup 事件
      */
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
-        LOGGER.info("{} 底座就绪（MC 客户端 setup 完成，纯客户端模组；后续 T1.2/T1.3/T1.5 服务在此装配）",
+        LOGGER.info("{} 底座就绪（MC 客户端 setup 完成，纯客户端模组；T1.2/T1.3 设施已接入）",
                 CaptureConstants.LOG_MARKER);
+        CoreSelfTest.scheduleIfEnabled();
     }
 }

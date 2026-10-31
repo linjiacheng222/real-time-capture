@@ -48,6 +48,8 @@ minecraft {
             // dev 自检开关（仅开发运行）：让 Mixin/AT/refmap 基建自检日志以 INFO 输出，
             // 便于验收留证；生产运行不设置该属性、默认静默（DEBUG 级）。
             property 'captureapi.debug.mixin', 'true'
+            // M1 核心设施自检（T1.2/T1.3）：GL 守卫正/负例、最新值通道、资源管理器生命周期。
+            property 'captureapi.debug.selftest', 'true'
             mods {
                 "${modId}" {
                     source sourceSets.main
