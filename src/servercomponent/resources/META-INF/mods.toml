@@ -1,0 +1,27 @@
+modLoader = "javafml"
+loaderVersion = "[47,)"
+license = "MIT"
+
+[[mods]]
+modId = "captureapi_server"
+version = "0.5.0"
+displayName = "捕获接口服务端组件"
+authors = "林嘉诚"
+description = '''
+CaptureAPI 可选服务端组件（M9）：为远程多人服务器提供相机区块申请受理与临时 ticket 回收。
+仅服务端；不装组件时客户端自动降级为自然加载。
+'''
+
+[[dependencies.captureapi_server]]
+modId = "forge"
+mandatory = true
+versionRange = "[47.3.0,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.captureapi_server]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.20.1]"
+ordering = "NONE"
+side = "BOTH"

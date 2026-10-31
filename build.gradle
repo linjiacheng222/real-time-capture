@@ -82,6 +82,44 @@ dependencies {
 
 }
 
+// M9：可选服务端组件独立 source set（独立 jar，独立 modid）
+sourceSets {
+    serverComponent {
+        compileClasspath += sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+    }
+}
+
+tasks.register('serverComponentJar', Jar) {
+    group = 'build'
+    description = 'Build optional CaptureAPI server component jar (M9)'
+    archiveClassifier = 'server'
+    from sourceSets.serverComponent.output
+    exclude 'captureapi.refmap.json'
+    exclude 'captureapi.mixins.json'
+    manifest {
+        attributes([
+                'Specification-Title'   : 'captureapi-server',
+                'Implementation-Title'  : 'CaptureAPI Server Component',
+                'Implementation-Version': project.version
+        ])
+    }
+}
+
+reobf {
+    serverComponentJar {}
+}
+
+// 服务端组件不是 Mixin 模组：禁用 MixinGradle 给它注入 MixinConfigs（否则会引用不存在的配置）
+afterEvaluate {
+    tasks.matching { it.name == 'addMixinsToServerComponentJar' }.configureEach { enabled = false }
+    tasks.named('addMixinsToJarJar') {}
+}
+
+tasks.named('build') {
+    dependsOn 'reobfServerComponentJar'
+}
+
 tasks.named('processResources', ProcessResources).configure {
     filteringCharset = 'UTF-8'
     var replaceProperties = [
