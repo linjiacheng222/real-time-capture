@@ -149,7 +149,9 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
             target.clear(true);
             fbo.bind();
             ShaderCompatHooks.beginOffscreenPass(pose);
+            CameraSyncHook.onBeforeOffscreenRender(pose);
             gameRenderer.renderLevel(partialTick, 0L, new PoseStack());
+            CameraSyncHook.onAfterOffscreenRender(pose);
             ShaderCompatHooks.endOffscreenPass();
             PboPairResource pbo = WorldResourceManager.get().get(PboPairResource.KEY, PboPairResource.class);
             RawFrame raw = pbo.readbackImmediate();
@@ -213,7 +215,7 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
             long renderStart = CaptureClock.get().nowNanos();
             gameRenderer.renderLevel(partialTick, 0L, new PoseStack());
             long renderNanos = CaptureClock.get().nowNanos() - renderStart;
-            // TODO(M3)：CameraSyncHook.onAfterOffscreenRender(pose)，同帧内恢复监听器
+            CameraSyncHook.onAfterOffscreenRender(pose);
             ShaderCompatHooks.endOffscreenPass();
             // T2.4：FBO 仍为读/写目标时回读上一帧（写 N 读 N-1）
             PboPairResource pbo = WorldResourceManager.get().get(PboPairResource.KEY, PboPairResource.class);
