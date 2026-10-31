@@ -28,6 +28,7 @@ public final class AudioSetupHandler {
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         WorldResourceManager.get().registerGlobalScoped(AudioRingBuffer.KEY, AudioRingBuffer::get);
+        AudioListenerSync.install();
         LOGGER.info("{} 音频设施装配：环形缓冲已注册（{}）", CaptureConstants.LOG_MARKER,
                 AudioRingBuffer.KEY);
     }
