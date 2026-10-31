@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Specification-Title: captureapi
+Specification-Vendor: 林嘉诚
+Specification-Version: 1
+Implementation-Title: captureapi
+Implementation-Version: 0.5.0
+Implementation-Vendor: 林嘉诚
+MixinConfigs: captureapi.mixins.json
+

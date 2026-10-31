@@ -1,0 +1,8 @@
+[3110��2026 20:31:58.522] [main/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file embeddium-0.3.31_mapped_official_1.20.1-dev.jar with {embeddium,rubidium} mods - versions {0.3.31+mc1.20.1,0.7.1}
+[3110��2026 20:31:58.526] [main/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file modernfix-5.27.89_mapped_official_1.20.1-dev.jar with {modernfix} mods - versions {5.27.89+mc1.20.1}
+[3110��2026 20:31:58.687] [main/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file main with {captureapi} mods - versions {0.5.0}
+[3110��2026 20:31:58.780] [main/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file embeddium-0.3.31_mapped_official_1.20.1-dev.jar with {embeddium,rubidium} mods - versions {0.3.31+mc1.20.1,0.7.1}
+[3110��2026 20:31:58.781] [main/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file main with {captureapi} mods - versions {0.5.0}
+[3110��2026 20:31:58.783] [main/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file modernfix-5.27.89_mapped_official_1.20.1-dev.jar with {modernfix} mods - versions {5.27.89+mc1.20.1}
+[3110��2026 20:32:00.203] [main/DEBUG] [mixin/]: Registering mixin config: captureapi.mixins.json
+[3110��2026 20:32:03.790] [main/DEBUG] [mixin/]: Mixing MinecraftMixin from captureapi.mixins.json into net.minecraft.client.Minecraft

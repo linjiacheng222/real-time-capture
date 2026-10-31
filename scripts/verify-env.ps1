@@ -256,15 +256,21 @@ function Set-JdkEnvironment {
 
 function Test-TcpEndpoint {
     param([string]$TargetHost, [int]$Port = 443, [int]$TimeoutMs = 6000)
-    $client = New-Object System.Net.Sockets.TcpClient
-    try {
-        $iar = $client.BeginConnect($TargetHost, $Port, $null, $null)
-        if (-not $iar.AsyncWaitHandle.WaitOne($TimeoutMs, $false)) { return $false }
-        $client.EndConnect($iar)
-        return $true
+    # 3 次尝试：公网端点偶发瞬时不可达（如 codeload/PyPI），重试可避免误报环境退化
+    for ($attempt = 1; $attempt -le 3; $attempt++) {
+        $client = New-Object System.Net.Sockets.TcpClient
+        try {
+            $iar = $client.BeginConnect($TargetHost, $Port, $null, $null)
+            if ($iar.AsyncWaitHandle.WaitOne($TimeoutMs, $false)) {
+                $client.EndConnect($iar)
+                return $true
+            }
+        }
+        catch { }
+        finally { try { $client.Close() } catch { } }
+        if ($attempt -lt 3) { Start-Sleep -Milliseconds 500 }
     }
-    catch { return $false }
-    finally { try { $client.Close() } catch { } }
+    return $false
 }
 
 function Invoke-HttpHead {
@@ -417,6 +423,7 @@ Invoke-Check -Category '工程依赖' -Name 'gradle.properties 基准值与规�
         devForgeVersion    = '47.4.23'
         embeddiumVersion   = '0.3.31'
         modernfixVersion   = '5.27.89'
+        minModernfixVersion = '5.18.0'
         modForgeDisplayTest = 'IGNORE_ALL_VERSION'
         modMavenGroup      = 'com.captureapi'
     }
@@ -428,7 +435,7 @@ Invoke-Check -Category '工程依赖' -Name 'gradle.properties 基准值与规�
         }
     }
     if ($mismatches.Count -gt 0) { throw ($mismatches -join '; ') }
-    return ('9 个基准键一致：minecraft=1.20.1 / devForge=47.4.23 / minForge=47.3.0 / embeddium=0.3.31 / modernfix=5.27.89')
+    return ('10 个基准键一致：minecraft=1.20.1 / devForge=47.4.23 / minForge=47.3.0 / embeddium=0.3.31 / modernfix=5.27.89 / minModernfix=5.18.0')
 }
 
 Invoke-Check -Category '工程依赖' -Name '源 mods.toml 四依赖 + loaderVersion=[47,)' -Body {
@@ -441,7 +448,10 @@ Invoke-Check -Category '工程依赖' -Name '源 mods.toml 四依赖 + loaderVer
     foreach ($dep in @('forge', 'minecraft', 'embeddium', 'modernfix')) {
         if ($text -notmatch ('modId\s*=\s*"' + $dep + '"')) { throw ('缺少依赖 ' + $dep) }
     }
-    return 'loaderVersion=[47,)；4 项依赖 forge/minecraft/embeddium/modernfix 齐全'
+    if ($text -notmatch [regex]::Escape('versionRange = "[${minModernfixVersion},)"')) {
+        throw 'modernfix 依赖区间未引用 minModernfixVersion（D-MF-1）'
+    }
+    return 'loaderVersion=[47,)；4 项依赖齐全；modernfix 下限引用 minModernfixVersion（D-MF-1）'
 }
 
 Invoke-Check -Category '工程依赖' -Name 'run\mods dev 依赖 embeddium（named 变体）' -Body {
@@ -485,6 +495,40 @@ Invoke-OptionalCheck -Category '工程依赖' -Name '构建产物 build\libs jar
     $item = Get-Item -LiteralPath $jar
     return ($item.FullName + '（' + $item.Length + ' bytes，' + $item.LastWriteTime.ToString('yyyy-MM-dd HH:mm:ss') + '）')
 } -WarnHint '运行 scripts\build.ps1 生成'
+
+Invoke-OptionalCheck -Category '工程依赖' -Name 'Mixin/AT/refmap 基建产物（I1.1.1）' -Body {
+    $jar = Join-Path $ProjectRoot ('build\libs\' + $script:ModId + '-' + $script:ModVersion + '.jar')
+    if (-not (Test-Path -LiteralPath $jar)) { throw ('不存在：' + $jar) }
+    Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction Stop
+    $zip = [System.IO.Compression.ZipFile]::OpenRead($jar)
+    try {
+        $required = @(($script:ModId + '.mixins.json'), ($script:ModId + '.refmap.json'), 'META-INF/accesstransformer.cfg', 'META-INF/MANIFEST.MF')
+        $missing = @()
+        foreach ($req in $required) {
+            if ($null -eq $zip.GetEntry($req)) { $missing += $req }
+        }
+        if ($missing.Count -gt 0) { throw ('jar 缺少：' + ($missing -join ', ') + '（jar=' + $jar + '，entry 数=' + $zip.Entries.Count + '）') }
+        $manifestEntry = $zip.GetEntry('META-INF/MANIFEST.MF')
+        $reader = New-Object System.IO.StreamReader($manifestEntry.Open())
+        try { $manifest = $reader.ReadToEnd() } finally { $reader.Close() }
+        if ($manifest -notmatch ('MixinConfigs:\s*' + [regex]::Escape($script:ModId + '.mixins.json'))) { throw 'MANIFEST 缺少 MixinConfigs' }
+        $refmapEntry = $zip.GetEntry($script:ModId + '.refmap.json')
+        $reader = New-Object System.IO.StreamReader($refmapEntry.Open())
+        try { $refmap = $reader.ReadToEnd() } finally { $reader.Close() }
+        if ($refmap -notmatch 'm_\d+_') { throw 'refmap 未含 SRG 映射（Mixin AP 可能未生效）' }
+        return 'mixins.json / refmap.json / accesstransformer.cfg / MixinConfigs 均齐备'
+    }
+    finally { $zip.Dispose() }
+} -WarnHint '运行 scripts\build.ps1 生成产物后复检'
+
+Invoke-OptionalCheck -Category '工程依赖' -Name 'dev 客户端 Mixin 自检日志（I1.1.1）' -Body {
+    $latestLog = Join-Path $ProjectRoot 'run\logs\latest.log'
+    if (-not (Test-Path -LiteralPath $latestLog)) { throw '不存在 run\logs\latest.log' }
+    $text = Read-TextAuto -Path $latestLog
+    if ($text -notmatch 'Mixin 基建自检') { throw '未找到 Mixin 基建自检日志（run-client.ps1 复跑后复检）' }
+    if ($text -notmatch '\[CaptureAPI\] 底座就绪') { throw '未找到客户端 setup 基线日志（I1.1.2）' }
+    return 'Mixin 注入自检 + 客户端 setup 基线日志均存在'
+} -WarnHint '运行 scripts\run-client.ps1 验证'
 
 Invoke-OptionalCheck -Category '工程依赖' -Name 'dev 客户端日志（runClient 已实测）' -Body {
     $latestLog = Join-Path $ProjectRoot 'run\logs\latest.log'

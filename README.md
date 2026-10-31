@@ -5,9 +5,10 @@ Minecraft **1.20.1 Forge** 客户端模组：游戏内自定义相机位下，�
 ## 当前状态
 
 - 工程根：`E:\捕获接口\`（ForgeGradle 6 + Mojmap + Java 17；Gradle 8.14.5 wrapper，华为云镜像）。
-- 构建：**2026-10-28 首次 `gradlew build` 通过**；产物 `build/libs/captureapi-0.5.0.jar`（`mods.toml` 中文元数据已校验）。
-- 代码：主类 `com.captureapi.CaptureInterface` 仍为空壳；业务代码按计划 M-T-I 树逐项实现。
-- dev 依赖：`run/mods/` 已放 `embeddium-0.3.31` 与 `modernfix-5.27.89`（D-BUILD-1）。
+- 构建：2026-10-28 首次 `gradlew build` 通过；**2026-10-31 T1.1 完成**：`scripts\build.ps1` clean build PASS（22/22 校验，含 Mixin/AT/refmap/红线 2）。
+- 代码：**T1.1 已实施**（M1 首批）——主类生命周期入口 `com.captureapi.CaptureInterface`（构造器注入 `FMLJavaModLoadingContext`）、客户端 setup 订阅 `com.captureapi.core.ClientSetupHandler`、`CaptureConstants` 日志常量；**Mixin/AT/refmap 基建**已接入（MixinGradle 0.7.38 + Mixin AP 0.8.5，`captureapi.mixins.json` / `META-INF/accesstransformer.cfg`，refmap 生产 jar 内置）。业务功能按 M-T-I 树继续（下一任务 T1.2）。
+- dev 依赖：`run/mods/` 放 named 变体（`embeddium-0.3.31…dev.jar`、`modernfix-5.27.89…dev.jar`）；生产 jar 存 `run/mods-original/`（D-BUILD-1/D-DEV-1）。
+- 验收证据：`docs/T1.1-验收记录.md`、`docs/红线核验记录.md`、`docs/evidence/T1.1/`。
 - Git 已安装：`E:\Tools\Git`（MinGit 2.56.0；`git.cmd` shim 已入 PATH）；FFmpeg 已安装：`E:\Tools\ffmpeg\bin\ffmpeg.exe`（7.1 essentials，含 libx264/AAC）。
 
 ## 构建
@@ -44,6 +45,5 @@ gradlew.bat runClient
   （`embeddium-0.3.31_mapped_official_1.20.1-dev.jar`、`modernfix-5.27.89_mapped_official_1.20.1-dev.jar`）；
   原始生产 jar 保存在 `run\mods-original\`（Forge 不加载）。升级 Embeddium/ModernFix 后重跑
   `scripts\prepare-dev-deps.ps1`。直接放生产 jar 会导致 `@Shadow ... m_5601_ ... was not located` 崩溃。
-- 实测结果（2026-10-30）：`verify-env.ps1` 35 PASS / 0 FAIL；clean build PASS；`--offline build` PASS；
-  `runClient` 33s 到达主菜单（Forge 47.4.23 + Embeddium 0.3.31 + ModernFix 5.27.89 + captureapi），
+- 实测结果（2026-10-30 环境基线；2026-10-31 T1.1 复测）：`verify-env.ps1` **37 PASS / 0 FAIL / 0 WARN**；clean build PASS（22/22 校验）；`--offline build` PASS；`runClient` 33s 到达主菜单（Forge 47.4.23 + Embeddium 0.3.31 + ModernFix 5.27.89 + captureapi），
   无 crash report、无 FATAL、退出后无残留 java；「进入世界」为人工验收项。
