@@ -1,0 +1,113 @@
+[3110月2026 22:39:51.806] [modloading-worker-0/INFO] [[CaptureAPI]/]: [CaptureAPI] 主类构造完成（modid=captureapi，配置骨架=captureapi-client.toml）
+[3110月2026 22:39:53.170] [modloading-worker-0/INFO] [[CaptureAPI]/]: [CaptureAPI] 配置加载事件（Loading）：captureapi-client.toml
+[3110月2026 22:39:53.195] [modloading-worker-0/INFO] [[CaptureAPI]/]: [CaptureAPI] 参数快照建立（Loading）：fps_max=30, video_resolution=1280x1024, jpeg_quality=75, audio_enabled=true, sample_rate=44100, bit_depth=16, channels=2, net_port=25580, bind_local_only=true, lan_enabled=false, token_enabled=false, log_resource_lifecycle=true, log_frame_events=true, log_gl_thread_violation=true, clock_logging=false
+[3110月2026 22:39:53.610] [Worker-ResourceReload-4/INFO] [[CaptureAPI]/]: [CaptureAPI] 资源创建：captureapi:core:clock（世界级，线程=Worker-ResourceReload-4）
+[3110月2026 22:39:53.611] [Worker-ResourceReload-4/INFO] [[CaptureAPI]/]: [CaptureAPI] 底座就绪（MC 客户端 setup 完成，纯客户端模组；T1.2~T1.5 设施已接入）
+[3110月2026 22:40:47.424] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:40:49.747] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界进入：开始创建世界资源（注册数=0）
+[3110月2026 22:40:49.752] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=1, destroyed=0, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=1, registeredWorld=0, worldReady=true}
+[3110月2026 22:40:51.474] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=120（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:40:52.545] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=240（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:40:53.623] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=360（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:40:54.699] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=480（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:40:55.789] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=600（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:40:56.809] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=720（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:40:57.878] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=840（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:40:58.885] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=960（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:40:59.915] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=1080（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:00.925] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=1200（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:01.931] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=1320（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:02.971] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=1440（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:04.034] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=1560（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:05.037] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=1680（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:06.049] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=1800（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:07.088] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=1920（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:08.134] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=2040（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:09.139] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=2160（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:10.143] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=2280（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:11.163] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=2400（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:12.176] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=2520（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:13.196] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=2640（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:14.209] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=2760（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:15.214] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=2880（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:16.222] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=3000（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:17.227] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=3120（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:18.250] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=3240（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:19.256] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=3360（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:20.260] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=3480（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:21.277] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=3600（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:22.283] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=3720（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:23.358] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=3840（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:24.364] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=3960（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:25.373] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=4080（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:26.394] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=4200（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:27.404] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=4320（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:28.412] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=4440（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:29.420] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=4560（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:30.425] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=4680（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:31.434] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=4800（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:32.447] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=4920（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:33.456] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=5040（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:34.460] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=5160（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:35.495] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=5280（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:36.505] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=5400（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:37.521] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=5520（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:38.546] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=5640（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:39.557] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=5760（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:40.565] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=5880（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:41.582] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=6000（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:42.592] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=6120（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:43.599] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=6240（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:44.608] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=6360（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:45.613] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=6480（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:46.621] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=6600（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:47.627] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=6720（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:48.633] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=6840（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:49.639] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=6960（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:50.644] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=7080（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:51.651] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=7200（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:52.674] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=7320（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:53.679] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=7440（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:54.685] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=7560（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:55.694] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=7680（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:56.699] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=7800（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:57.705] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=7920（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:58.709] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=8040（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:41:59.719] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=8160（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:00.731] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=8280（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:01.739] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=8400（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:02.747] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=8520（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:03.756] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=8640（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:04.765] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=8760（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:05.771] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=8880（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:06.775] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=9000（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:07.780] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=9120（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:08.786] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=9240（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:09.792] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=9360（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:10.800] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=9480（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:11.814] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=9600（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:12.822] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=9720（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:13.826] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=9840（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:14.835] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=9960（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:15.846] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=10080（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:16.854] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=10200（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:17.878] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=10320（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:18.880] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=10440（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:19.950] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=10560（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:20.990] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=10680（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:22.005] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=10800（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:23.021] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=10920（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:24.043] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=11040（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:25.076] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=11160（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:26.101] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=11280（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:27.107] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=11400（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:28.114] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=11520（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:29.133] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=11640（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:30.155] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=11760（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:31.171] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=11880（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:32.193] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 渲染帧计数=12000（AFTER_LEVEL，诊断 log_frame_events）
+[3110月2026 22:42:32.910] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:42:32.914] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:42:33.734] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:42:33.825] [captureapi-shutdown/INFO] [[CaptureAPI]/]: [CaptureAPI] 资源销毁：captureapi:core:clock（全局级，线程=captureapi-shutdown）
+[3110月2026 22:42:33.825] [captureapi-shutdown/INFO] [[CaptureAPI]/]: [CaptureAPI] 客户端关闭：全局资源已回收

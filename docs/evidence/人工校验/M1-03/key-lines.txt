@@ -1,0 +1,4 @@
+[3110月2026 22:44:53.411] [modloading-worker-0/INFO] [[CaptureAPI]/]: [CaptureAPI] 配置加载事件（Loading）：captureapi-client.toml
+[3110月2026 22:44:53.442] [modloading-worker-0/INFO] [[CaptureAPI]/]: [CaptureAPI] 参数快照建立（Loading）：fps_max=30, video_resolution=1280x1024, jpeg_quality=75, audio_enabled=true, sample_rate=44100, bit_depth=16, channels=2, net_port=25580, bind_local_only=true, lan_enabled=false, token_enabled=false, log_resource_lifecycle=true, log_frame_events=true, log_gl_thread_violation=true, clock_logging=false
+[3110月2026 22:46:08.680] [Render thread/INFO] [ModernFix/]: Processed 0 config reloads
+[3110月2026 22:48:25.189] [Render thread/INFO] [ModernFix/]: Processed 0 config reloads
