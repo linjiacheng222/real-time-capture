@@ -28,6 +28,9 @@ public final class CaptureConfig {
     // M2/T2.1.2：相机投影裁剪面
     static final ForgeConfigSpec.DoubleValue NEAR_PLANE;
     static final ForgeConfigSpec.DoubleValue FAR_PLANE;
+    // M2/T2.7：摄制区块按需加载
+    static final ForgeConfigSpec.IntValue SOUND_RANGE;
+    static final ForgeConfigSpec.IntValue CHUNK_RESCAN_MS;
 
     // ===== [audio] =====
     static final ForgeConfigSpec.BooleanValue AUDIO_ENABLED;
@@ -72,6 +75,12 @@ public final class CaptureConfig {
         FAR_PLANE = builder
                 .comment("离屏投影远裁剪距离；0=自动（渲染距离×16）")
                 .defineInRange("far_plane", 0.0D, 0.0D, 4096.0D);
+        SOUND_RANGE = builder
+                .comment("相机可听半径（格；声音区块求取，T2.7.1）")
+                .defineInRange("sound_range", 64, 0, 512);
+        CHUNK_RESCAN_MS = builder
+                .comment("摄制区块集合重扫周期（毫秒，T2.7.1）")
+                .defineInRange("chunk_rescan_ms", 500, 100, 5000);
         builder.pop();
 
         builder.comment("音频采集与格式参数（M3 使用）").push("audio");

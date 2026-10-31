@@ -18,6 +18,8 @@ import com.captureapi.video.camera.CameraManager;
 import com.captureapi.video.camera.CameraMatrices;
 import com.captureapi.video.camera.CameraPose;
 import com.captureapi.video.camera.CameraSpec;
+import com.captureapi.video.chunk.CaptureChunkPlanner;
+import com.captureapi.video.shader.ShaderCompatHooks;
 import com.captureapi.video.stream.OneShotRequest;
 import com.captureapi.video.stream.VideoStreamHub;
 import com.mojang.blaze3d.pipeline.TextureTarget;
@@ -146,7 +148,9 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
             target.setClearColor(0.0F, 0.0F, 0.0F, 1.0F);
             target.clear(true);
             fbo.bind();
+            ShaderCompatHooks.beginOffscreenPass(pose);
             gameRenderer.renderLevel(partialTick, 0L, new PoseStack());
+            ShaderCompatHooks.endOffscreenPass();
             PboPairResource pbo = WorldResourceManager.get().get(PboPairResource.KEY, PboPairResource.class);
             RawFrame raw = pbo.readbackImmediate();
             fbo.unbind();
@@ -195,6 +199,7 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
         try {
             fbo = WorldResourceManager.get().get(OffscreenFboResource.KEY, OffscreenFboResource.class);
             CameraPose pose = CameraMatrices.capture(spec, partialTick);
+            CaptureChunkPlanner.get().update(pose);
             renderState = RenderStateSnapshot.capture();
             cameraState = CameraStateSnapshot.applyPose(gameRenderer.getMainCamera(), pose);
             gameRendererAccessor.captureapi$setRenderHand(false);
@@ -203,11 +208,13 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
             target.setClearColor(0.0F, 0.0F, 0.0F, 1.0F);
             target.clear(true);
             fbo.bind();
+            ShaderCompatHooks.beginOffscreenPass(pose);
             // TODO(M3)：CameraSyncHook.onBeforeOffscreenRender(pose)，同帧内改写监听器
             long renderStart = CaptureClock.get().nowNanos();
             gameRenderer.renderLevel(partialTick, 0L, new PoseStack());
             long renderNanos = CaptureClock.get().nowNanos() - renderStart;
             // TODO(M3)：CameraSyncHook.onAfterOffscreenRender(pose)，同帧内恢复监听器
+            ShaderCompatHooks.endOffscreenPass();
             // T2.4：FBO 仍为读/写目标时回读上一帧（写 N 读 N-1）
             PboPairResource pbo = WorldResourceManager.get().get(PboPairResource.KEY, PboPairResource.class);
             long readbackStart = CaptureClock.get().nowNanos();
