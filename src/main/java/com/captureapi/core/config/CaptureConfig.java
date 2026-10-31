@@ -48,6 +48,8 @@ public final class CaptureConfig {
     static final ForgeConfigSpec.BooleanValue TOKEN_ENABLED;
     static final ForgeConfigSpec.IntValue MAX_CONNECTIONS;
     static final ForgeConfigSpec.IntValue MAX_QPS;
+    static final ForgeConfigSpec.IntValue FRAME_CACHE_TTL_SEC;
+    static final ForgeConfigSpec.ConfigValue<String> RECORDING_OUTPUT_DIR;
 
     // ===== [log] =====
     static final ForgeConfigSpec.BooleanValue LOG_RESOURCE_LIFECYCLE;
@@ -132,6 +134,12 @@ public final class CaptureConfig {
         MAX_QPS = builder
                 .comment("HTTP 单帧轮询限速（QPS，T4.5.3；建议值）")
                 .defineInRange("max_qps", 30, 1, 1000);
+        FRAME_CACHE_TTL_SEC = builder
+                .comment("临时相机帧缓存 TTL（秒，T4.9.3/W-084）")
+                .defineInRange("frame_cache_ttl_sec", 30, 1, 600);
+        RECORDING_OUTPUT_DIR = builder
+                .comment("帧/录像默认输出目录（相对游戏目录）")
+                .define("recording_output_dir", "config/captureapi/recordings");
         builder.pop();
 
         builder.comment("诊断日志开关（默认关闭；排障时按需开启）").push("log");
