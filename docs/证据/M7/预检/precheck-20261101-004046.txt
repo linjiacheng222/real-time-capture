@@ -1,0 +1,18 @@
+﻿=== M7 acceptance precheck 20261101-004046 ===
+[PASS] build.ps1 build/artifact — exit=0; jar=218212 bytes
+[PASS] appendix-B vs CaptureConfig names — PASS��TOML ����������һ�£�����ȱʧ����⣩
+[PASS] ports 25580/25581 free — free
+[PASS] M7 key deliverables present — 8 files
+[PASS] evidence dir writable — E:\捕获接口\docs\证据\M7\预检
+precheck: PASS=5 FAIL=0 total=5
+
+Name                              Status Detail                              
+----                              ------ ------                              
+build.ps1 build/artifact          PASS   exit=0; jar=218212 bytes            
+appendix-B vs CaptureConfig names PASS   PASS��TOML ����������һ�£�����ȱʧ����⣩
+ports 25580/25581 free            PASS   free                                
+M7 key deliverables present       PASS   8 files                             
+evidence dir writable             PASS   E:\捕获接口\docs\证据\M7\预检               
+
+
+

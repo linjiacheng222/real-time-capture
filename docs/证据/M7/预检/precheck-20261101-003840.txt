@@ -1,0 +1,20 @@
+﻿=== M7 验收预检 20261101-003840 ===
+[FAIL] build.ps1 构建与产物校验 — 
+[PASS] verify-env.ps1 — 无汇总行
+[PASS] 附录 B ↔ CaptureConfig 参数名一致性 — PASS：TOML 参数名集合一致（允许缺失项除外）
+[PASS] 端口 25580/25581 空闲 — 空闲
+[PASS] M7 关键交付物存在 — 8 项齐全
+[PASS] 证据目录可写 — E:\捕获接口\docs\证据\M7\预检
+预检结果: PASS=5 FAIL=1 总=6
+
+Name                        Status Detail                    
+----                        ------ ------                    
+build.ps1 构建与产物校验           FAIL                             
+verify-env.ps1              PASS   无汇总行                      
+附录 B ↔ CaptureConfig 参数名一致性 PASS   PASS：TOML 参数名集合一致（允许缺失项除外）
+端口 25580/25581 空闲           PASS   空闲                        
+M7 关键交付物存在                  PASS   8 项齐全                     
+证据目录可写                      PASS   E:\捕获接口\docs\证据\M7\预检     
+
+
+
