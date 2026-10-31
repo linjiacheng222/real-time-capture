@@ -147,6 +147,7 @@ public final class NetworkServiceManager {
             return;
         }
         LOGGER.info("{} [NET/WS] 监听 ws://{}:{}/", CaptureConstants.LOG_MARKER, bindDescription, wsPort);
+        StreamPushService.get().start(webSocketServer);
     }
 
     /** 停止两服务并释放端口（幂等）。 */
@@ -155,6 +156,7 @@ public final class NetworkServiceManager {
             return;
         }
         running.set(false);
+        StreamPushService.get().stop();
         if (webSocketServer != null) {
             try {
                 webSocketServer.stop(1000);
@@ -277,6 +279,7 @@ public final class NetworkServiceManager {
                 : (com.captureapi.core.time.CaptureClock.get().nowNanos() - started) / 1_000_000L;
         json.addProperty("uptime_ms", uptimeMs);
         json.addProperty("token_required", tokenEnabled());
+        json.addProperty("slow_disconnects", webSocketServer == null ? 0L : webSocketServer.slowDisconnectCount());
         send(exchange, 200, "application/json; charset=utf-8", json.toString());
     }
 
