@@ -8,6 +8,8 @@ import com.captureapi.core.thread.GlThreadGuard;
 import com.captureapi.core.time.CaptureClock;
 import com.captureapi.video.FrameRateLimiter;
 import com.captureapi.video.OffscreenFboResource;
+import com.captureapi.video.PboPairResource;
+import com.captureapi.video.frame.RawFrame;
 import com.captureapi.video.camera.CameraManager;
 import com.captureapi.video.camera.CameraMatrices;
 import com.captureapi.video.camera.CameraPose;
@@ -44,6 +46,8 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
     private final AtomicBoolean rendering = new AtomicBoolean(false);
     private final AtomicLong renderedFrames = new AtomicLong();
     private final AtomicLong failedFrames = new AtomicLong();
+    private final AtomicLong readbackFrames = new AtomicLong();
+    private volatile RawFrame lastFrame;
     private volatile boolean firstFrameLogged;
 
     private OffscreenRenderPipeline() {
@@ -62,6 +66,16 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
     /** @return 失败跳过的帧数（诊断/验收） */
     public static long failedFrames() {
         return INSTANCE.failedFrames.get();
+    }
+
+    /** @return 最近一次回读成功的原始帧（无则 null；T2.5 编码消费） */
+    public static RawFrame latestFrame() {
+        return INSTANCE.lastFrame;
+    }
+
+    /** @return 回读成功帧数 */
+    public static long readbackFrames() {
+        return INSTANCE.readbackFrames.get();
     }
 
     @Override
@@ -108,6 +122,18 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
             // TODO(M3)：CameraSyncHook.onBeforeOffscreenRender(pose)，同帧内改写监听器
             gameRenderer.renderLevel(partialTick, 0L, new PoseStack());
             // TODO(M3)：CameraSyncHook.onAfterOffscreenRender(pose)，同帧内恢复监听器
+            // T2.4：FBO 仍为读/写目标时回读上一帧（写 N 读 N-1）
+            PboPairResource pbo = WorldResourceManager.get().get(PboPairResource.KEY, PboPairResource.class);
+            RawFrame frame = pbo.readback();
+            if (frame != null) {
+                lastFrame = frame;
+                readbackFrames.incrementAndGet();
+                if (readbackFrames.get() == 1L) {
+                    LOGGER.info("{} 离屏回读首帧：{}x{}，{} bytes，ts={}",
+                            CaptureConstants.LOG_MARKER, frame.width(), frame.height(), frame.byteSize(),
+                            frame.timestampNanos());
+                }
+            }
             fbo.unbind();
 
             renderedFrames.incrementAndGet();
