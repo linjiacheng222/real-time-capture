@@ -39,6 +39,7 @@ public final class CaptureConfig {
     static final ForgeConfigSpec.IntValue CHANNELS;
     static final ForgeConfigSpec.IntValue POLL_INTERVAL_MS;
     static final ForgeConfigSpec.IntValue THREAD_PRIORITY;
+    static final ForgeConfigSpec.DoubleValue RING_CAPACITY_SEC;
 
     // ===== [server] =====
     static final ForgeConfigSpec.IntValue NET_PORT;
@@ -51,6 +52,7 @@ public final class CaptureConfig {
     static final ForgeConfigSpec.BooleanValue LOG_FRAME_EVENTS;
     static final ForgeConfigSpec.BooleanValue LOG_FRAME_DROPS;
     static final ForgeConfigSpec.BooleanValue LOG_PIPELINE_TIMING;
+    static final ForgeConfigSpec.BooleanValue LOG_BUFFER_WATERMARK;
     static final ForgeConfigSpec.BooleanValue LOG_GL_THREAD_VIOLATION;
     static final ForgeConfigSpec.BooleanValue CLOCK_LOGGING;
 
@@ -104,6 +106,9 @@ public final class CaptureConfig {
         THREAD_PRIORITY = builder
                 .comment("采集线程优先级（Java 1~10；默认 9=MAX-1，T3.1.3）")
                 .defineInRange("thread_priority", 9, 1, 10);
+        RING_CAPACITY_SEC = builder
+                .comment("环形音频缓冲容量（秒，T3.2.3）")
+                .defineInRange("ring_capacity_sec", 1.0D, 0.1D, 10.0D);
         builder.pop();
 
         builder.comment("对外网络服务参数（M4 使用）").push("server");
@@ -134,6 +139,9 @@ public final class CaptureConfig {
         LOG_PIPELINE_TIMING = builder
                 .comment("流水线分段耗时统计日志（T2.5.3，默认 false）")
                 .define("log_pipeline_timing", false);
+        LOG_BUFFER_WATERMARK = builder
+                .comment("音频环形缓冲水位日志（T3.2.3，默认 false）")
+                .define("log_buffer_watermark", false);
         LOG_GL_THREAD_VIOLATION = builder
                 .comment("GL 线程违规日志（T1.3，默认开启）")
                 .define("log_gl_thread_violation", true);
