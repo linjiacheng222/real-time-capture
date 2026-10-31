@@ -1,0 +1,29 @@
+captureapi runClient 验证摘要
+时间: 2026-10-31 20:43:31
+工程: E:\捕获接口
+JDK: E:\Tools\jdk17
+状态: main-menu
+等待主菜单耗时(s): 30
+超时上限(min): 15
+缺失必需标记: 无
+运行期异常: 无
+致命错误行: 无
+新增 crash report: 无
+残留 java: 无
+GUI 窗口: PID 13792: Minecraft* Forge 1.20.1
+latest.log: E:\捕获接口\run\logs\latest.log
+stdout: E:\捕获接口\run\client-stdout-20261031-204255.log
+debug.log: E:\捕获接口\run\logs\debug.log
+
+标记:
+  Forge 47.4.23 启动 => YES | latest.log L1: [3110月2026 20:43:08.442] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgeclientuserdev, --version, MOD_DEV, --assetIndex, 5, --assetsDir, C:\Users\26217\.gradle\caches\forge_gradle\assets, --gameDir, ., --fml.forgeVersion, 47.4.23, --fml.mcVersion, 1.20.1, --fml.forgeGroup, net.minecraftforge, --fml.mcpVersion, 20230612.114412, --mixin.config, captureapi.mixins.json]
+  captureapi 本体加载 => YES | latest.log L1: [3110月2026 20:43:08.442] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgeclientuserdev, --version, MOD_DEV, --assetIndex, 5, --assetsDir, C:\Users\26217\.gradle\caches\forge_gradle\assets, --gameDir, ., --fml.forgeVersion, 47.4.23, --fml.mcVersion, 1.20.1, --fml.forgeGroup, net.minecraftforge, --fml.mcpVersion, 20230612.114412, --mixin.config, captureapi.mixins.json]
+  Embeddium 加载 => YES | debug.log L67: [3110月2026 20:43:08.964] [main/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Considering mod file candidate E:\捕获接口\run\mods\embeddium-0.3.31_mapped_official_1.20.1-dev.jar
+  ModernFix 加载 => YES | debug.log L69: [3110月2026 20:43:08.997] [main/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Considering mod file candidate E:\捕获接口\run\mods\modernfix-5.27.89_mapped_official_1.20.1-dev.jar
+  GL 后端初始化（Backend library） => YES | latest.log L38: [3110月2026 20:43:21.557] [Render thread/INFO] [net.minecraft.client.Minecraft/]: Backend library: LWJGL version 3.3.1 build 7
+  OpenAL 初始化 => YES | latest.log L71: [3110月2026 20:43:26.192] [Render thread/INFO] [com.mojang.blaze3d.audio.Library/]: OpenAL initialized on device OpenAL Soft on 扬声器 (Lenovo X370)
+  主菜单（Sound engine started） => YES | latest.log L72: [3110月2026 20:43:26.193] [Render thread/INFO] [net.minecraft.client.sounds.SoundEngine/SOUNDS]: Sound engine started
+  资源图集完成（辅助证据） => NO | 
+  M1 核心自检 PASS（T1.2/T1.3，dev） => YES | latest.log L67: [3110月2026 20:43:24.362] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 核心自检 PASS（renderThread=true，channel 1000 次发布/读取=true，资源管理器=true）
+
+结论: PASS

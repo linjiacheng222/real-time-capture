@@ -530,6 +530,15 @@ Invoke-OptionalCheck -Category '工程依赖' -Name 'dev 客户端 Mixin 自检�
     return 'Mixin 注入自检 + 客户端 setup 基线日志均存在'
 } -WarnHint '运行 scripts\run-client.ps1 验证'
 
+Invoke-OptionalCheck -Category '工程依赖' -Name 'M1 核心自检日志（T1.2/T1.3，dev）' -Body {
+    $latestLog = Join-Path $ProjectRoot 'run\logs\latest.log'
+    if (-not (Test-Path -LiteralPath $latestLog)) { throw '不存在 run\logs\latest.log' }
+    $text = Read-TextAuto -Path $latestLog
+    if ($text -notmatch '核心自检 PASS') { throw '未找到核心自检 PASS 日志（run-client.ps1 复跑后复检）' }
+    if ($text -notmatch '资源管理器自检 PASS') { throw '未找到资源管理器自检 PASS 日志（I1.2.1）' }
+    return 'GL 守卫正/负例 + 最新值通道 + 资源管理器生命周期自检 PASS 日志均存在'
+} -WarnHint '运行 scripts\run-client.ps1（dev 自检属性 captureapi.debug.selftest=true 时）'
+
 Invoke-OptionalCheck -Category '工程依赖' -Name 'dev 客户端日志（runClient 已实测）' -Body {
     $latestLog = Join-Path $ProjectRoot 'run\logs\latest.log'
     if (-not (Test-Path -LiteralPath $latestLog)) { throw '不存在 run\logs\latest.log' }

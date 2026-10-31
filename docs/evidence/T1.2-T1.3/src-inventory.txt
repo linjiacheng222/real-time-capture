@@ -1,0 +1,17 @@
+com\captureapi\CaptureInterface.java
+com\captureapi\core\CaptureConstants.java
+com\captureapi\core\CaptureMixinDiagnostics.java
+com\captureapi\core\ClientSetupHandler.java
+com\captureapi\core\CoreSelfTest.java
+com\captureapi\core\mixin\MinecraftMixin.java
+com\captureapi\core\resource\ManagedGlResource.java
+com\captureapi\core\resource\ManagedResource.java
+com\captureapi\core\resource\NoopProbeResource.java
+com\captureapi\core\resource\ResourceSelfTest.java
+com\captureapi\core\resource\WorldLifecycleHandler.java
+com\captureapi\core\resource\WorldResourceManager.java
+com\captureapi\core\resource\WorldResourceStats.java
+com\captureapi\core\thread\CaptureRenderHook.java
+com\captureapi\core\thread\GlThreadGuard.java
+com\captureapi\core\thread\LatestValueChannel.java
+com\captureapi\core\thread\MpscRingBuffer.java

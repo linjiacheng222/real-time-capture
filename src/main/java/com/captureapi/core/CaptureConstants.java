@@ -21,6 +21,18 @@ public final class CaptureConstants {
     /** 模组版本（与 gradle.properties#modVersion 一致，由构建元数据同步）。 */
     public static final String MOD_VERSION = "0.5.0";
 
+    /** 资源键统一前缀（附录 B §四白名单条目；T1.2 资源注册使用）。 */
+    public static final String RESOURCE_KEY_PREFIX = "captureapi:";
+
+    /** 音频采集线程名（M3，T1.3.4 线程命名规范）。 */
+    public static final String THREAD_AUDIO = "captureapi-audio";
+
+    /** 网络 IO 线程名（M4）。 */
+    public static final String THREAD_NET = "captureapi-net";
+
+    /** 编码线程名（M2，encode_async=true 时启用）。 */
+    public static final String THREAD_ENCODER = "captureapi-encoder";
+
     private CaptureConstants() {
         throw new AssertionError("no instances");
     }

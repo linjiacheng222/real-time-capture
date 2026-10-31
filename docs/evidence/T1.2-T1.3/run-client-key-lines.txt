@@ -1,0 +1,42 @@
+[3110��2026 20:43:11.244] [main/INFO] [Embeddium/]: Loaded configuration file for Embeddium: 51 options available, 0 override(s) found
+[3110��2026 20:43:11.254] [main/INFO] [Embeddium-GraphicsAdapterProbe/]: Searching for graphics cards...
+[3110��2026 20:43:13.124] [main/INFO] [Embeddium-GraphicsAdapterProbe/]: Found graphics card: GraphicsAdapterInfo[vendor=NVIDIA, name=NVIDIA GeForce RTX 4050 Laptop GPU, version=DriverVersion=32.0.15.9282]
+[3110��2026 20:43:13.124] [main/INFO] [Embeddium-GraphicsAdapterProbe/]: Found graphics card: GraphicsAdapterInfo[vendor=INTEL, name=Intel(R) Iris(R) Xe Graphics, version=DriverVersion=31.0.101.4502]
+[3110��2026 20:43:13.133] [main/WARN] [Embeddium-Workarounds/]: Embeddium has applied one or more workarounds to prevent crashes or other issues on your system: [NVIDIA_THREADED_OPTIMIZATIONS]
+[3110��2026 20:43:13.133] [main/WARN] [Embeddium-Workarounds/]: This is not necessarily an issue, but it may result in certain features or optimizations being disabled. You can sometimes fix these issues by upgrading your graphics driver.
+[3110��2026 20:43:13.374] [main/INFO] [mixin/]: Remapping refMap embeddium-refmap.json using E:\����ӿ�/build/createSrgToMcp/output.srg
+[3110��2026 20:43:13.564] [main/INFO] [ModernFix/]: Loaded configuration file for ModernFix 5.27.89+mc1.20.1: 110 options available, 0 override(s) found
+[3110��2026 20:43:13.564] [main/INFO] [ModernFix/]: Applying Nashorn fix
+[3110��2026 20:43:13.589] [main/INFO] [ModernFix/]: Applied Forge config corruption patch
+[3110��2026 20:43:13.594] [main/INFO] [ModernFix/]: Configuring Minecraft's max.bg.threads option with 17 threads
+[3110��2026 20:43:13.598] [main/INFO] [mixin/]: Remapping refMap modernfix.refmap.json using E:\����ӿ�/build/createSrgToMcp/output.srg
+[3110��2026 20:43:16.507] [pool-4-thread-1/INFO] [net.minecraft.server.Bootstrap/]: ModernFix reached bootstrap stage (9.852 s after launch)
+[3110��2026 20:43:16.644] [pool-4-thread-1/WARN] [mixin/]: @Final field delegatesByName:Ljava/util/Map; in modernfix-modernfix.mixins.json:perf.forge_registry_alloc.ForgeRegistryMixin should be final
+[3110��2026 20:43:16.644] [pool-4-thread-1/WARN] [mixin/]: @Final field delegatesByValue:Ljava/util/Map; in modernfix-modernfix.mixins.json:perf.forge_registry_alloc.ForgeRegistryMixin should be final
+[3110��2026 20:43:21.461] [Render thread/INFO] [ModernFix/]: Bypassed Mojang DFU
+[3110��2026 20:43:21.557] [Render thread/INFO] [net.minecraft.client.Minecraft/]: Backend library: LWJGL version 3.3.1 build 7
+[3110��2026 20:43:21.625] [Render thread/WARN] [Embeddium-NvidiaWorkarounds/]: Applying workaround: Prevent the NVIDIA OpenGL driver from using broken optimizations (NVIDIA_THREADED_OPTIMIZATIONS)
+[3110��2026 20:43:21.644] [Render thread/INFO] [Embeddium-PostlaunchChecks/]: OpenGL Vendor: Intel
+[3110��2026 20:43:21.644] [Render thread/INFO] [Embeddium-PostlaunchChecks/]: OpenGL Renderer: Intel(R) Iris(R) Xe Graphics
+[3110��2026 20:43:21.644] [Render thread/INFO] [Embeddium-PostlaunchChecks/]: OpenGL Version: 4.6.0 - Build 31.0.101.4502
+[3110��2026 20:43:21.944] [modloading-worker-0/INFO] [[CaptureAPI]/]: [CaptureAPI] ���๹����ɣ�modid=captureapi���ͻ����¼������� @Mod.EventBusSubscriber ע�ᣩ
+[3110��2026 20:43:24.057] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] Mixin �����Լ죺Minecraft#run ע����Ч��refmap/AT ���߿��ã�
+[3110��2026 20:43:24.317] [Worker-ResourceReload-16/INFO] [[CaptureAPI]/]: [CaptureAPI] ����������MC �ͻ��� setup ��ɣ����ͻ���ģ�飻T1.2/T1.3 ��ʩ�ѽ��룩
+[3110��2026 20:43:24.324] [Worker-ResourceReload-16/INFO] [[CaptureAPI]/]: [CaptureAPI] �����Լ������ڣ�captureapi.debug.selftest=true��
+[3110��2026 20:43:24.329] [captureapi-selftest-nonrender/ERROR] [[CaptureAPI]/]: [CaptureAPI] GL �߳�Υ�棺����=selftest-nonrender-expected-violation ��ǰ�߳�=captureapi-selftest-nonrender��GL ֻ��������Ⱦ���߳�ִ�У����� 3��
+[3110��2026 20:43:24.329] [captureapi-selftest-nonrender/INFO] [[CaptureAPI]/]: [CaptureAPI] �Լ츺����ɣ�����Ⱦ�߳��ж�=true���Ϸ� GL �߳�Υ����־ΪԤ�ڣ�
+[3110��2026 20:43:24.348] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] ע��������Դ������captureapi:selftest:probe
+[3110��2026 20:43:24.348] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] ע��������Դ������captureapi:selftest:probe2
+[3110��2026 20:43:24.350] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] ������룺��ʼ����������Դ��ע����=2��
+[3110��2026 20:43:24.350] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] ��Դ������captureapi:selftest:probe�����缶���߳�=Render thread��
+[3110��2026 20:43:24.350] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] ��Դ������captureapi:selftest:probe2�����缶���߳�=Render thread��
+[3110��2026 20:43:24.360] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] ������Դ������WorldResourceStats{created=2, destroyed=0, failedCreate=0, failedDestroy=0, aliveWorld=2, aliveGlobal=0, registeredWorld=2, worldReady=true}
+[3110��2026 20:43:24.360] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] �����˳�����ʼ����������Դ�������=2��
+[3110��2026 20:43:24.360] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] ��Դ���٣�captureapi:selftest:probe2�����缶���߳�=Render thread��
+[3110��2026 20:43:24.360] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] ��Դ���٣�captureapi:selftest:probe�����缶���߳�=Render thread��
+[3110��2026 20:43:24.360] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] ������Դ�ѻ��գ�WorldResourceStats{created=2, destroyed=2, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=0, registeredWorld=2, worldReady=false}
+[3110��2026 20:43:24.360] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] �����˳����޴��������Դ���ݵȿղ�����
+[3110��2026 20:43:24.362] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] ��Դ�������Լ� PASS��WorldResourceStats{created=2, destroyed=2, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=0, registeredWorld=2, worldReady=false}
+[3110��2026 20:43:24.362] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] �����Լ� PASS��renderThread=true��channel 1000 �η���/��ȡ=true����Դ������=true��
+[3110��2026 20:43:26.192] [Render thread/INFO] [com.mojang.blaze3d.audio.Library/]: OpenAL initialized on device OpenAL Soft on ������ (Lenovo X370)
+[3110��2026 20:43:26.193] [Render thread/INFO] [net.minecraft.client.sounds.SoundEngine/SOUNDS]: Sound engine started
