@@ -1,7 +1,7 @@
 package com.captureapi.core.resource;
 
 import com.captureapi.CaptureInterface;
-import com.captureapi.core.CaptureConstants;
+import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.core.thread.GlThreadGuard;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;

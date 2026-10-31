@@ -1,0 +1,118 @@
+package com.captureapi.core.config;
+
+import com.captureapi.core.constant.CaptureConstants;
+import java.util.List;
+import net.minecraftforge.common.ForgeConfigSpec;
+
+/**
+ * ForgeConfigSpec 配置骨架（I1.5.1，红线 1 的机制基础）。
+ *
+ * <p>四 section：{@code [video]}、{@code [audio]}、{@code [server]}、{@code [log]}；M1 落位已冻结默认值
+ * 参数（fps_max/video_resolution/jpeg_quality/audio_enabled/sample_rate/bit_depth/channels/
+ * net_port/bind_local_only/lan_enabled/token_enabled）与 M1 诊断参数（log_* / clock_logging）。
+ * 其余参数由 M6 按附录 B 归并追加。</p>
+ *
+ * <p>默认值与范围以《附录B-全参数清单》为准；运行时只能经 {@link CaptureParams} 门面读取，
+ * 模块代码禁止直接持有 {@link ForgeConfigSpec.ConfigValue}。</p>
+ */
+public final class CaptureConfig {
+
+    /** 客户端配置 spec（在模组构造器注册为 CLIENT 类型，文件名 captureapi-client.toml）。 */
+    public static final ForgeConfigSpec SPEC;
+
+    // ===== [video] =====
+    static final ForgeConfigSpec.IntValue FPS_MAX;
+    static final ForgeConfigSpec.ConfigValue<String> VIDEO_RESOLUTION;
+    static final ForgeConfigSpec.IntValue JPEG_QUALITY;
+
+    // ===== [audio] =====
+    static final ForgeConfigSpec.BooleanValue AUDIO_ENABLED;
+    static final ForgeConfigSpec.IntValue SAMPLE_RATE;
+    static final ForgeConfigSpec.ConfigValue<Integer> BIT_DEPTH;
+    static final ForgeConfigSpec.IntValue CHANNELS;
+
+    // ===== [server] =====
+    static final ForgeConfigSpec.IntValue NET_PORT;
+    static final ForgeConfigSpec.BooleanValue BIND_LOCAL_ONLY;
+    static final ForgeConfigSpec.BooleanValue LAN_ENABLED;
+    static final ForgeConfigSpec.BooleanValue TOKEN_ENABLED;
+
+    // ===== [log] =====
+    static final ForgeConfigSpec.BooleanValue LOG_RESOURCE_LIFECYCLE;
+    static final ForgeConfigSpec.BooleanValue LOG_FRAME_EVENTS;
+    static final ForgeConfigSpec.BooleanValue LOG_GL_THREAD_VIOLATION;
+    static final ForgeConfigSpec.BooleanValue CLOCK_LOGGING;
+
+    static {
+        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+        builder.comment("捕获接口（captureapi）客户端参数。默认值以《附录B-全参数清单》为准；改后需重启客户端。")
+                .push("video");
+        FPS_MAX = builder
+                .comment("离屏渲染帧率上限（cap 非保证；红线 4）")
+                .defineInRange("fps_max", 30, 1, 240);
+        VIDEO_RESOLUTION = builder
+                .comment("离屏渲染分辨率（宽x高，FBO 重建生效）")
+                .define("video_resolution", "1280x1024", value -> value instanceof String s
+                        && s.matches("\\d{2,5}x\\d{2,5}"));
+        JPEG_QUALITY = builder
+                .comment("JPEG 编码质量（0–100）")
+                .defineInRange("jpeg_quality", 75, 0, 100);
+        builder.pop();
+
+        builder.comment("音频采集与格式参数（M3 使用）").push("audio");
+        AUDIO_ENABLED = builder
+                .comment("音频模块总开关（探测失败时亦自动禁用）")
+                .define("audio_enabled", true);
+        SAMPLE_RATE = builder
+                .comment("采样率（Hz）")
+                .defineInRange("sample_rate", 44100, 8000, 192000);
+        BIT_DEPTH = builder
+                .comment("采样位深（bit；当前仅支持 16）")
+                .defineInList("bit_depth", 16, List.of(16));
+        CHANNELS = builder
+                .comment("声道数（1=单声道，2=立体声）")
+                .defineInRange("channels", 2, 1, 2);
+        builder.pop();
+
+        builder.comment("对外网络服务参数（M4 使用）").push("server");
+        NET_PORT = builder
+                .comment("HTTP/WS 监听端口（默认 25580）")
+                .defineInRange("net_port", 25580, 1024, 65535);
+        BIND_LOCAL_ONLY = builder
+                .comment("仅绑定本机 127.0.0.1（false 时配合 lan_enabled）")
+                .define("bind_local_only", true);
+        LAN_ENABLED = builder
+                .comment("开放局域网（开启时显著警告）")
+                .define("lan_enabled", false);
+        TOKEN_ENABLED = builder
+                .comment("token 鉴权开关（默认关）")
+                .define("token_enabled", false);
+        builder.pop();
+
+        builder.comment("诊断日志开关（默认关闭；排障时按需开启）").push("log");
+        LOG_RESOURCE_LIFECYCLE = builder
+                .comment("资源创建/销毁轨迹日志（T1.2）")
+                .define("log_resource_lifecycle", false);
+        LOG_FRAME_EVENTS = builder
+                .comment("渲染阶段帧事件日志（T1.3）")
+                .define("log_frame_events", false);
+        LOG_GL_THREAD_VIOLATION = builder
+                .comment("GL 线程违规日志（T1.3，默认开启）")
+                .define("log_gl_thread_violation", true);
+        CLOCK_LOGGING = builder
+                .comment("时钟自测/打标抽样日志（T1.4）")
+                .define("clock_logging", false);
+        builder.pop();
+
+        SPEC = builder.build();
+    }
+
+    private CaptureConfig() {
+        throw new AssertionError("no instances");
+    }
+
+    /** @return 配置文件名（与注册时一致） */
+    public static String fileName() {
+        return CaptureConstants.TOML_FILE_NAME;
+    }
+}

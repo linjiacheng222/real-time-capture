@@ -1,6 +1,6 @@
 package com.captureapi.core.thread;
 
-import com.captureapi.core.CaptureConstants;
+import com.captureapi.core.constant.CaptureConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;

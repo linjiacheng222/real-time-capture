@@ -1,0 +1,46 @@
+[3110月2026 21:08:19.180] [main/INFO] [Embeddium/]: Loaded configuration file for Embeddium: 51 options available, 0 override(s) found
+[3110月2026 21:08:19.184] [main/INFO] [Embeddium-GraphicsAdapterProbe/]: Searching for graphics cards...
+[3110月2026 21:08:21.016] [main/INFO] [Embeddium-GraphicsAdapterProbe/]: Found graphics card: GraphicsAdapterInfo[vendor=NVIDIA, name=NVIDIA GeForce RTX 4050 Laptop GPU, version=DriverVersion=32.0.15.9282]
+[3110月2026 21:08:21.016] [main/INFO] [Embeddium-GraphicsAdapterProbe/]: Found graphics card: GraphicsAdapterInfo[vendor=INTEL, name=Intel(R) Iris(R) Xe Graphics, version=DriverVersion=31.0.101.4502]
+[3110月2026 21:08:21.020] [main/WARN] [Embeddium-Workarounds/]: Embeddium has applied one or more workarounds to prevent crashes or other issues on your system: [NVIDIA_THREADED_OPTIMIZATIONS]
+[3110月2026 21:08:21.022] [main/WARN] [Embeddium-Workarounds/]: This is not necessarily an issue, but it may result in certain features or optimizations being disabled. You can sometimes fix these issues by upgrading your graphics driver.
+[3110月2026 21:08:21.230] [main/INFO] [mixin/]: Remapping refMap embeddium-refmap.json using E:\捕获接口/build/createSrgToMcp/output.srg
+[3110月2026 21:08:21.390] [main/INFO] [ModernFix/]: Loaded configuration file for ModernFix 5.27.89+mc1.20.1: 110 options available, 0 override(s) found
+[3110月2026 21:08:21.391] [main/INFO] [ModernFix/]: Applying Nashorn fix
+[3110月2026 21:08:21.428] [main/INFO] [ModernFix/]: Applied Forge config corruption patch
+[3110月2026 21:08:21.434] [main/INFO] [ModernFix/]: Configuring Minecraft's max.bg.threads option with 17 threads
+[3110月2026 21:08:21.441] [main/INFO] [mixin/]: Remapping refMap modernfix.refmap.json using E:\捕获接口/build/createSrgToMcp/output.srg
+[3110月2026 21:08:24.230] [pool-4-thread-1/INFO] [net.minecraft.server.Bootstrap/]: ModernFix reached bootstrap stage (9.413 s after launch)
+[3110月2026 21:08:24.367] [pool-4-thread-1/WARN] [mixin/]: @Final field delegatesByName:Ljava/util/Map; in modernfix-modernfix.mixins.json:perf.forge_registry_alloc.ForgeRegistryMixin should be final
+[3110月2026 21:08:24.367] [pool-4-thread-1/WARN] [mixin/]: @Final field delegatesByValue:Ljava/util/Map; in modernfix-modernfix.mixins.json:perf.forge_registry_alloc.ForgeRegistryMixin should be final
+[3110月2026 21:08:28.895] [Render thread/INFO] [ModernFix/]: Bypassed Mojang DFU
+[3110月2026 21:08:28.989] [Render thread/INFO] [net.minecraft.client.Minecraft/]: Backend library: LWJGL version 3.3.1 build 7
+[3110月2026 21:08:29.071] [Render thread/WARN] [Embeddium-NvidiaWorkarounds/]: Applying workaround: Prevent the NVIDIA OpenGL driver from using broken optimizations (NVIDIA_THREADED_OPTIMIZATIONS)
+[3110月2026 21:08:29.099] [Render thread/INFO] [Embeddium-PostlaunchChecks/]: OpenGL Vendor: Intel
+[3110月2026 21:08:29.100] [Render thread/INFO] [Embeddium-PostlaunchChecks/]: OpenGL Renderer: Intel(R) Iris(R) Xe Graphics
+[3110月2026 21:08:29.100] [Render thread/INFO] [Embeddium-PostlaunchChecks/]: OpenGL Version: 4.6.0 - Build 31.0.101.4502
+[3110月2026 21:08:29.438] [modloading-worker-0/INFO] [[CaptureAPI]/]: [CaptureAPI] 主类构造完成（modid=captureapi，配置骨架=captureapi-client.toml）
+[3110月2026 21:08:31.333] [modloading-worker-0/INFO] [[CaptureAPI]/]: [CaptureAPI] 配置加载事件（Loading）：captureapi-client.toml
+[3110月2026 21:08:31.392] [modloading-worker-0/INFO] [[CaptureAPI]/]: [CaptureAPI] 参数快照建立（Loading）：fps_max=30, video_resolution=1280x1024, jpeg_quality=75, audio_enabled=true, sample_rate=44100, bit_depth=16, channels=2, net_port=25580, bind_local_only=true, lan_enabled=false, token_enabled=false, log_resource_lifecycle=false, log_frame_events=false, log_gl_thread_violation=true, clock_logging=false
+[3110月2026 21:08:31.501] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] Mixin 基建自检：Minecraft#run 注入生效（refmap/AT 管线可用）
+[3110月2026 21:08:31.731] [Worker-ResourceReload-9/INFO] [[CaptureAPI]/]: [CaptureAPI] 底座就绪（MC 客户端 setup 完成，纯客户端模组；T1.2~T1.5 设施已接入）
+[3110月2026 21:08:31.747] [Worker-ResourceReload-9/INFO] [[CaptureAPI]/]: [CaptureAPI] 开发自检已排期（captureapi.debug.selftest = true）
+[3110月2026 21:08:31.764] [captureapi-selftest-nonrender/ERROR] [[CaptureAPI]/]: [CaptureAPI] GL 线程违规：操作=selftest-nonrender-expected-violation 当前线程=captureapi-selftest-nonrender（GL 只允许在渲染主线程执行，红线 3）
+[3110月2026 21:08:31.764] [captureapi-selftest-nonrender/INFO] [[CaptureAPI]/]: [CaptureAPI] 自检负例完成：非渲染线程判定=true（上方 GL 线程违规日志为预期）
+[3110月2026 21:08:31.782] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 配置快照校验：fps_max=30, video_resolution=1280x1024, net_port=25580, sample_rate=44100, channels=2, bit_depth=16
+[3110月2026 21:08:31.784] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 注册世界资源工厂：captureapi:selftest:probe
+[3110月2026 21:08:31.785] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 注册世界资源工厂：captureapi:selftest:probe2
+[3110月2026 21:08:31.785] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界进入：开始创建世界资源（注册数=2）
+[3110月2026 21:08:31.785] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 资源创建：captureapi:selftest:probe（世界级，线程=Render thread）
+[3110月2026 21:08:31.786] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 资源创建：captureapi:selftest:probe2（世界级，线程=Render thread）
+[3110月2026 21:08:31.790] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=2, destroyed=0, failedCreate=0, failedDestroy=0, aliveWorld=2, aliveGlobal=0, registeredWorld=2, worldReady=true}
+[3110月2026 21:08:31.790] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：开始销毁世界资源（存活数=2）
+[3110月2026 21:08:31.791] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 资源销毁：captureapi:selftest:probe2（世界级，线程=Render thread）
+[3110月2026 21:08:31.791] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 资源销毁：captureapi:selftest:probe（世界级，线程=Render thread）
+[3110月2026 21:08:31.791] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源已回收：WorldResourceStats{created=2, destroyed=2, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=0, registeredWorld=2, worldReady=false}
+[3110月2026 21:08:31.791] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 21:08:31.791] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 资源管理器自检 PASS：WorldResourceStats{created=2, destroyed=2, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=0, registeredWorld=2, worldReady=false}
+[3110月2026 21:08:31.791] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 核心自检 PASS（renderThread=true，channel 1000 次发布/读取=true，clock=true，config=true，资源管理器=true）
+[3110月2026 21:08:33.913] [Render thread/INFO] [com.mojang.blaze3d.audio.Library/]: OpenAL initialized on device OpenAL Soft on 扬声器 (Lenovo X370)
+[3110月2026 21:08:33.914] [Render thread/INFO] [net.minecraft.client.sounds.SoundEngine/SOUNDS]: Sound engine started
+[3110月2026 21:08:36.330] [Render thread/WARN] [ModernFix/]: Game took 21.515 seconds to start

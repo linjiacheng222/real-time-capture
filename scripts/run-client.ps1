@@ -241,6 +241,7 @@ $script:Markers = [ordered]@{
     'main-menu'     = [pscustomobject]@{ Label = '主菜单（Sound engine started）'; Pattern = 'Sound engine started'; Required = $true; Found = $false; Line = '' }
     'atlas'         = [pscustomobject]@{ Label = '资源图集完成（辅助证据）'; Pattern = 'minecraft:textures/atlas/blocks\.png-atlas'; Required = $false; Found = $false; Line = '' }
     'core-selftest' = [pscustomobject]@{ Label = 'M1 核心自检 PASS（T1.2/T1.3，dev）'; Pattern = '核心自检 PASS'; Required = $false; Found = $false; Line = '' }
+    'config-skeleton' = [pscustomobject]@{ Label = '配置骨架快照建立（T1.5，dev）'; Pattern = '参数快照建立（Loading）'; Required = $false; Found = $false; Line = '' }
 }
 $fatalPattern = 'A fatal error has been detected|Exception in thread "main"|MixinApplyError|MixinTransformerError|InvalidMixinException|Failed to start the game|LWJGL Exception|Failed to create window|\[(?:main|Render thread)/FATAL\]'
 $fatalLine = ''
