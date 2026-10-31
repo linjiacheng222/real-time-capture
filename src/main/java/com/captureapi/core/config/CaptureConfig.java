@@ -24,6 +24,9 @@ public final class CaptureConfig {
     static final ForgeConfigSpec.IntValue FPS_MAX;
     static final ForgeConfigSpec.ConfigValue<String> VIDEO_RESOLUTION;
     static final ForgeConfigSpec.IntValue JPEG_QUALITY;
+    // M2/T2.1.2：相机投影裁剪面
+    static final ForgeConfigSpec.DoubleValue NEAR_PLANE;
+    static final ForgeConfigSpec.DoubleValue FAR_PLANE;
 
     // ===== [audio] =====
     static final ForgeConfigSpec.BooleanValue AUDIO_ENABLED;
@@ -57,6 +60,12 @@ public final class CaptureConfig {
         JPEG_QUALITY = builder
                 .comment("JPEG 编码质量（0–100）")
                 .defineInRange("jpeg_quality", 75, 0, 100);
+        NEAR_PLANE = builder
+                .comment("离屏投影近裁剪距离（建议 0.05，实测定稿）")
+                .defineInRange("near_plane", 0.05D, 0.001D, 16.0D);
+        FAR_PLANE = builder
+                .comment("离屏投影远裁剪距离；0=自动（渲染距离×16）")
+                .defineInRange("far_plane", 0.0D, 0.0D, 4096.0D);
         builder.pop();
 
         builder.comment("音频采集与格式参数（M3 使用）").push("audio");
