@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -43,6 +44,7 @@ public final class NetworkServiceManager {
     private final AtomicLong startedAtNanos = new AtomicLong();
     private final AtomicLong rejectedConnections = new AtomicLong();
     private final AtomicLong errors = new AtomicLong();
+    private final AtomicInteger httpStreams = new AtomicInteger();
 
     private HttpServer httpServer;
     private ExecutorService httpExecutor;
@@ -108,7 +110,8 @@ public final class NetworkServiceManager {
         InetSocketAddress address = bindAddress == null ? new InetSocketAddress("0.0.0.0", httpPort)
                 : new InetSocketAddress(bindAddress, httpPort);
         httpServer = HttpServer.create(address, 0);
-        httpExecutor = Executors.newFixedThreadPool(HTTP_THREADS, runnable -> {
+        // MJPEG 长连接需要每连接一个线程：缓存线程池 + 连接上限池（I4.4.2/I4.4.3）
+        httpExecutor = Executors.newCachedThreadPool(runnable -> {
             Thread thread = new Thread(runnable, "captureapi-http");
             thread.setDaemon(true);
             return thread;
@@ -280,6 +283,7 @@ public final class NetworkServiceManager {
         json.addProperty("uptime_ms", uptimeMs);
         json.addProperty("token_required", tokenEnabled());
         json.addProperty("slow_disconnects", webSocketServer == null ? 0L : webSocketServer.slowDisconnectCount());
+        json.addProperty("http_streams", httpStreams.get());
         send(exchange, 200, "application/json; charset=utf-8", json.toString());
     }
 
@@ -307,6 +311,36 @@ public final class NetworkServiceManager {
                 minecraft.player.displayClientMessage(Component.literal("[捕获接口] " + message), false);
             }
         });
+    }
+
+    /**
+     * 尝试占用一个 MJPEG 流名额（与 WS 连接共享 max_connections 上限）。
+     *
+     * @return 成功占用返回 true；超限 false
+     */
+    public boolean tryAcquireHttpStream() {
+        int max = CaptureParams.get().maxConnections();
+        int ws = connectionCount();
+        while (true) {
+            int current = httpStreams.get();
+            if (ws + current >= max) {
+                rejectedConnections.incrementAndGet();
+                return false;
+            }
+            if (httpStreams.compareAndSet(current, current + 1)) {
+                return true;
+            }
+        }
+    }
+
+    /** 释放 MJPEG 流名额（幂等）。 */
+    public void releaseHttpStream() {
+        httpStreams.updateAndGet(value -> Math.max(0, value - 1));
+    }
+
+    /** @return 当前 MJPEG 流连接数 */
+    public int httpStreamCount() {
+        return httpStreams.get();
     }
 
     /** 供出口注册 HTTP 路由（T4.4/T4.5 使用；token 已在入口统一处理）。 */

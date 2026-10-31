@@ -26,7 +26,10 @@ public final class NetworkSetupHandler {
 
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
-        NetworkServiceManager.get().start();
-        LOGGER.info("{} 网络设施装配：服务启动请求已发出", CaptureConstants.LOG_MARKER);
+        NetworkServiceManager manager = NetworkServiceManager.get();
+        manager.start();
+        manager.registerHttpContext("/camera", new HttpVideoHandler(manager));
+        manager.registerHttpContext("/camera/", new HttpVideoHandler(manager));
+        LOGGER.info("{} 网络设施装配：服务启动请求已发出，视频路由已注册", CaptureConstants.LOG_MARKER);
     }
 }
