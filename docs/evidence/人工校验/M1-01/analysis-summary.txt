@@ -1,0 +1,139 @@
+log=E:\PCL\.minecraft\versions\1.20.1-Forge_Get_Test\logs\latest.log size=73299 encoding=gbk lines=502
+world_join=7
+world_ready=7
+world_leave=22
+world_reclaimed=0
+gl_violation=0
+captureapi=43
+event_timeline (last 25):
+  2026 22:36:16.085 JOIN
+  2026 22:36:16.085 READY
+  2026 22:36:17.565 LEAVE
+  2026 22:36:17.571 LEAVE
+  2026 22:36:19.773 LEAVE
+  2026 22:36:20.398 JOIN
+  2026 22:36:20.398 READY
+  2026 22:36:21.851 LEAVE
+  2026 22:36:21.856 LEAVE
+  2026 22:36:24.280 LEAVE
+  2026 22:36:24.915 JOIN
+  2026 22:36:24.915 READY
+  2026 22:36:26.245 LEAVE
+  2026 22:36:26.251 LEAVE
+  2026 22:36:28.541 LEAVE
+  2026 22:36:29.192 JOIN
+  2026 22:36:29.192 READY
+  2026 22:36:30.755 LEAVE
+  2026 22:36:30.758 LEAVE
+  2026 22:36:32.772 LEAVE
+  2026 22:36:33.432 JOIN
+  2026 22:36:33.432 READY
+  2026 22:36:34.837 LEAVE
+  2026 22:36:34.846 LEAVE
+  2026 22:36:36.103 LEAVE
+Embeddium taint context:
+[79] [3110月2026 22:32:54.178] [Render thread/ERROR] [Embeddium-MixinTaintDetector/]: Mod mixin into Embeddium internals detected. This instance is now tainted. The Embeddium team does not provide any guarantee of support for issues encountered while such mods are installed.
+    [3110月2026 22:32:54.178] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gui.SodiumGameOptions, which may cause instability.
+    [3110月2026 22:32:54.214] [Render thread/INFO] [Embeddium-PostlaunchChecks/]: OpenGL Vendor: NVIDIA Corporation
+    [3110月2026 22:32:54.214] [Render thread/INFO] [Embeddium-PostlaunchChecks/]: OpenGL Renderer: NVIDIA GeForce RTX 4050 Laptop GPU/PCIe/SSE2
+[80] [3110月2026 22:32:54.178] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gui.SodiumGameOptions, which may cause instability.
+    [3110月2026 22:32:54.214] [Render thread/INFO] [Embeddium-PostlaunchChecks/]: OpenGL Vendor: NVIDIA Corporation
+    [3110月2026 22:32:54.214] [Render thread/INFO] [Embeddium-PostlaunchChecks/]: OpenGL Renderer: NVIDIA GeForce RTX 4050 Laptop GPU/PCIe/SSE2
+    [3110月2026 22:32:54.214] [Render thread/INFO] [Embeddium-PostlaunchChecks/]: OpenGL Version: 4.6.0 NVIDIA 592.82
+[89] [3110月2026 22:32:54.472] [modloading-worker-0/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gui.SodiumOptionsGUI, which may cause instability.
+    [3110月2026 22:32:54.478] [modloading-worker-0/INFO] [[CaptureAPI]/]: [CaptureAPI] 主类构造完成（modid=captureapi，配置骨架=captureapi-client.toml）
+    [3110月2026 22:32:54.481] [modloading-worker-0/INFO] [net.minecraftforge.common.ForgeMod/FORGEMOD]: Forge mod loading, version 47.4.28, for MC 1.20.1 with MCP 20230612.114412
+    [3110月2026 22:32:54.481] [modloading-worker-0/INFO] [net.minecraftforge.common.MinecraftForge/FORGE]: MinecraftForge v47.4.28 Initialized
+[97] [3110月2026 22:32:55.457] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.vertex.VertexFormatDescriptionImpl, which may cause instability.
+    [3110月2026 22:32:55.465] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.vertex.buffer.SodiumBufferBuilder, which may cause inst
+    [3110月2026 22:32:55.482] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.SodiumWorldRenderer, which may cause instability.
+    [3110月2026 22:32:55.709] [Worker-Main-2/ERROR] [net.minecraft.client.multiplayer.AccountProfileKeyPairManager/]: Failed to retrieve profile key pair
+[98] [3110月2026 22:32:55.465] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.vertex.buffer.SodiumBufferBuilder, which may cause instability.
+    [3110月2026 22:32:55.482] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.SodiumWorldRenderer, which may cause instability.
+    [3110月2026 22:32:55.709] [Worker-Main-2/ERROR] [net.minecraft.client.multiplayer.AccountProfileKeyPairManager/]: Failed to retrieve profile key pair
+    java.io.IOException: Could not retrieve profile key pair
+[99] [3110月2026 22:32:55.482] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.SodiumWorldRenderer, which may cause instability.
+    [3110月2026 22:32:55.709] [Worker-Main-2/ERROR] [net.minecraft.client.multiplayer.AccountProfileKeyPairManager/]: Failed to retrieve profile key pair
+    java.io.IOException: Could not retrieve profile key pair
+    	at net.minecraft.client.multiplayer.AccountProfileKeyPairManager.m_253252_(AccountProfileKeyPairManager.java:129) ~[client-1.20.1-20230612.114412-srg.jar%23164!/:?]
+[138] [3110月2026 22:35:03.693] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gl.device.GLRenderDevice$ImmediateDrawCommandList, which may cause instability.
+    [3110月2026 22:35:04.264] [Realms Notification Availability checker #1/INFO] [com.mojang.realmsclient.client.RealmsClient/]: Could not authorize you against Realms server: java.lang.RuntimeException: Failed to parse into 
+    [3110月2026 22:35:06.882] [Render thread/INFO] [net.minecraft.world.item.crafting.RecipeManager/]: Loaded 7 recipes
+    [3110月2026 22:35:06.990] [Render thread/INFO] [net.minecraft.advancements.AdvancementList/]: Loaded 1271 advancements
+[175] [3110月2026 22:35:17.366] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.RenderSectionManager, which may cause instability.
+    [3110月2026 22:35:17.375] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.compile.tasks.ChunkBuilderMeshingTask, which may 
+    [3110月2026 22:35:17.394] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.vertex.format.ChunkMeshFormats, which may cause i
+    [3110月2026 22:35:17.396] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.vertex.format.ChunkMeshAttribute, which may cause
+[176] [3110月2026 22:35:17.375] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.compile.tasks.ChunkBuilderMeshingTask, which may cause instability.
+    [3110月2026 22:35:17.394] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.vertex.format.ChunkMeshFormats, which may cause i
+    [3110月2026 22:35:17.396] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.vertex.format.ChunkMeshAttribute, which may cause
+    [3110月2026 22:35:17.401] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gl.attribute.GlVertexFormat$Builder, which may cause instabili
+[177] [3110月2026 22:35:17.394] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.vertex.format.ChunkMeshFormats, which may cause instability.
+    [3110月2026 22:35:17.396] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.vertex.format.ChunkMeshAttribute, which may cause
+    [3110月2026 22:35:17.401] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gl.attribute.GlVertexFormat$Builder, which may cause instabili
+    [3110月2026 22:35:17.405] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gl.attribute.GlVertexAttributeFormat, which may cause instabil
+[178] [3110月2026 22:35:17.396] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.vertex.format.ChunkMeshAttribute, which may cause instability.
+    [3110月2026 22:35:17.401] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gl.attribute.GlVertexFormat$Builder, which may cause instabili
+    [3110月2026 22:35:17.405] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gl.attribute.GlVertexAttributeFormat, which may cause instabil
+    [3110月2026 22:35:17.410] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.DefaultChunkRenderer, which may cause instability
+[179] [3110月2026 22:35:17.401] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gl.attribute.GlVertexFormat$Builder, which may cause instability.
+    [3110月2026 22:35:17.405] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gl.attribute.GlVertexAttributeFormat, which may cause instabil
+    [3110月2026 22:35:17.410] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.DefaultChunkRenderer, which may cause instability
+    [3110月2026 22:35:17.415] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.ShaderChunkRenderer, which may cause instability.
+[180] [3110月2026 22:35:17.405] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gl.attribute.GlVertexAttributeFormat, which may cause instability.
+    [3110月2026 22:35:17.410] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.DefaultChunkRenderer, which may cause instability
+    [3110月2026 22:35:17.415] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.ShaderChunkRenderer, which may cause instability.
+    [3110月2026 22:35:17.442] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuildBuffers, which may cause instab
+[181] [3110月2026 22:35:17.410] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.DefaultChunkRenderer, which may cause instability.
+    [3110月2026 22:35:17.415] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.ShaderChunkRenderer, which may cause instability.
+    [3110月2026 22:35:17.442] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuildBuffers, which may cause instab
+    [3110月2026 22:35:17.446] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.vertex.builder.ChunkMeshBufferBuilder, which may 
+[182] [3110月2026 22:35:17.415] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.ShaderChunkRenderer, which may cause instability.
+    [3110月2026 22:35:17.442] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuildBuffers, which may cause instab
+    [3110月2026 22:35:17.446] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.vertex.builder.ChunkMeshBufferBuilder, which may 
+    [3110月2026 22:35:17.449] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.compile.buffers.BakedChunkModelBuilder, which may
+[183] [3110月2026 22:35:17.442] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuildBuffers, which may cause instability.
+    [3110月2026 22:35:17.446] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.vertex.builder.ChunkMeshBufferBuilder, which may 
+    [3110月2026 22:35:17.449] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.compile.buffers.BakedChunkModelBuilder, which may
+    [3110月2026 22:35:17.473] [Render thread/WARN] [mixin/]: Error loading class: net/fabricmc/fabric/api/blockview/v2/FabricBlockView (java.lang.ClassNotFoundException: net.fabricmc.fabric.api.blockview.v2.FabricBlockView)
+[184] [3110月2026 22:35:17.446] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.vertex.builder.ChunkMeshBufferBuilder, which may cause instability.
+    [3110月2026 22:35:17.449] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.compile.buffers.BakedChunkModelBuilder, which may
+    [3110月2026 22:35:17.473] [Render thread/WARN] [mixin/]: Error loading class: net/fabricmc/fabric/api/blockview/v2/FabricBlockView (java.lang.ClassNotFoundException: net.fabricmc.fabric.api.blockview.v2.FabricBlockView)
+    [3110月2026 22:35:17.476] [Render thread/WARN] [mixin/]: Error loading class: net/fabricmc/fabric/api/rendering/data/v1/RenderAttachedBlockView (java.lang.ClassNotFoundException: net.fabricmc.fabric.api.rendering.data.v1.
+[185] [3110月2026 22:35:17.449] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.compile.buffers.BakedChunkModelBuilder, which may cause instability.
+    [3110月2026 22:35:17.473] [Render thread/WARN] [mixin/]: Error loading class: net/fabricmc/fabric/api/blockview/v2/FabricBlockView (java.lang.ClassNotFoundException: net.fabricmc.fabric.api.blockview.v2.FabricBlockView)
+    [3110月2026 22:35:17.476] [Render thread/WARN] [mixin/]: Error loading class: net/fabricmc/fabric/api/rendering/data/v1/RenderAttachedBlockView (java.lang.ClassNotFoundException: net.fabricmc.fabric.api.rendering.data.v1.
+    [3110月2026 22:35:17.492] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.model.light.smooth.SmoothLightPipeline, which may cause instab
+[188] [3110月2026 22:35:17.492] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.model.light.smooth.SmoothLightPipeline, which may cause instability.
+    [3110月2026 22:35:17.496] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.model.light.flat.FlatLightPipeline, which may cause instabilit
+    [3110月2026 22:35:17.523] [Render thread/INFO] [ChunkBuilder/]: Started 10 worker threads
+    [3110月2026 22:35:17.568] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界进入：开始创建世界资源（注册数=0）
+[189] [3110月2026 22:35:17.496] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.model.light.flat.FlatLightPipeline, which may cause instability.
+    [3110月2026 22:35:17.523] [Render thread/INFO] [ChunkBuilder/]: Started 10 worker threads
+    [3110月2026 22:35:17.568] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界进入：开始创建世界资源（注册数=0）
+    [3110月2026 22:35:17.570] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=1, destroyed=0, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=1, registeredWorld=0, worldReady=tr
+[193] [3110月2026 22:35:17.849] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gl.shader.ShaderType, which may cause instability.
+    [3110月2026 22:35:17.858] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gl.shader.GlProgram, which may cause instability.
+    [3110月2026 22:35:17.906] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.immediate.CloudRenderer, which may cause instability.
+    [3110月2026 22:35:18.173] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.region.RenderRegion$DeviceResources, which may ca
+[194] [3110月2026 22:35:17.858] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gl.shader.GlProgram, which may cause instability.
+    [3110月2026 22:35:17.906] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.immediate.CloudRenderer, which may cause instability.
+    [3110月2026 22:35:18.173] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.region.RenderRegion$DeviceResources, which may ca
+    [3110月2026 22:35:18.237] [Render thread/WARN] [ModernFix/]: Time from main menu to in-game was 11.223272 seconds
+[195] [3110月2026 22:35:17.906] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.immediate.CloudRenderer, which may cause instability.
+    [3110月2026 22:35:18.173] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.region.RenderRegion$DeviceResources, which may ca
+    [3110月2026 22:35:18.237] [Render thread/WARN] [ModernFix/]: Time from main menu to in-game was 11.223272 seconds
+    [3110月2026 22:35:18.237] [Render thread/WARN] [ModernFix/]: Total time to load game and open world was 29.985271 seconds
+[196] [3110月2026 22:35:18.173] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.region.RenderRegion$DeviceResources, which may cause instability.
+    [3110月2026 22:35:18.237] [Render thread/WARN] [ModernFix/]: Time from main menu to in-game was 11.223272 seconds
+    [3110月2026 22:35:18.237] [Render thread/WARN] [ModernFix/]: Total time to load game and open world was 29.985271 seconds
+    [3110月2026 22:35:18.655] [Render thread/INFO] [net.minecraft.advancements.AdvancementList/]: Loaded 2 advancements
+[200] [3110月2026 22:35:20.437] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.immediate.model.BakedModelEncoder, which may cause instability.
+    [3110月2026 22:35:20.764] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.vertex.serializers.VertexSerializerRegistryImpl, which 
+    [3110月2026 22:35:26.883] [Render thread/INFO] [net.minecraft.advancements.AdvancementList/]: Loaded 5 advancements
+    [3110月2026 22:35:54.471] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Man被杀死了
+[201] [3110月2026 22:35:20.764] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.vertex.serializers.VertexSerializerRegistryImpl, which may cause instability.
+    [3110月2026 22:35:26.883] [Render thread/INFO] [net.minecraft.advancements.AdvancementList/]: Loaded 5 advancements
+    [3110月2026 22:35:54.471] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Man被杀死了
+    [3110月2026 22:35:54.472] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: [Man: 杀死了Man]
+captureapi_error_lines=0

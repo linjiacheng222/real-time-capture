@@ -1,0 +1,70 @@
+[3110月2026 22:32:54.012] [Render thread/ERROR] [net.minecraft.client.Minecraft/]: Failed to verify authentication
+[3110月2026 22:32:54.178] [Render thread/ERROR] [Embeddium-MixinTaintDetector/]: Mod mixin into Embeddium internals detected. This instance is now tainted. The Embeddium team does not provide any guarantee of support for issues encountered while such mods are installed.
+[3110月2026 22:32:54.178] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gui.SodiumGameOptions, which may cause instability.
+[3110月2026 22:32:54.472] [modloading-worker-0/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gui.SodiumOptionsGUI, which may cause instability.
+[3110月2026 22:32:54.478] [modloading-worker-0/INFO] [[CaptureAPI]/]: [CaptureAPI] 主类构造完成（modid=captureapi，配置骨架=captureapi-client.toml）
+[3110月2026 22:32:55.457] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.vertex.VertexFormatDescriptionImpl, which may cause instability.
+[3110月2026 22:32:55.465] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.vertex.buffer.SodiumBufferBuilder, which may cause instability.
+[3110月2026 22:32:55.482] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.SodiumWorldRenderer, which may cause instability.
+[3110月2026 22:32:55.796] [modloading-worker-0/INFO] [[CaptureAPI]/]: [CaptureAPI] 配置加载事件（Loading）：captureapi-client.toml
+[3110月2026 22:32:55.809] [modloading-worker-0/INFO] [[CaptureAPI]/]: [CaptureAPI] 参数快照建立（Loading）：fps_max=30, video_resolution=1280x1024, jpeg_quality=75, audio_enabled=true, sample_rate=44100, bit_depth=16, channels=2, net_port=25580, bind_local_only=true, lan_enabled=false, token_enabled=false, log_resource_lifecycle=true, log_frame_events=false, log_gl_thread_violation=true, clock_logging=false
+[3110月2026 22:32:56.198] [Worker-ResourceReload-2/INFO] [[CaptureAPI]/]: [CaptureAPI] 资源创建：captureapi:core:clock（世界级，线程=Worker-ResourceReload-2）
+[3110月2026 22:32:56.198] [Worker-ResourceReload-2/INFO] [[CaptureAPI]/]: [CaptureAPI] 底座就绪（MC 客户端 setup 完成，纯客户端模组；T1.2~T1.5 设施已接入）
+[3110月2026 22:35:03.693] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gl.device.GLRenderDevice$ImmediateDrawCommandList, which may cause instability.
+[3110月2026 22:35:07.013] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:35:17.366] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.RenderSectionManager, which may cause instability.
+[3110月2026 22:35:17.375] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.compile.tasks.ChunkBuilderMeshingTask, which may cause instability.
+[3110月2026 22:35:17.394] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.vertex.format.ChunkMeshFormats, which may cause instability.
+[3110月2026 22:35:17.396] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.vertex.format.ChunkMeshAttribute, which may cause instability.
+[3110月2026 22:35:17.401] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gl.attribute.GlVertexFormat$Builder, which may cause instability.
+[3110月2026 22:35:17.405] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gl.attribute.GlVertexAttributeFormat, which may cause instability.
+[3110月2026 22:35:17.410] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.DefaultChunkRenderer, which may cause instability.
+[3110月2026 22:35:17.415] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.ShaderChunkRenderer, which may cause instability.
+[3110月2026 22:35:17.442] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuildBuffers, which may cause instability.
+[3110月2026 22:35:17.446] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.vertex.builder.ChunkMeshBufferBuilder, which may cause instability.
+[3110月2026 22:35:17.449] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.compile.buffers.BakedChunkModelBuilder, which may cause instability.
+[3110月2026 22:35:17.492] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.model.light.smooth.SmoothLightPipeline, which may cause instability.
+[3110月2026 22:35:17.496] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.model.light.flat.FlatLightPipeline, which may cause instability.
+[3110月2026 22:35:17.568] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界进入：开始创建世界资源（注册数=0）
+[3110月2026 22:35:17.570] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=1, destroyed=0, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=1, registeredWorld=0, worldReady=true}
+[3110月2026 22:35:17.849] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gl.shader.ShaderType, which may cause instability.
+[3110月2026 22:35:17.858] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.gl.shader.GlProgram, which may cause instability.
+[3110月2026 22:35:17.906] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.immediate.CloudRenderer, which may cause instability.
+[3110月2026 22:35:18.173] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.chunk.region.RenderRegion$DeviceResources, which may cause instability.
+[3110月2026 22:35:20.437] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.immediate.model.BakedModelEncoder, which may cause instability.
+[3110月2026 22:35:20.764] [Render thread/WARN] [Embeddium-MixinTaintDetector/]: Mod(s) [oculus] are modifying Embeddium class me.jellysquid.mods.sodium.client.render.vertex.serializers.VertexSerializerRegistryImpl, which may cause instability.
+[3110月2026 22:35:59.661] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:35:59.663] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:10.361] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:11.430] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界进入：开始创建世界资源（注册数=0）
+[3110月2026 22:36:11.430] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=1, destroyed=0, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=1, registeredWorld=0, worldReady=true}
+[3110月2026 22:36:13.028] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:13.030] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:15.445] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:16.085] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界进入：开始创建世界资源（注册数=0）
+[3110月2026 22:36:16.085] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=1, destroyed=0, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=1, registeredWorld=0, worldReady=true}
+[3110月2026 22:36:17.565] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:17.571] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:19.773] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:20.398] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界进入：开始创建世界资源（注册数=0）
+[3110月2026 22:36:20.398] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=1, destroyed=0, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=1, registeredWorld=0, worldReady=true}
+[3110月2026 22:36:21.851] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:21.856] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:24.280] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:24.915] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界进入：开始创建世界资源（注册数=0）
+[3110月2026 22:36:24.915] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=1, destroyed=0, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=1, registeredWorld=0, worldReady=true}
+[3110月2026 22:36:26.245] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:26.251] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:28.541] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:29.192] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界进入：开始创建世界资源（注册数=0）
+[3110月2026 22:36:29.192] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=1, destroyed=0, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=1, registeredWorld=0, worldReady=true}
+[3110月2026 22:36:30.755] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:30.758] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:32.772] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:33.432] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界进入：开始创建世界资源（注册数=0）
+[3110月2026 22:36:33.432] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=1, destroyed=0, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=1, registeredWorld=0, worldReady=true}
+[3110月2026 22:36:34.837] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:34.846] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:36.103] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界退出：无存活世界资源（幂等空操作）
+[3110月2026 22:36:36.194] [captureapi-shutdown/INFO] [[CaptureAPI]/]: [CaptureAPI] 资源销毁：captureapi:core:clock（全局级，线程=captureapi-shutdown）
+[3110月2026 22:36:36.194] [captureapi-shutdown/INFO] [[CaptureAPI]/]: [CaptureAPI] 客户端关闭：全局资源已回收

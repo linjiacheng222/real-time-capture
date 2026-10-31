@@ -50,6 +50,8 @@ public final class CaptureParams {
                 CaptureConfig.FPS_MAX.get(),
                 CaptureConfig.VIDEO_RESOLUTION.get(),
                 CaptureConfig.JPEG_QUALITY.get(),
+                CaptureConfig.NEAR_PLANE.get(),
+                CaptureConfig.FAR_PLANE.get(),
                 CaptureConfig.AUDIO_ENABLED.get(),
                 CaptureConfig.SAMPLE_RATE.get(),
                 CaptureConfig.BIT_DEPTH.get(),
@@ -66,12 +68,14 @@ public final class CaptureParams {
         loadedLatch.countDown();
         applyDiagnosticSwitches(next);
         LOGGER.info("{} 参数快照{}：fps_max={}, video_resolution={}, jpeg_quality={}, "
+                        + "near_plane={}, far_plane={}, "
                         + "audio_enabled={}, sample_rate={}, bit_depth={}, channels={}, "
                         + "net_port={}, bind_local_only={}, lan_enabled={}, token_enabled={}, "
                         + "log_resource_lifecycle={}, log_frame_events={}, log_gl_thread_violation={}, clock_logging={}",
                 CaptureConstants.LOG_MARKER,
                 scope == ReloadScope.INITIAL_LOAD ? "建立（Loading）" : "刷新（Reloading）",
                 next.fpsMax(), next.videoResolution(), next.jpegQuality(),
+                next.nearPlane(), next.farPlane(),
                 next.audioEnabled(), next.sampleRate(), next.bitDepth(), next.channels(),
                 next.netPort(), next.bindLocalOnly(), next.lanEnabled(), next.tokenEnabled(),
                 next.logResourceLifecycle(), next.logFrameEvents(), next.logGlThreadViolation(),
@@ -118,6 +122,16 @@ public final class CaptureParams {
 
     public int jpegQuality() {
         return current().jpegQuality();
+    }
+
+    /** @return 投影近裁剪距离（T2.1.2） */
+    public double nearPlane() {
+        return current().nearPlane();
+    }
+
+    /** @return 投影远裁剪距离；0=自动（渲染距离×16，T2.1.2） */
+    public double farPlane() {
+        return current().farPlane();
     }
 
     public boolean audioEnabled() {
@@ -197,6 +211,8 @@ public final class CaptureParams {
             int fpsMax,
             String videoResolution,
             int jpegQuality,
+            double nearPlane,
+            double farPlane,
             boolean audioEnabled,
             int sampleRate,
             int bitDepth,

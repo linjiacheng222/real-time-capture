@@ -6,7 +6,8 @@
   "refmap": "captureapi.refmap.json",
   "mixins": [],
   "client": [
-    "MinecraftMixin"
+    "MinecraftMixin",
+    "ClientLevelAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
