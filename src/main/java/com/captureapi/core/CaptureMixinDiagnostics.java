@@ -1,5 +1,6 @@
 package com.captureapi.core;
 
+import com.captureapi.core.constant.CaptureConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +22,7 @@ public final class CaptureMixinDiagnostics {
 
     /** Mixin 注入点在 {@code Minecraft#run} HEAD 触发时调用（仅 DEBUG/显式自检开关输出）。 */
     public static void onMinecraftRunHead() {
-        if (Boolean.getBoolean("captureapi.debug.mixin")) {
+        if (Boolean.getBoolean(CaptureConstants.DEBUG_MIXIN_PROPERTY)) {
             LOGGER.info("{} Mixin 基建自检：Minecraft#run 注入生效（refmap/AT 管线可用）",
                     CaptureConstants.LOG_MARKER);
         } else {

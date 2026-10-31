@@ -378,7 +378,35 @@ Add-Check -Name '清单含 MixinConfigs 属性' -Ok (($null -ne $manifestText) -
 
 Add-Check -Name '产物 jar 无 Fabric/Quilt 元数据（红线 2）' -Ok ((-not (& $hasEntry 'fabric.mod.json')) -and (-not (& $hasEntry 'quilt.mod.json'))) -Detail 'I1.1.5：禁 Connector 类混合加载器'
 
-# 7) 汇总
+# 8) 红线 4 时钟纪律静态扫描（I1.4.2）与 T1.5.2 常数白名单
+$srcRoot = Join-Path $ProjectRoot 'src\main\java'
+$timeWhitelist = @('com\captureapi\core\time\CaptureClock.java', 'com\captureapi\core\time\LogTimeConverter.java')
+$timeViolations = New-Object System.Collections.ArrayList
+$timePatterns = @(
+    @{ Name = 'System.currentTimeMillis'; Regex = 'System\.currentTimeMillis\s*\(' },
+    @{ Name = 'Instant.now'; Regex = 'Instant\.now\s*\(' },
+    @{ Name = 'System.nanoTime'; Regex = 'System\.nanoTime\s*\(' },
+    @{ Name = 'level.getGameTime'; Regex = 'getGameTime\s*\(' }
+)
+foreach ($javaFile in @(Get-ChildItem -LiteralPath $srcRoot -Recurse -Filter '*.java' -File -ErrorAction SilentlyContinue)) {
+    $rel = $javaFile.FullName.Substring($srcRoot.Length + 1)
+    if ($timeWhitelist -contains $rel) { continue }
+    $text = Read-TextAuto -Path $javaFile.FullName
+    foreach ($pattern in $timePatterns) {
+        if ($text -match $pattern.Regex) {
+            [void]$timeViolations.Add($rel + ' :: ' + $pattern.Name)
+        }
+    }
+}
+Add-Check -Name '红线 4：时钟纪律静态扫描（白名单外 0 命中）' -Ok ($timeViolations.Count -eq 0) -Detail $(if ($timeViolations.Count -eq 0) { '白名单仅 CaptureClock / LogTimeConverter；无 currentTimeMillis/Instant.now/tick 时间源' } else { '违规 ' + $timeViolations.Count + ' 处：' + (($timeViolations | Select-Object -First 3) -join '；') })
+
+$constantsPath = Join-Path $srcRoot 'com\captureapi\core\constant\CaptureConstants.java'
+$constantsText = Read-TextAuto -Path $constantsPath
+$requiredConstants = @('LOG_MARKER', 'TOML_FILE_NAME', 'RESOURCE_KEY_PREFIX', 'PBO_PAIR_COUNT', 'RGBA_BYTES_PER_PIXEL', 'ENCODE_QUEUE_CAPACITY', 'ONESHOT_QUEUE_CAPACITY', 'NANOS_PER_SECOND', 'NANOS_PER_MILLI', 'VIDEO_FRAME_HEADER_BYTES', 'AUDIO_CHUNK_HEADER_BYTES', 'MJPEG_BOUNDARY')
+$missingConstants = @($requiredConstants | Where-Object { $constantsText -notmatch ('\b' + [regex]::Escape($_) + '\b') })
+Add-Check -Name '常数白名单已登记（I1.5.2，12 项）' -Ok (($null -ne $constantsText) -and ($missingConstants.Count -eq 0)) -Detail $(if ($missingConstants.Count -eq 0) { '标识/结构/换算/协议类常数额齐备，每条含理由注释' } else { '缺失：' + ($missingConstants -join ', ') })
+
+# 9) 汇总
 $swTotal.Stop()
 $failCount = @($script:checks | Where-Object { $_.Status -eq 'FAIL' }).Count
 $passCount = @($script:checks | Where-Object { $_.Status -eq 'PASS' }).Count

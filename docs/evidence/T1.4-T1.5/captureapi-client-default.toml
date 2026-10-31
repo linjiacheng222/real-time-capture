@@ -1,0 +1,48 @@
+
+#捕获接口（captureapi）客户端参数。默认值以《附录B-全参数清单》为准；改后需重启客户端。
+[video]
+	#离屏渲染帧率上限（cap 非保证；红线 4）
+	#Range: 1 ~ 240
+	fps_max = 30
+	#离屏渲染分辨率（宽x高，FBO 重建生效）
+	video_resolution = "1280x1024"
+	#JPEG 编码质量（0–100）
+	#Range: 0 ~ 100
+	jpeg_quality = 75
+
+#音频采集与格式参数（M3 使用）
+[audio]
+	#音频模块总开关（探测失败时亦自动禁用）
+	audio_enabled = true
+	#采样率（Hz）
+	#Range: 8000 ~ 192000
+	sample_rate = 44100
+	#采样位深（bit；当前仅支持 16）
+	bit_depth = 16
+	#声道数（1=单声道，2=立体声）
+	#Range: 1 ~ 2
+	channels = 2
+
+#对外网络服务参数（M4 使用）
+[server]
+	#HTTP/WS 监听端口（默认 25580）
+	#Range: 1024 ~ 65535
+	net_port = 25580
+	#仅绑定本机 127.0.0.1（false 时配合 lan_enabled）
+	bind_local_only = true
+	#开放局域网（开启时显著警告）
+	lan_enabled = false
+	#token 鉴权开关（默认关）
+	token_enabled = false
+
+#诊断日志开关（默认关闭；排障时按需开启）
+[log]
+	#资源创建/销毁轨迹日志（T1.2）
+	log_resource_lifecycle = false
+	#渲染阶段帧事件日志（T1.3）
+	log_frame_events = false
+	#GL 线程违规日志（T1.3，默认开启）
+	log_gl_thread_violation = true
+	#时钟自测/打标抽样日志（T1.4）
+	clock_logging = false
+

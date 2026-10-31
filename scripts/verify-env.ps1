@@ -530,6 +530,20 @@ Invoke-OptionalCheck -Category '工程依赖' -Name 'dev 客户端 Mixin 自检�
     return 'Mixin 注入自检 + 客户端 setup 基线日志均存在'
 } -WarnHint '运行 scripts\run-client.ps1 验证'
 
+Invoke-OptionalCheck -Category '工程依赖' -Name '配置骨架与快照日志（T1.5，dev）' -Body {
+    $configFile = Join-Path $ProjectRoot 'run\config\captureapi-client.toml'
+    if (-not (Test-Path -LiteralPath $configFile)) { throw '未生成 run\config\captureapi-client.toml（先运行 run-client.ps1）' }
+    $configText = Read-TextAuto -Path $configFile
+    foreach ($section in @('[video]', '[audio]', '[server]', '[log]')) {
+        if ($configText -notmatch [regex]::Escape($section)) { throw '配置骨架缺少 section：' + $section }
+    }
+    $latestLog = Join-Path $ProjectRoot 'run\logs\latest.log'
+    if (-not (Test-Path -LiteralPath $latestLog)) { throw '不存在 run\logs\latest.log' }
+    $text = Read-TextAuto -Path $latestLog
+    if ($text -notmatch '参数快照建立（Loading）') { throw '未找到参数快照建立日志（I1.5.3/1.5.4）' }
+    return '四 section 配置骨架存在；Loading 快照建立日志存在'
+} -WarnHint '运行 scripts\run-client.ps1（dev 自检属性开启时）生成配置与日志'
+
 Invoke-OptionalCheck -Category '工程依赖' -Name 'M1 核心自检日志（T1.2/T1.3，dev）' -Body {
     $latestLog = Join-Path $ProjectRoot 'run\logs\latest.log'
     if (-not (Test-Path -LiteralPath $latestLog)) { throw '不存在 run\logs\latest.log' }

@@ -1,6 +1,6 @@
 package com.captureapi.core.resource;
 
-import com.captureapi.core.CaptureConstants;
+import com.captureapi.core.constant.CaptureConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,7 +1,7 @@
 package com.captureapi.core.thread;
 
 import com.captureapi.CaptureInterface;
-import com.captureapi.core.CaptureConstants;
+import com.captureapi.core.constant.CaptureConstants;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;

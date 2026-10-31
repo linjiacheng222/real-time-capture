@@ -1,6 +1,6 @@
 package com.captureapi.core.resource;
 
-import com.captureapi.core.CaptureConstants;
+import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.core.thread.GlThreadGuard;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
