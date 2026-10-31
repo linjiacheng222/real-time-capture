@@ -30,7 +30,7 @@ public record CameraSpec(
         double boundOffsetX,
         double boundOffsetY,
         double boundOffsetZ,
-        String projectionId,
+        ShapeModel shape,
         boolean paused) {
 
     public CameraSpec {
@@ -46,10 +46,12 @@ public record CameraSpec(
         if (width <= 0 || height <= 0) {
             throw new IllegalArgumentException("相机分辨率必须为正：width=" + width + ", height=" + height);
         }
-        Objects.requireNonNull(projectionId, "projectionId");
-        if (projectionId.isBlank()) {
-            throw new IllegalArgumentException("projectionId 不能为空");
-        }
+        Objects.requireNonNull(shape, "shape");
+    }
+
+    /** @return 投影形状 id（兼容旧调用） */
+    public String projectionId() {
+        return shape.type();
     }
 
     /** @return 绝对/回退位置 */
@@ -66,7 +68,7 @@ public record CameraSpec(
     public CameraSpec withPaused(boolean newPaused) {
         return new CameraSpec(id, positionX, positionY, positionZ, yawDegrees, pitchDegrees, rollDegrees,
                 fovDegrees, width, height, boundEntityUuid, boundOffsetX, boundOffsetY, boundOffsetZ,
-                projectionId, newPaused);
+                shape, newPaused);
     }
 
     /** 返回参数整体替换后的新快照（保留 id 与暂停状态）。 */
@@ -74,6 +76,6 @@ public record CameraSpec(
         return new CameraSpec(id, params.x(), params.y(), params.z(), params.yawDegrees(),
                 params.pitchDegrees(), params.rollDegrees(), params.fovDegrees(), resolvedWidth, resolvedHeight,
                 params.boundEntityUuid(), params.offsetX(), params.offsetY(), params.offsetZ(),
-                params.projectionId(), paused);
+                params.shape(), paused);
     }
 }

@@ -23,6 +23,7 @@ public final class ViewProjectionRegistry {
 
     static {
         register(new RectProjection());
+        register(new SphereConeProjection());
     }
 
     private ViewProjectionRegistry() {

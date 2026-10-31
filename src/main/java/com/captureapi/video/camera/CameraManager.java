@@ -50,7 +50,7 @@ public final class CameraManager {
         CameraSpec spec = new CameraSpec(id, params.x(), params.y(), params.z(), params.yawDegrees(),
                 params.pitchDegrees(), params.rollDegrees(), params.fovDegrees(), resolution[0], resolution[1],
                 params.boundEntityUuid(), params.offsetX(), params.offsetY(), params.offsetZ(),
-                params.projectionId(), false);
+                params.shape(), false);
         cameras.put(id, spec);
         if (activeCameraId == 0) {
             activeCameraId = id;
@@ -182,7 +182,7 @@ public final class CameraManager {
         return new CameraSpec(0, params.x(), params.y(), params.z(), params.yawDegrees(),
                 params.pitchDegrees(), params.rollDegrees(), params.fovDegrees(), resolution[0], resolution[1],
                 params.boundEntityUuid(), params.offsetX(), params.offsetY(), params.offsetZ(),
-                params.projectionId(), false);
+                params.shape(), false);
     }
 
     /** 便于调试：绑定实体是否为该相机（不解析世界）。 */
