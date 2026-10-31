@@ -9,6 +9,7 @@ import com.captureapi.core.time.CaptureClock;
 import com.captureapi.video.FrameRateLimiter;
 import com.captureapi.video.OffscreenFboResource;
 import com.captureapi.video.PboPairResource;
+import com.captureapi.video.encode.EncodingPipeline;
 import com.captureapi.video.frame.RawFrame;
 import com.captureapi.video.camera.CameraManager;
 import com.captureapi.video.camera.CameraMatrices;
@@ -120,11 +121,15 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
             target.clear(true);
             fbo.bind();
             // TODO(M3)：CameraSyncHook.onBeforeOffscreenRender(pose)，同帧内改写监听器
+            long renderStart = CaptureClock.get().nowNanos();
             gameRenderer.renderLevel(partialTick, 0L, new PoseStack());
+            long renderNanos = CaptureClock.get().nowNanos() - renderStart;
             // TODO(M3)：CameraSyncHook.onAfterOffscreenRender(pose)，同帧内恢复监听器
             // T2.4：FBO 仍为读/写目标时回读上一帧（写 N 读 N-1）
             PboPairResource pbo = WorldResourceManager.get().get(PboPairResource.KEY, PboPairResource.class);
+            long readbackStart = CaptureClock.get().nowNanos();
             RawFrame frame = pbo.readback();
+            long readbackNanos = CaptureClock.get().nowNanos() - readbackStart;
             if (frame != null) {
                 lastFrame = frame;
                 readbackFrames.incrementAndGet();
@@ -133,6 +138,10 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
                             CaptureConstants.LOG_MARKER, frame.width(), frame.height(), frame.byteSize(),
                             frame.timestampNanos());
                 }
+                long encodeStart = CaptureClock.get().nowNanos();
+                EncodingPipeline.get().accept(frame);
+                long encodeNanos = CaptureClock.get().nowNanos() - encodeStart;
+                PipelineTimings.record(renderNanos, readbackNanos, encodeNanos);
             }
             fbo.unbind();
 

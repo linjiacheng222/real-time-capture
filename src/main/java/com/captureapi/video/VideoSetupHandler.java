@@ -3,6 +3,7 @@ package com.captureapi.video;
 import com.captureapi.CaptureInterface;
 import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.core.resource.WorldResourceManager;
+import com.captureapi.video.encode.JpegEncoder;
 import com.captureapi.video.render.OffscreenRenderPipeline;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -35,6 +36,7 @@ public final class VideoSetupHandler {
     public static void onClientSetup(FMLClientSetupEvent event) {
         WorldResourceManager.get().registerWorldScoped(OffscreenFboResource.KEY, OffscreenFboResource::new);
         WorldResourceManager.get().registerWorldScoped(PboPairResource.KEY, PboPairResource::new);
+        JpegEncoder.prewarm();
         OffscreenRenderPipeline.install();
         LOGGER.info("{} 视频设施装配：离屏 FBO/PBO 对已注册（{}，{}），离屏渲染管线已挂接",
                 CaptureConstants.LOG_MARKER, OffscreenFboResource.KEY, PboPairResource.KEY);
