@@ -62,6 +62,7 @@ public final class CaptureParams {
                 CaptureConfig.TOKEN_ENABLED.get(),
                 CaptureConfig.LOG_RESOURCE_LIFECYCLE.get(),
                 CaptureConfig.LOG_FRAME_EVENTS.get(),
+                CaptureConfig.LOG_FRAME_DROPS.get(),
                 CaptureConfig.LOG_GL_THREAD_VIOLATION.get(),
                 CaptureConfig.CLOCK_LOGGING.get());
         snapshot = next;
@@ -71,15 +72,15 @@ public final class CaptureParams {
                         + "near_plane={}, far_plane={}, "
                         + "audio_enabled={}, sample_rate={}, bit_depth={}, channels={}, "
                         + "net_port={}, bind_local_only={}, lan_enabled={}, token_enabled={}, "
-                        + "log_resource_lifecycle={}, log_frame_events={}, log_gl_thread_violation={}, clock_logging={}",
+                        + "log_resource_lifecycle={}, log_frame_events={}, log_frame_drops={}, log_gl_thread_violation={}, clock_logging={}",
                 CaptureConstants.LOG_MARKER,
                 scope == ReloadScope.INITIAL_LOAD ? "建立（Loading）" : "刷新（Reloading）",
                 next.fpsMax(), next.videoResolution(), next.jpegQuality(),
                 next.nearPlane(), next.farPlane(),
                 next.audioEnabled(), next.sampleRate(), next.bitDepth(), next.channels(),
                 next.netPort(), next.bindLocalOnly(), next.lanEnabled(), next.tokenEnabled(),
-                next.logResourceLifecycle(), next.logFrameEvents(), next.logGlThreadViolation(),
-                next.clockLogging());
+                next.logResourceLifecycle(), next.logFrameEvents(), next.logFrameDrops(),
+                next.logGlThreadViolation(), next.clockLogging());
         onParamsReloaded(scope);
     }
 
@@ -174,6 +175,41 @@ public final class CaptureParams {
         return current().logFrameEvents();
     }
 
+    /** @return 是否输出离屏丢帧统计（T2.2.1） */
+    public boolean logFrameDrops() {
+        return current().logFrameDrops();
+    }
+
+    /** @return 视频帧率上限（T2.2.1 别名；等价 fpsMax()） */
+    public int videoFpsMax() {
+        return current().fpsMax();
+    }
+
+    /** @return 离屏渲染宽（解析 video_resolution，失败回退 1280） */
+    public int videoWidth() {
+        return parseResolution(current().videoResolution())[0];
+    }
+
+    /** @return 离屏渲染高（解析 video_resolution，失败回退 1024） */
+    public int videoHeight() {
+        return parseResolution(current().videoResolution())[1];
+    }
+
+    /** 解析 "宽x高"；配置 predicate 已限制格式，异常仅作兜底。 */
+    private static int[] parseResolution(String value) {
+        try {
+            String[] parts = value == null ? new String[0] : value.split("x");
+            int w = Integer.parseInt(parts[0]);
+            int h = Integer.parseInt(parts[1]);
+            if (w > 0 && h > 0) {
+                return new int[] {w, h};
+            }
+        } catch (RuntimeException ignored) {
+            // fallback
+        }
+        return new int[] {1280, 1024};
+    }
+
     public boolean logGlThreadViolation() {
         return current().logGlThreadViolation();
     }
@@ -223,6 +259,7 @@ public final class CaptureParams {
             boolean tokenEnabled,
             boolean logResourceLifecycle,
             boolean logFrameEvents,
+            boolean logFrameDrops,
             boolean logGlThreadViolation,
             boolean clockLogging) {
     }
