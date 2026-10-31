@@ -43,6 +43,7 @@ public final class CaptureConfig {
     // ===== [log] =====
     static final ForgeConfigSpec.BooleanValue LOG_RESOURCE_LIFECYCLE;
     static final ForgeConfigSpec.BooleanValue LOG_FRAME_EVENTS;
+    static final ForgeConfigSpec.BooleanValue LOG_FRAME_DROPS;
     static final ForgeConfigSpec.BooleanValue LOG_GL_THREAD_VIOLATION;
     static final ForgeConfigSpec.BooleanValue CLOCK_LOGGING;
 
@@ -105,6 +106,9 @@ public final class CaptureConfig {
         LOG_FRAME_EVENTS = builder
                 .comment("渲染阶段帧事件日志（T1.3）")
                 .define("log_frame_events", false);
+        LOG_FRAME_DROPS = builder
+                .comment("离屏渲染丢帧统计日志（T2.2.1，默认 false）")
+                .define("log_frame_drops", false);
         LOG_GL_THREAD_VIOLATION = builder
                 .comment("GL 线程违规日志（T1.3，默认开启）")
                 .define("log_gl_thread_violation", true);

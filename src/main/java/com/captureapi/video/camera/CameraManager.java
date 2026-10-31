@@ -166,18 +166,8 @@ public final class CameraManager {
         if (width > 0 && height > 0) {
             return new int[] {width, height};
         }
-        String configured = com.captureapi.core.config.CaptureParams.get().videoResolution();
-        String[] parts = configured == null ? new String[0] : configured.split("x");
-        try {
-            int w = Integer.parseInt(parts[0]);
-            int h = Integer.parseInt(parts[1]);
-            if (w > 0 && h > 0) {
-                return new int[] {w, h};
-            }
-        } catch (RuntimeException ignored) {
-            // 配置在框架层有正则约束；异常仅作兜底
-        }
-        return new int[] {1280, 1024};
+        com.captureapi.core.config.CaptureParams params = com.captureapi.core.config.CaptureParams.get();
+        return new int[] {params.videoWidth(), params.videoHeight()};
     }
 
     /** 便于调试：绑定实体是否为该相机（不解析世界）。 */
