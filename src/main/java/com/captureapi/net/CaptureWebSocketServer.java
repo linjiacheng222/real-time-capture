@@ -1,6 +1,7 @@
 package com.captureapi.net;
 
 import com.captureapi.core.config.CaptureParams;
+import com.captureapi.net.control.ControlCommandDispatcher;
 import com.captureapi.core.constant.CaptureConstants;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -366,8 +367,7 @@ public final class CaptureWebSocketServer {
         }
 
         private void handleText(String message) {
-            // T4.3：JSON 控制指令分发；当前回执明确错误码
-            sendText("{\"ok\":false,\"code\":\"E_NOT_IMPLEMENTED\",\"message\":\"控制指令在 T4.3 实装\"}");
+            ControlCommandDispatcher.get().handle(message, this::sendText);
         }
 
         private void sendText(String message) {
