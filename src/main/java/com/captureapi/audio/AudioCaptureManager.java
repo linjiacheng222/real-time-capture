@@ -2,6 +2,8 @@ package com.captureapi.audio;
 
 import com.captureapi.core.config.CaptureParams;
 import com.captureapi.core.constant.CaptureConstants;
+import com.captureapi.audio.timestamp.AudioTimestamp;
+import com.captureapi.audio.timestamp.AudioTimestampTracker;
 import com.captureapi.core.time.CaptureClock;
 import com.mojang.blaze3d.audio.Library;
 import java.nio.ByteBuffer;
@@ -265,8 +267,12 @@ public final class AudioCaptureManager {
                     LOGGER.warn("{} 环回短拍丢弃：len={}，期望={}", CaptureConstants.LOG_MARKER, pcm.length,
                             bytesPerPoll);
                 } else {
-                    // T3.2：先写环形缓冲，再做扬声器中继（写端永不阻塞）
-                    AudioRingBuffer.get().write(pcm);
+                    // T3.4：渲染完成即打起始时间戳；终点纯整数推算，然后写环形缓冲再中继
+                    long chunkStartNanos = CaptureClock.get().nowNanos();
+                    long chunkEndNanos = AudioTimestamp.endNanos(chunkStartNanos, samplesPerPoll, sampleRate);
+                    AudioRingBuffer.get().write(pcm, chunkStartNanos, chunkEndNanos, samplesPerPoll);
+                    AudioTimestampTracker.get().onChunk(chunkStartNanos, chunkEndNanos,
+                            CaptureClock.get().nowNanos());
                     relayToSpeaker(pcm);
                     renderedPolls++;
                 }

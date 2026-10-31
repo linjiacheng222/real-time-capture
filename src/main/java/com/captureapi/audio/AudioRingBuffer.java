@@ -3,6 +3,8 @@ package com.captureapi.audio;
 import com.captureapi.core.config.CaptureParams;
 import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.core.resource.ManagedResource;
+import com.captureapi.audio.timestamp.AudioChunk;
+import com.captureapi.audio.timestamp.AudioTimestamp;
 import com.captureapi.core.time.CaptureClock;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
@@ -60,8 +62,14 @@ public final class AudioRingBuffer implements ManagedResource {
     private static final AudioRingBuffer INSTANCE = new AudioRingBuffer();
 
     private volatile byte[] slots;
+    private long[] slotStartNanos;
+    private long[] slotEndNanos;
+    private int[] slotSampleCounts;
     private int slotCount;
     private int slotBytes;
+    private int samplesPerSlot;
+    private int sampleRate;
+    private volatile long lastReadEndNanos;
     private volatile int writeIndex;
     private volatile int readIndex;
     private volatile boolean sealed;
@@ -101,6 +109,11 @@ public final class AudioRingBuffer implements ManagedResource {
         int pollsPerSecond = Math.max(1, 1000 / Math.max(1, pollIntervalMs));
         slotCount = Math.max(2, (int) Math.round(pollsPerSecond * CaptureParams.get().ringCapacitySec()));
         slots = new byte[slotCount * slotBytes];
+        slotStartNanos = new long[slotCount];
+        slotEndNanos = new long[slotCount];
+        slotSampleCounts = new int[slotCount];
+        samplesPerSlot = samplesPerPoll;
+        this.sampleRate = sampleRate;
         silenceFrame = new byte[slotBytes];
         writeIndex = 0;
         readIndex = 0;
@@ -116,6 +129,9 @@ public final class AudioRingBuffer implements ManagedResource {
     public void destroy() {
         seal();
         slots = null;
+        slotStartNanos = null;
+        slotEndNanos = null;
+        slotSampleCounts = null;
         silenceFrame = null;
         LOGGER.info("{} 环形音频缓冲释放：写入={}, 丢拍={}, 静音={}, 非法={}", CaptureConstants.LOG_MARKER,
                 writtenPolls.get(), droppedPolls.get(), silentPolls.get(), invalidPolls.get());
@@ -124,10 +140,13 @@ public final class AudioRingBuffer implements ManagedResource {
     /**
      * 写一拍（采集线程唯一写端；永不阻塞）。
      *
-     * @param pcm 定长 PCM 拍
+     * @param pcm         定长 PCM 拍
+     * @param startNanos  起始时间戳（CaptureClock，I3.4.1）
+     * @param endNanos    终点时间戳（整数推算，I3.4.2）
+     * @param sampleCount 实际采样数
      * @return 是否写入（封口/短拍/未创建时 false）
      */
-    public boolean write(byte[] pcm) {
+    public boolean write(byte[] pcm, long startNanos, long endNanos, int sampleCount) {
         byte[] ring = slots;
         if (ring == null || sealed) {
             return false;
@@ -149,6 +168,9 @@ public final class AudioRingBuffer implements ManagedResource {
             droppedPolls.incrementAndGet();
         }
         System.arraycopy(pcm, 0, ring, write * slotBytes, slotBytes);
+        slotStartNanos[write] = startNanos;
+        slotEndNanos[write] = endNanos;
+        slotSampleCounts[write] = sampleCount;
         writeIndex = (write + 1) % slotCount;
         writtenPolls.incrementAndGet();
         LockSupport.unpark(getWaitThread());
@@ -211,6 +233,73 @@ public final class AudioRingBuffer implements ManagedResource {
         byte[] copy = new byte[zero.length];
         System.arraycopy(zero, 0, copy, 0, zero.length);
         return copy;
+    }
+
+    /**
+     * 读一个带时间戳的音频块（M4/M5 消费端；有界等待）。
+     *
+     * @param timeoutMillis 超时毫秒
+     * @return DATA 时 AudioChunk；TIMEOUT/EOF 时 null
+     */
+    public ReadChunkResult readChunk(long timeoutMillis) {
+        ensureCreated();
+        long deadline = CaptureClock.get().nowNanos() + Math.max(0L, timeoutMillis) * 1_000_000L;
+        while (true) {
+            int read = readIndex;
+            int write = writeIndex;
+            if (read != write) {
+                byte[] pcm = new byte[slotBytes];
+                System.arraycopy(slots, read * slotBytes, pcm, 0, slotBytes);
+                AudioChunk chunk = new AudioChunk(slotStartNanos[read], slotEndNanos[read],
+                        slotSampleCounts[read], pcm);
+                lastReadEndNanos = chunk.endNanos();
+                readIndex = (read + 1) % slotCount;
+                return new ReadChunkResult(ReadStatus.DATA, chunk);
+            }
+            if (sealed) {
+                return new ReadChunkResult(ReadStatus.EOF, null);
+            }
+            long remaining = deadline - CaptureClock.get().nowNanos();
+            if (remaining <= 0L) {
+                return new ReadChunkResult(ReadStatus.TIMEOUT, null);
+            }
+            LockSupport.parkNanos(this, Math.min(remaining, 1_000_000L));
+            if (Thread.interrupted()) {
+                Thread.currentThread().interrupt();
+                return new ReadChunkResult(ReadStatus.TIMEOUT, null);
+            }
+        }
+    }
+
+    /**
+     * 读一个块；超时补全零静音块（I3.2.5/I3.4.3）；EOF 返回 null。
+     *
+     * @param timeoutMillis 超时毫秒
+     * @return AudioChunk（静音块时间戳按标称节奏推进）
+     */
+    public AudioChunk readChunkOrSilence(long timeoutMillis) {
+        ReadChunkResult result = readChunk(timeoutMillis);
+        if (result.status() == ReadStatus.DATA) {
+            return result.chunk();
+        }
+        if (result.status() == ReadStatus.EOF) {
+            return null;
+        }
+        silentPolls.incrementAndGet();
+        long start = lastReadEndNanos != 0L ? lastReadEndNanos : CaptureClock.get().nowNanos();
+        long end = AudioTimestamp.endNanos(start, samplesPerSlot, sampleRate);
+        lastReadEndNanos = end;
+        byte[] zero = new byte[slotBytes];
+        return new AudioChunk(start, end, samplesPerSlot, zero);
+    }
+
+    /**
+     * 带时间戳读结果。
+     *
+     * @param status 状态
+     * @param chunk  DATA 时的音频块
+     */
+    public record ReadChunkResult(ReadStatus status, AudioChunk chunk) {
     }
 
     /** 封口：写端停止后调用（I3.1.6 关闭序列）；读端排空后收到 EOF。 */
