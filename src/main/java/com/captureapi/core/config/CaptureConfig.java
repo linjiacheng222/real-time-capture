@@ -51,6 +51,8 @@ public final class CaptureConfig {
     static final ForgeConfigSpec.IntValue FRAME_CACHE_TTL_SEC;
     static final ForgeConfigSpec.ConfigValue<String> RECORDING_OUTPUT_DIR;
     static final ForgeConfigSpec.ConfigValue<String> FILTER_DIRECTORY;
+    static final ForgeConfigSpec.ConfigValue<String> OVERLAY_DIRECTORY;
+    static final ForgeConfigSpec.BooleanValue OVERLAY_ENABLED;
     static final ForgeConfigSpec.ConfigValue<String> FFMPEG_PATH;
     static final ForgeConfigSpec.ConfigValue<String> RECORDING_FORMAT;
     static final ForgeConfigSpec.BooleanValue SYNC_MONITOR_ENABLED;
@@ -149,6 +151,12 @@ public final class CaptureConfig {
         FILTER_DIRECTORY = builder
                 .comment("滤镜目录（相对游戏目录，T8.1）")
                 .define("filter_directory", "config/captureapi/filters");
+        OVERLAY_DIRECTORY = builder
+                .comment("叠加贴图目录（相对游戏目录，T8.2）")
+                .define("overlay_directory", "config/captureapi/overlays");
+        OVERLAY_ENABLED = builder
+                .comment("叠加功能总开关（T8.2，默认 false）")
+                .define("overlay_enabled", false);
         FFMPEG_PATH = builder
                 .comment("FFmpeg 可执行路径（默认 PATH 中的 ffmpeg）")
                 .define("ffmpeg_path", "ffmpeg");
