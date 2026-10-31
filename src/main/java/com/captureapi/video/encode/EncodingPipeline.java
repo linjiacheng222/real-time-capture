@@ -4,6 +4,7 @@ import com.captureapi.core.config.CaptureParams;
 import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.video.frame.JpegFrame;
 import com.captureapi.video.frame.RawFrame;
+import com.captureapi.video.filter.FilterRegistry;
 import com.captureapi.video.frame.VideoFrameBus;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -71,9 +72,11 @@ public final class EncodingPipeline {
 
     private void encodeAndPublish(RawFrame frame) {
         try {
-            byte[] jpeg = encoder.encode(frame, CaptureParams.get().jpegQuality());
-            VideoFrameBus.get().publish(new JpegFrame(jpeg, frame.width(), frame.height(),
-                    frame.timestampNanos()));
+            // T8.1：编码前应用当前滤镜（无滤镜/失败则原帧；单滤镜失败不影响链路）
+            RawFrame filtered = FilterRegistry.get().applySelected(frame);
+            byte[] jpeg = encoder.encode(filtered, CaptureParams.get().jpegQuality());
+            VideoFrameBus.get().publish(new JpegFrame(jpeg, filtered.width(), filtered.height(),
+                    filtered.timestampNanos()));
             encodedFrames.incrementAndGet();
         } catch (Throwable t) {
             failedFrames.incrementAndGet();
