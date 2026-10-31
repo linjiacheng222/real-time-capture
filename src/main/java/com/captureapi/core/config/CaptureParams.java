@@ -67,6 +67,7 @@ public final class CaptureParams {
                 CaptureConfig.LAN_ENABLED.get(),
                 CaptureConfig.TOKEN_ENABLED.get(),
                 CaptureConfig.MAX_CONNECTIONS.get(),
+                CaptureConfig.MAX_QPS.get(),
                 CaptureConfig.LOG_RESOURCE_LIFECYCLE.get(),
                 CaptureConfig.LOG_FRAME_EVENTS.get(),
                 CaptureConfig.LOG_FRAME_DROPS.get(),
@@ -82,7 +83,7 @@ public final class CaptureParams {
                         + "audio_enabled={}, sample_rate={}, bit_depth={}, channels={}, "
                         + "poll_interval_ms={}, thread_priority={}, ring_capacity_sec={}, "
                         + "net_port={}, bind_local_only={}, lan_enabled={}, token_enabled={}, "
-                        + "max_connections={}, "
+                        + "max_connections={}, max_qps={}, "
                         + "log_resource_lifecycle={}, log_frame_events={}, log_frame_drops={}, "
                         + "log_pipeline_timing={}, log_buffer_watermark={}, log_gl_thread_violation={}, "
                         + "clock_logging={}",
@@ -93,7 +94,7 @@ public final class CaptureParams {
                 next.audioEnabled(), next.sampleRate(), next.bitDepth(), next.channels(),
                 next.pollIntervalMs(), next.threadPriority(), next.ringCapacitySec(),
                 next.netPort(), next.bindLocalOnly(), next.lanEnabled(), next.tokenEnabled(),
-                next.maxConnections(),
+                next.maxConnections(), next.maxQps(),
                 next.logResourceLifecycle(), next.logFrameEvents(), next.logFrameDrops(),
                 next.logPipelineTiming(), next.logBufferWatermark(), next.logGlThreadViolation(),
                 next.clockLogging());
@@ -228,6 +229,11 @@ public final class CaptureParams {
         return current().maxConnections();
     }
 
+    /** @return HTTP 单帧轮询限速（QPS，T4.5.3） */
+    public int maxQps() {
+        return current().maxQps();
+    }
+
     public boolean logResourceLifecycle() {
         return current().logResourceLifecycle();
     }
@@ -325,6 +331,7 @@ public final class CaptureParams {
             boolean lanEnabled,
             boolean tokenEnabled,
             int maxConnections,
+            int maxQps,
             boolean logResourceLifecycle,
             boolean logFrameEvents,
             boolean logFrameDrops,
