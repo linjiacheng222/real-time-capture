@@ -124,6 +124,7 @@ public final class AudioCaptureManager {
     /** {@code Library#cleanup} 之前停止采集线程（Mixin Inject HEAD）。 */
     public void onLibraryCleanup() {
         stopCaptureThread();
+        AudioRingBuffer.get().seal();
         loopbackMode = false;
         loopbackDevice = 0L;
         context = 0L;
@@ -264,7 +265,8 @@ public final class AudioCaptureManager {
                     LOGGER.warn("{} 环回短拍丢弃：len={}，期望={}", CaptureConstants.LOG_MARKER, pcm.length,
                             bytesPerPoll);
                 } else {
-                    // TODO(T3.2)：环形缓冲写入（PCM 拍 + 区间时间戳）
+                    // T3.2：先写环形缓冲，再做扬声器中继（写端永不阻塞）
+                    AudioRingBuffer.get().write(pcm);
                     relayToSpeaker(pcm);
                     renderedPolls++;
                 }

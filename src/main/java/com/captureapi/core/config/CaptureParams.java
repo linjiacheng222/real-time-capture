@@ -61,6 +61,7 @@ public final class CaptureParams {
                 CaptureConfig.CHANNELS.get(),
                 CaptureConfig.POLL_INTERVAL_MS.get(),
                 CaptureConfig.THREAD_PRIORITY.get(),
+                CaptureConfig.RING_CAPACITY_SEC.get(),
                 CaptureConfig.NET_PORT.get(),
                 CaptureConfig.BIND_LOCAL_ONLY.get(),
                 CaptureConfig.LAN_ENABLED.get(),
@@ -69,6 +70,7 @@ public final class CaptureParams {
                 CaptureConfig.LOG_FRAME_EVENTS.get(),
                 CaptureConfig.LOG_FRAME_DROPS.get(),
                 CaptureConfig.LOG_PIPELINE_TIMING.get(),
+                CaptureConfig.LOG_BUFFER_WATERMARK.get(),
                 CaptureConfig.LOG_GL_THREAD_VIOLATION.get(),
                 CaptureConfig.CLOCK_LOGGING.get());
         snapshot = next;
@@ -77,19 +79,21 @@ public final class CaptureParams {
         LOGGER.info("{} 参数快照{}：fps_max={}, video_resolution={}, jpeg_quality={}, encode_async={}, "
                         + "near_plane={}, far_plane={}, sound_range={}, chunk_rescan_ms={}, "
                         + "audio_enabled={}, sample_rate={}, bit_depth={}, channels={}, "
-                        + "poll_interval_ms={}, thread_priority={}, "
+                        + "poll_interval_ms={}, thread_priority={}, ring_capacity_sec={}, "
                         + "net_port={}, bind_local_only={}, lan_enabled={}, token_enabled={}, "
                         + "log_resource_lifecycle={}, log_frame_events={}, log_frame_drops={}, "
-                        + "log_pipeline_timing={}, log_gl_thread_violation={}, clock_logging={}",
+                        + "log_pipeline_timing={}, log_buffer_watermark={}, log_gl_thread_violation={}, "
+                        + "clock_logging={}",
                 CaptureConstants.LOG_MARKER,
                 scope == ReloadScope.INITIAL_LOAD ? "建立（Loading）" : "刷新（Reloading）",
                 next.fpsMax(), next.videoResolution(), next.jpegQuality(), next.encodeAsync(),
                 next.nearPlane(), next.farPlane(), next.soundRange(), next.chunkRescanMs(),
                 next.audioEnabled(), next.sampleRate(), next.bitDepth(), next.channels(),
-                next.pollIntervalMs(), next.threadPriority(),
+                next.pollIntervalMs(), next.threadPriority(), next.ringCapacitySec(),
                 next.netPort(), next.bindLocalOnly(), next.lanEnabled(), next.tokenEnabled(),
                 next.logResourceLifecycle(), next.logFrameEvents(), next.logFrameDrops(),
-                next.logPipelineTiming(), next.logGlThreadViolation(), next.clockLogging());
+                next.logPipelineTiming(), next.logBufferWatermark(), next.logGlThreadViolation(),
+                next.clockLogging());
         onParamsReloaded(scope);
     }
 
@@ -188,6 +192,16 @@ public final class CaptureParams {
     /** @return 采集线程优先级（1~10，T3.1.3） */
     public int threadPriority() {
         return current().threadPriority();
+    }
+
+    /** @return 环形音频缓冲容量（秒，T3.2.3） */
+    public double ringCapacitySec() {
+        return current().ringCapacitySec();
+    }
+
+    /** @return 是否输出音频缓冲水位（T3.2.3） */
+    public boolean logBufferWatermark() {
+        return current().logBufferWatermark();
     }
 
     public int netPort() {
@@ -297,6 +311,7 @@ public final class CaptureParams {
             int channels,
             int pollIntervalMs,
             int threadPriority,
+            double ringCapacitySec,
             int netPort,
             boolean bindLocalOnly,
             boolean lanEnabled,
@@ -305,6 +320,7 @@ public final class CaptureParams {
             boolean logFrameEvents,
             boolean logFrameDrops,
             boolean logPipelineTiming,
+            boolean logBufferWatermark,
             boolean logGlThreadViolation,
             boolean clockLogging) {
     }
