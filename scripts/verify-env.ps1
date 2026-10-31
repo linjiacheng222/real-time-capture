@@ -45,6 +45,11 @@ $ProjectRoot = Split-Path -Parent $ScriptDir
 if (-not (Test-Path -LiteralPath (Join-Path $ProjectRoot 'gradlew.bat'))) {
     throw "无法从脚本目录解析工程根目录（期望包含 gradlew.bat）：$ProjectRoot"
 }
+
+# 本机 C/D 盘空间紧张：Gradle 用户目录固定到 E 盘（外部已设置 GRADLE_USER_HOME 时尊重外部值）
+if ([string]::IsNullOrWhiteSpace($env:GRADLE_USER_HOME)) {
+    $env:GRADLE_USER_HOME = 'E:\Tools\gradle-home'
+}
 $PreferredJdk = 'E:\Tools\jdk17'
 $FallbackJdks = @(
     (Join-Path $env:APPDATA '.minecraft\runtime\java-runtime-beta'),
@@ -353,6 +358,15 @@ Invoke-OptionalCheck -Category '运行时' -Name '用户级 PATH 含 JDK bin' -B
     return $binDir
 } -WarnHint '执行 scripts\dev-env.ps1 -Persist 写入'
 
+Invoke-OptionalCheck -Category '运行时' -Name 'Gradle 用户目录在 E 盘（GRADLE_USER_HOME）' -Body {
+    $userGradle = [Environment]::GetEnvironmentVariable('GRADLE_USER_HOME', 'User')
+    if ([string]::IsNullOrEmpty($userGradle)) { throw 'User 级 GRADLE_USER_HOME 未设置' }
+    if (-not $userGradle.StartsWith('E:\')) { throw ('未在 E 盘：' + $userGradle) }
+    if (-not (Test-Path -LiteralPath $userGradle)) { throw ('目录不存在：' + $userGradle) }
+    $gb = [math]::Round((((Get-ChildItem -LiteralPath $userGradle -Recurse -File -ErrorAction SilentlyContinue) | Measure-Object -Property Length -Sum).Sum / 1GB), 2)
+    return ($userGradle + '（' + $gb + ' GB）')
+} -WarnHint '执行 scripts\dev-env.ps1 -Persist 写入；或设置用户级 GRADLE_USER_HOME=E:\Tools\gradle-home'
+
 # ================= 2) 构建工具链 =================
 Invoke-Check -Category '构建工具' -Name 'gradlew / wrapper / 工程文件齐全' -Body {
     $required = @(
@@ -369,7 +383,8 @@ Invoke-Check -Category '构建工具' -Name 'gradlew / wrapper / 工程文件齐
 }
 
 Invoke-Check -Category '构建工具' -Name 'Gradle wrapper 8.14.5 dist 已缓存' -Body {
-    $distsRoot = Join-Path $env:USERPROFILE '.gradle\wrapper\dists\gradle-8.14.5-bin'
+    $gradleHome = if ([string]::IsNullOrWhiteSpace($env:GRADLE_USER_HOME)) { Join-Path $env:USERPROFILE '.gradle' } else { $env:GRADLE_USER_HOME }
+    $distsRoot = Join-Path $gradleHome 'wrapper\dists\gradle-8.14.5-bin'
     $candidates = @(Get-ChildItem -LiteralPath $distsRoot -Directory -ErrorAction SilentlyContinue | ForEach-Object {
             Join-Path $_.FullName 'gradle-8.14.5\bin\gradle.bat'
         } | Where-Object { Test-Path -LiteralPath $_ })
@@ -397,7 +412,8 @@ else {
 }
 
 Invoke-Check -Category '构建工具' -Name 'Forge / ForgeGradle 缓存齐全' -Body {
-    $fgRoot = Join-Path $env:USERPROFILE '.gradle\caches\forge_gradle'
+    $gradleHome = if ([string]::IsNullOrWhiteSpace($env:GRADLE_USER_HOME)) { Join-Path $env:USERPROFILE '.gradle' } else { $env:GRADLE_USER_HOME }
+    $fgRoot = Join-Path $gradleHome 'caches\forge_gradle'
     if (-not (Test-Path -LiteralPath $fgRoot)) { throw ('缺少缓存目录：' + $fgRoot) }
     $required = @('assets', 'mcp_repo', 'minecraft_repo', 'minecraft_user_repo')
     $missing = @($required | Where-Object { -not (Test-Path -LiteralPath (Join-Path $fgRoot $_)) })

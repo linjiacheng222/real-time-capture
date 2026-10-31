@@ -63,6 +63,11 @@ $ProjectRoot = Split-Path -Parent $ScriptDir
 if (-not (Test-Path -LiteralPath (Join-Path $ProjectRoot 'gradlew.bat'))) {
     throw "无法从脚本目录解析工程根目录（期望包含 gradlew.bat）：$ProjectRoot"
 }
+
+# 本机 C/D 盘空间紧张：Gradle 用户目录固定到 E 盘（外部已设置 GRADLE_USER_HOME 时尊重外部值）
+if ([string]::IsNullOrWhiteSpace($env:GRADLE_USER_HOME)) {
+    $env:GRADLE_USER_HOME = 'E:\Tools\gradle-home'
+}
 $RunDir = Join-Path $ProjectRoot 'run'
 $ModsDir = Join-Path $RunDir 'mods'
 $OriginalDir = Join-Path $RunDir 'mods-original'

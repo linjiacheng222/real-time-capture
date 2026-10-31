@@ -52,6 +52,11 @@ if (-not (Test-Path -LiteralPath (Join-Path $ProjectRoot 'gradlew.bat'))) {
     throw "无法从脚本目录解析工程根目录（期望包含 gradlew.bat）：$ProjectRoot"
 }
 
+# 本机 C/D 盘空间紧张：Gradle 用户目录固定到 E 盘（外部已设置 GRADLE_USER_HOME 时尊重外部值）
+if ([string]::IsNullOrWhiteSpace($env:GRADLE_USER_HOME)) {
+    $env:GRADLE_USER_HOME = 'E:\Tools\gradle-home'
+}
+
 # ---- 常量：固定路径与基准版本 ----
 $PreferredJdk = 'E:\Tools\jdk17'
 $FallbackJdks = @(
@@ -270,6 +275,7 @@ if ($jdk.JavaVersion -ne $ExpectedJavaVersion) {
 # 用户级持久化（可选）
 if ($Persist) {
     [Environment]::SetEnvironmentVariable('JAVA_HOME', $jdk.Path, 'User')
+    [Environment]::SetEnvironmentVariable('GRADLE_USER_HOME', $env:GRADLE_USER_HOME, 'User')
     Write-EnvLog ("已写入用户级 JAVA_HOME = " + $jdk.Path) PASS
     $added = Add-UserPathVariable -Directory $binDir
     if ($added) {

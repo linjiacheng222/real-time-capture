@@ -24,7 +24,8 @@ Minecraft **1.20.1 Forge** 客户端模组：游戏内自定义相机位下，�
 ## 构建
 
 ```bat
-set JAVA_HOME=C:\Users\26217\AppData\Roaming\.minecraft\runtime\java-runtime-beta
+set JAVA_HOME=E:\Tools\jdk17
+set GRADLE_USER_HOME=E:\Tools\gradle-home
 gradlew.bat build
 gradlew.bat runClient
 ```
@@ -40,10 +41,11 @@ gradlew.bat runClient
 - 原始资料：`E:\PCL\.minecraft\versions\1.20.1-Forge_Get_Test\实时捕获\实时捕获项目规划（草稿）\参考资料\`
 - 参考源码仓库：`E:\PCL\.minecraft\versions\1.20.1-Forge_Get_Test\实时捕获\参考内容\源码仓库\`
 
-## 开发环境（2026-10-30 配置）
+## 开发环境（2026-10-30 配置；2026-10-31 存储迁移）
 
 - 基线文档：`docs/开发环境基线.md`（版本矩阵、固定路径、脚本用法、校验结果表、已知问题、故障排查、后续维护）。
 - JDK 固定：`E:\Tools\jdk17`（OpenJDK 17.0.15，自 Mojang `java-runtime-beta` 复制；用户级 `JAVA_HOME`/`PATH` 已写入）。
+- Gradle 用户目录：`E:\Tools\gradle-home`（用户级 `GRADLE_USER_HOME`；`scripts\*-env/构建/运行` 均内置 E 盘回退；C/D 盘空间紧张时不再回落到 C 盘 `~\.gradle`）。
 - 一键脚本（PowerShell 5.1/7 双兼容，脚本内自行设置 `JAVA_HOME`，不依赖调用者环境）：
   - `. .\scripts\dev-env.ps1` 激活当前会话（`-Persist` 写入用户级环境变量）
   - `.\scripts\verify-env.ps1` 环境自检（PASS/FAIL 汇总表，失败非零退出）
@@ -55,7 +57,7 @@ gradlew.bat runClient
   （`embeddium-0.3.31_mapped_official_1.20.1-dev.jar`、`modernfix-5.27.89_mapped_official_1.20.1-dev.jar`）；
   原始生产 jar 保存在 `run\mods-original\`（Forge 不加载）。升级 Embeddium/ModernFix 后重跑
   `scripts\prepare-dev-deps.ps1`。直接放生产 jar 会导致 `@Shadow ... m_5601_ ... was not located` 崩溃。
-- 实测结果（2026-10-30 环境基线；2026-10-31 T1.1~T1.5 复测）：`verify-env.ps1` **39 PASS / 0 FAIL / 0 WARN**；build PASS（24/24 校验）；`--offline build` PASS；`runClient` 30~37s 到达主菜单（Forge 47.4.23 + Embeddium 0.3.31 + ModernFix 5.27.89 + captureapi），
+- 实测结果（2026-10-30 环境基线；2026-10-31 存储迁移后最终复验）：`verify-env.ps1` **40 PASS / 0 FAIL / 0 WARN**（新增 Gradle 用户目录 E 盘检查）；build PASS（24/24 校验）；`--offline build` PASS；`runClient` 主菜单 PASS（最新复验 69s，首次迁移后校验缓存；此前 30~37s；Forge 47.4.23 + Embeddium 0.3.31 + ModernFix 5.27.89 + captureapi，assets/缓存均在 E 盘），
   无 crash report、无 FATAL、退出后无残留 java；dev 自检 `[CaptureAPI] 核心自检 PASS`（GL 守卫/通道/资源管理器/时钟/配置快照），
   启动生成 `run\config\captureapi-client.toml`（四 section）；越界值与 ModernFix 配置重载限制见 `docs/T1.4-T1.5-验收记录.md`；
   世界内进出/渲染帧计数/听感为人工验收项。
