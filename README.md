@@ -5,17 +5,19 @@ Minecraft **1.20.1 Forge** 客户端模组：游戏内自定义相机位下，�
 ## 当前状态
 
 - 工程根：`E:\捕获接口\`（ForgeGradle 6 + Mojmap + Java 17；Gradle 8.14.5 wrapper，华为云镜像）。
-- 构建：2026-10-28 首次 `gradlew build` 通过；**2026-10-31 T1.1~T1.5 完成**：`scripts\build.ps1` PASS（**24/24 校验**，含 Mixin/AT/refmap/红线 2/红线 4 时钟静态扫描/常数白名单）。
-- 代码：**T1.1~T1.5 已实施**（M1 底座 + 核心设施）——
+- 构建：2026-10-28 首次 `gradlew build` 通过；**2026-10-31 T1.1~T1.7 完成（M1 全部 T 级任务）**：`scripts\build.ps1` PASS（**24/24 校验**，含 Mixin/AT/refmap/红线 2/红线 4 时钟静态扫描/常数白名单）。
+- 代码：**T1.1~T1.5 已实施**（M1 底座 + 核心设施），T1.6/T1.7 为合规/映射交付物——
   `CaptureInterface`（构造器注入 `FMLJavaModLoadingContext`、注册 `captureapi-client.toml`）、`core.ClientSetupHandler`、
   `core.thread.GlThreadGuard`/`LatestValueChannel`/`MpscRingBuffer`/`CaptureRenderHook`（AFTER_LEVEL 事件骨架）、
   `core.resource.WorldResourceManager`（两级世界生命周期资源/幂等销毁/统计）+ `WorldLifecycleHandler`、
   `core.time.CaptureClock`（唯一时间源）+ `LogTimeConverter`（日志白名单）、
   `core.config.CaptureConfig`/`CaptureParams`/`ModConfigEvents`（ForgeConfigSpec 四 section + 快照门面）、
   `core.constant.CaptureConstants`（12 项白名单常量）；Mixin/AT/refmap 基建（MixinGradle 0.7.38 + Mixin AP 0.8.5）。
-  业务功能按 M-T-I 树继续（下一任务 T1.6）。
+  合规与映射：`licenses/THIRD-PARTY-NOTICES.md`（三节声明+实物核验）、`docs/移植代码来源标注规范.md`、
+  `docs/附录A-映射对照表.md` + `scripts/verify-mappings.py`（全链校验 12/12 PASS）。
+  下一阶段：MS1 收尾（人工世界内/热重载/听感）→ MS0 Spike → M2。
 - dev 依赖：`run/mods/` 放 named 变体（`embeddium-0.3.31…dev.jar`、`modernfix-5.27.89…dev.jar`）；生产 jar 存 `run/mods-original/`（D-BUILD-1/D-DEV-1）。
-- 验收证据：`docs/T1.1-验收记录.md`、`docs/T1.2-T1.3-验收记录.md`、`docs/T1.4-T1.5-验收记录.md`、`docs/红线核验记录.md`、`docs/线程边界规范.md`、`docs/evidence/`（T1.1 / T1.2-T1.3 / T1.4-T1.5）。
+- 验收证据：`docs/T1.1-验收记录.md`、`docs/T1.2-T1.3-验收记录.md`、`docs/T1.4-T1.5-验收记录.md`、`docs/T1.6-T1.7-验收记录.md`、`docs/红线核验记录.md`、`docs/线程边界规范.md`、`docs/反编译分析工作流.md`、`docs/映射校验流程.md`、`docs/evidence/`（T1.1 / T1.2-T1.3 / T1.4-T1.5 / T1.6-T1.7）。
 - Git 已安装：`E:\Tools\Git`（MinGit 2.56.0；`git.cmd` shim 已入 PATH）；FFmpeg 已安装：`E:\Tools\ffmpeg\bin\ffmpeg.exe`（7.1 essentials，含 libx264/AAC）。
 
 ## 构建

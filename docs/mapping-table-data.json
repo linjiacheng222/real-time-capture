@@ -1,0 +1,17 @@
+{
+  "note": "T1.7 映射对照表机读数据（docs/附录A-映射对照表.md 的校验数据源）。class 行做 Yarn→intermediary→official→Mojmap 全链校验；event 行校验 Forge 类存在性。",
+  "rows": [
+    {"id": "A-001", "kind": "class", "purpose": "M2 渲染矩阵栈/PoseStack", "source": "Mineshot/Pixelshot/DebugBridge", "yarn": "net/minecraft/client/util/math/MatrixStack", "mojmap": "com/mojang/blaze3d/vertex/PoseStack"},
+    {"id": "A-002", "kind": "class", "purpose": "M2 相机位置/朝向向量", "source": "Pixelshot/DebugBridge", "yarn": "net/minecraft/util/math/Vec3d", "mojmap": "net/minecraft/world/phys/Vec3"},
+    {"id": "A-003", "kind": "class", "purpose": "资源标识符（键名/语言键）", "source": "Pixelshot/DebugBridge", "yarn": "net/minecraft/util/Identifier", "mojmap": "net/minecraft/resources/ResourceLocation"},
+    {"id": "A-004", "kind": "class", "purpose": "M2 相机投影/位置读取", "source": "Mineshot/Pixelshot/Record-able", "yarn": "net/minecraft/client/render/Camera", "mojmap": "net/minecraft/client/Camera"},
+    {"id": "A-005", "kind": "class", "purpose": "M3 音频设备初始化/监听器注入宿主", "source": "Record-able", "yarn": "net/minecraft/client/sound/SoundEngine", "mojmap": "com/mojang/blaze3d/audio/Library"},
+    {"id": "A-006", "kind": "class", "purpose": "M2 离屏渲染调用宿主", "source": "Pixelshot/Mineshot/Record-able", "yarn": "net/minecraft/client/render/GameRenderer", "mojmap": "net/minecraft/client/renderer/GameRenderer"},
+    {"id": "A-007", "kind": "class", "purpose": "M2 世界渲染宿主（云层/分区渲染）", "source": "Mineshot/Pixelshot", "yarn": "net/minecraft/client/render/WorldRenderer", "mojmap": "net/minecraft/client/renderer/LevelRenderer"},
+    {"id": "A-008", "kind": "class", "purpose": "M2 主循环/窗口/GL 现场入口", "source": "Mineshot/Pixelshot/DebugBridge", "yarn": "net/minecraft/client/MinecraftClient", "mojmap": "net/minecraft/client/Minecraft"},
+    {"id": "A-101", "kind": "forge-event", "purpose": "M4/M5 玩家登录/退出生命周期", "source": "本模组（替代 Fabric ClientPlayConnectionEvents.JOIN/LEAVE）", "fabricEvent": "net/fabricmc/fabric/api/client/networking/v1/ClientPlayConnectionEvents", "forge": "net/minecraftforge/client/event/ClientPlayerNetworkEvent$LoggingIn"},
+    {"id": "A-102", "kind": "forge-event", "purpose": "M4/M5 世界卸载兜底", "source": "本模组（替代 Fabric ClientPlayConnectionEvents.DISCONNECT）", "fabricEvent": "net/fabricmc/fabric/api/client/networking/v1/ClientPlayConnectionEvents", "forge": "net/minecraftforge/event/level/LevelEvent$Unload"},
+    {"id": "A-103", "kind": "forge-event", "purpose": "M2~M4 客户端 tick（时钟/回退检测）", "source": "本模组（替代 Fabric ClientTickEvents.END_CLIENT_TICK）", "fabricEvent": "net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientTickEvents", "forge": "net/minecraftforge/event/TickEvent$ClientTickEvent"},
+    {"id": "A-104", "kind": "forge-event", "purpose": "M2 渲染阶段入口（AFTER_LEVEL）", "source": "本模组（替代 Fabric HUD/渲染事件）", "fabricEvent": "net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents", "forge": "net/minecraftforge/client/event/RenderLevelStageEvent"}
+  ]
+}

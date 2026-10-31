@@ -1,0 +1,15 @@
+[PASS] A-001 net/minecraft/client/util/math/MatrixStack -> net/minecraft/class_4587 -> eij -> com.mojang.blaze3d.vertex.PoseStack（期望 com/mojang/blaze3d/vertex/PoseStack）
+[PASS] A-002 net/minecraft/util/math/Vec3d -> net/minecraft/class_243 -> eei -> net.minecraft.world.phys.Vec3（期望 net/minecraft/world/phys/Vec3）
+[PASS] A-003 net/minecraft/util/Identifier -> net/minecraft/class_2960 -> acq -> net.minecraft.resources.ResourceLocation（期望 net/minecraft/resources/ResourceLocation）
+[PASS] A-004 net/minecraft/client/render/Camera -> net/minecraft/class_4184 -> emz -> net.minecraft.client.Camera（期望 net/minecraft/client/Camera）
+[PASS] A-005 net/minecraft/client/sound/SoundEngine -> net/minecraft/class_4225 -> egf -> com.mojang.blaze3d.audio.Library（期望 com/mojang/blaze3d/audio/Library）
+[PASS] A-006 net/minecraft/client/render/GameRenderer -> net/minecraft/class_757 -> fjq -> net.minecraft.client.renderer.GameRenderer（期望 net/minecraft/client/renderer/GameRenderer）
+[PASS] A-007 net/minecraft/client/render/WorldRenderer -> net/minecraft/class_761 -> fjv -> net.minecraft.client.renderer.LevelRenderer（期望 net/minecraft/client/renderer/LevelRenderer）
+[PASS] A-008 net/minecraft/client/MinecraftClient -> net/minecraft/class_310 -> enn -> net.minecraft.client.Minecraft（期望 net/minecraft/client/Minecraft）
+[PASS] A-101 Forge 类存在性：net/minecraftforge/client/event/ClientPlayerNetworkEvent$LoggingIn（Fabric 对照：net/fabricmc/fabric/api/client/networking/v1/ClientPlayConnectionEvents）
+[PASS] A-102 Forge 类存在性：net/minecraftforge/event/level/LevelEvent$Unload（Fabric 对照：net/fabricmc/fabric/api/client/networking/v1/ClientPlayConnectionEvents）
+[PASS] A-103 Forge 类存在性：net/minecraftforge/event/TickEvent$ClientTickEvent（Fabric 对照：net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientTickEvents）
+[PASS] A-104 Forge 类存在性：net/minecraftforge/client/event/RenderLevelStageEvent（Fabric 对照：net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents）
+
+映射命名空间：yarn=['intermediary', 'named']；intermediary=['official', 'intermediary']
+结果：PASS=12 FAIL=0（class 行做全链校验；forge-event 行校验 Forge 类存在性）
