@@ -23,3 +23,7 @@ runs
 
 # others
 *.log
+
+# Python 缓存（验证脚本运行产生）
+__pycache__/
+*.pyc
