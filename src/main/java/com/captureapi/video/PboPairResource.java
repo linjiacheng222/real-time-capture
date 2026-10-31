@@ -122,6 +122,38 @@ public final class PboPairResource implements ManagedGlResource {
         return frame;
     }
 
+    /**
+     * 同步回读当前渲染帧（实时调取 I2.2.4 专用；写当前帧后立即映射同一 PBO）。
+     *
+     * <p>与流式交替状态解耦：只写/读当前 writeIndex，不改 writeIndex/hasPrevious；
+     * 因此不会打乱流式写 N 读 N-1 的节拍。会短暂等待 GPU 完成，仅用于按需单帧。</p>
+     *
+     * @return 当前帧 RawFrame；映射失败返回 null
+     */
+    public RawFrame readbackImmediate() {
+        GlThreadGuard.checkGlThread("PboPair.readbackImmediate");
+        ensureCapacity();
+        long timestamp = CaptureClock.get().nowNanos();
+        GL15.glBindBuffer(GL21.GL_PIXEL_PACK_BUFFER, buffers[writeIndex]);
+        GL11.glReadPixels(0, 0, width, height, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, 0L);
+        ByteBuffer mapped = GL30.glMapBufferRange(GL21.GL_PIXEL_PACK_BUFFER, 0L, capacity,
+                GL30.GL_MAP_READ_BIT);
+        RawFrame frame = null;
+        if (mapped != null) {
+            try {
+                byte[] rgba = new byte[capacity];
+                mapped.get(rgba);
+                frame = new RawFrame(rgba, width, height, timestamp);
+            } finally {
+                GL15.glUnmapBuffer(GL21.GL_PIXEL_PACK_BUFFER);
+            }
+        } else {
+            droppedFrameCount++;
+        }
+        GL15.glBindBuffer(GL21.GL_PIXEL_PACK_BUFFER, 0);
+        return frame;
+    }
+
     /** @return 累计成功回读帧数 */
     public long readFrameCount() {
         return readFrameCount;
