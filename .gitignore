@@ -27,3 +27,6 @@ runs
 # Python 缓存（验证脚本运行产生）
 __pycache__/
 *.pyc
+
+# 本地发布包（不提交二进制）
+release/
