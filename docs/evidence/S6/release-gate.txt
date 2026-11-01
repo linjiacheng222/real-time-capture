@@ -1,8 +1,9 @@
-﻿S6 release gate check 2026-11-01T23:02:06
+﻿S6 release gate check 2026-11-01T23:24:21
 client jar: E:\捕获接口\build\libs\captureapi-0.5.0.jar exists=True
 server jar: E:\捕获接口\build\libs\captureapi-0.5.0-server.jar exists=True
 test-only actions present: audio.section, client.leaveWorld, client.loadWorld, client.playerPose, client.playPosSound, client.playTestSound, client.screenshot, client.unpause, shader.status
-WARN: test-only commands present but explicitly allowed for test build (do not ship as release).
+GATED: test-only commands require TestCommandGate (JVM debug property or config/captureapi/test_commands.enabled).
+       release-safe; enable only for tests via scripts/enable-test-commands.ps1.
 doc: docs\S6终验报告.md exists=True
 doc: docs\红线核验记录.md exists=True
 doc: docs\专用服部署指南.md exists=True
