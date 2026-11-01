@@ -1,10 +1,13 @@
 package com.captureapi.net;
 
+import com.captureapi.audio.AudioCaptureManager;
+import com.captureapi.audio.AudioListenerSync;
 import com.captureapi.audio.AudioRingBuffer;
 import com.captureapi.audio.timestamp.AudioChunk;
 import com.captureapi.core.config.CaptureParams;
 import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.core.thread.GlThreadGuard;
+import com.captureapi.core.time.CaptureClock;
 import com.captureapi.video.camera.CameraCreateParams;
 import com.captureapi.video.camera.CameraManager;
 import com.captureapi.video.camera.CameraSpec;
@@ -48,6 +51,12 @@ public final class CaptureApi {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureConstants.LOG_MARKER);
     /** 单帧轮询最大尝试次数（避免无限等待异常状态）。 */
     private static final int MAX_FRAME_POLLS = 10000;
+    /** 音频截面：等待拍数之外的静默余量（毫秒）。 */
+    private static final long AUDIO_SECTION_MARGIN_MS = 80L;
+    /** 音频截面：环形缓冲等待上限（纳秒）。 */
+    private static final long AUDIO_SECTION_MAX_WAIT_NANOS = 500_000_000L;
+    /** 音频截面：无数据轮询间隔（毫秒）。 */
+    private static final long AUDIO_SECTION_POLL_MS = 2L;
 
     private CaptureApi() {
         throw new AssertionError("no instances");
@@ -203,18 +212,60 @@ public final class CaptureApi {
     }
 
     /**
-     * 音频截面（虚拟位置）——**待 W-071 语义冻结/实现**。
+     * 音频截面（W-071 首版）：在虚拟位置临时监听一段音频，返回合并后的 PCM 块。
      *
-     * @return 明确失败 Future（不为假实现）
+     * <p>实现：采集线程 listener 临时切到 (x,y,z)（朝向沿用玩家），等待 {@code chunkCount} 拍
+     * （poll_interval_ms/拍），从环形缓冲快照最近 N 拍后恢复。异步完成，不阻塞调用线程；
+     * 快照不推进消费游标，不影响 WS/录像数据源。</p>
+     *
+     * @param x          虚拟位置 X
+     * @param y          虚拟位置 Y
+     * @param z          虚拟位置 Z
+     * @param chunkCount 拍数 [1,100]
+     * @return PCM 块（start/end/sampleCount 覆盖整个窗口）
      */
     public static CompletableFuture<AudioChunk> grabAudioSection(double x, double y, double z, int chunkCount) {
         if (chunkCount < 1 || chunkCount > 100) {
             return CompletableFuture.failedFuture(
                     new IllegalArgumentException("chunkCount 必须在 [1,100]"));
         }
-        LOGGER.warn("{} [API] grabAudioSection 尚未实现（W-071），明确失败而非假返回", CaptureConstants.LOG_MARKER);
-        return CompletableFuture.failedFuture(
-                new UnsupportedOperationException("音频截面待 W-071 语义冻结后实现"));
+        if (!Double.isFinite(x) || !Double.isFinite(y) || !Double.isFinite(z)) {
+            return CompletableFuture.failedFuture(new IllegalArgumentException("音频截面坐标必须为有限数"));
+        }
+        if (!AudioCaptureManager.get().isLoopbackActive()) {
+            return CompletableFuture.failedFuture(new IllegalStateException("环回音频捕获未激活"));
+        }
+        long pollMs = Math.max(1, CaptureParams.get().pollIntervalMs());
+        long waitMs = (long) chunkCount * pollMs + AUDIO_SECTION_MARGIN_MS;
+        return CompletableFuture.supplyAsync(() -> {
+            AudioListenerSync.beginVirtualCapture(x, y, z, waitMs * 1_000_000L);
+            try {
+                long waitNanos = java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(waitMs);
+                long started = CaptureClock.get().nowNanos();
+                long virtualUntil = started + waitNanos;
+                AudioChunk chunk = null;
+                while (CaptureClock.get().nowNanos() < virtualUntil + AUDIO_SECTION_MAX_WAIT_NANOS) {
+                    long remainMs = (virtualUntil - CaptureClock.get().nowNanos()) / 1_000_000L;
+                    if (remainMs > 0L) {
+                        Thread.sleep(remainMs);
+                    }
+                    chunk = AudioRingBuffer.get().snapshotRecent(chunkCount);
+                    if (chunk != null) {
+                        break;
+                    }
+                    Thread.sleep(AUDIO_SECTION_POLL_MS);
+                }
+                if (chunk == null) {
+                    throw new IllegalStateException("音频截面失败：环形缓冲无可用拍");
+                }
+                return chunk;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("音频截面被中断", e);
+            } finally {
+                AudioListenerSync.endVirtualCapture();
+            }
+        });
     }
 
     // ===== 相机管理（代理 CameraManager） =====
