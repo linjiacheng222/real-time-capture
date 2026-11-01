@@ -30,6 +30,14 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
+// 先声明服务端组件 source set，供 server run 配置引用
+sourceSets {
+    serverComponent {
+        compileClasspath += sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+    }
+}
+
 minecraft {
     // 红线 2：统一 Mojang 官方映射（Mojmap），禁用 Connector 类混合加载器
     mappings channel: 'official', version: minecraftVersion
@@ -51,15 +59,33 @@ minecraft {
             property 'captureapi.debug.mixin', 'true'
             // M1 核心设施自检（T1.2/T1.3）：GL 守卫正/负例、最新值通道、资源管理器生命周期。
             property 'captureapi.debug.selftest', 'true'
-            mods {
-                "${modId}" {
-                    source sourceSets.main
+            if (name != 'server') {
+                mods {
+                    "${modId}" {
+                        source sourceSets.main
+                    }
                 }
             }
         }
         client {
             // 纯客户端模组：仅提供 client 运行配置（附录E §2.1）
         }
+        server {
+            // 仅用于验证 M9 服务端组件；不加载客户端主模组
+            client(false)
+            mods {
+                captureapi_server {
+                    source sourceSets.serverComponent
+                }
+            }
+        }
+    }
+}
+
+// MixinGradle 会向所有 run 注入客户端的 --mixin.config；server 运行不需要
+afterEvaluate {
+    minecraft.runs.matching { it.name == 'server' }.configureEach {
+        args.removeAll { it == '--mixin.config' || it.toString() == 'captureapi.mixins.json' }
     }
 }
 

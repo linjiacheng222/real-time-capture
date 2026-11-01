@@ -111,6 +111,11 @@ public final class RemoteCaptureClient {
         return channel;
     }
 
+    /** 客户端 setup 期提前注册通道（必须在 registry phase 结束前）。 */
+    public static void init() {
+        channel();
+    }
+
     /** 登录后尝试握手；服务端未安装组件则 no-op。 */
     @SubscribeEvent
     public static void onLoggingIn(ClientPlayerNetworkEvent.LoggingIn event) {
