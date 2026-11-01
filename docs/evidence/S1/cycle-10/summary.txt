@@ -1,0 +1,55 @@
+﻿S1.4 cycle check start: 20261101-211123, rounds=10, world=s1test
+initial load: {"id":"initload","ok":true,"result":{"loading":"s1test"}}
+initial wait: {"id":"pose","ok":true,"result":{"x":-33.96016602441578,"y":87.0,"z":68.54824351947042,"eyeY":88.62000000476837,"yaw":-83.99988,"pitch":62.699986,"fov":70}}
+=== round 1 ===
+round 1: frame bytes=37142 hash=8782606244E145DDC11679AAC3C0EF49B54806A1D4D9F13E6B59F4CE7919C9AB
+round 1: left world=True resp={"id":"pose","ok":false,"error":{"code":"E_INTERNAL","message":"玩家尚未进入世界"}}
+round 1: load resp={"id":"load","ok":true,"result":{"loading":"s1test"}}
+round 1: re-entered world
+=== round 2 ===
+round 2: frame bytes=36511 hash=3D3E1AD1CA328FCA09C4500515716DBDEE481003BA17A0630160769742905C37
+round 2: left world=True resp={"id":"pose","ok":false,"error":{"code":"E_INTERNAL","message":"玩家尚未进入世界"}}
+round 2: load resp={"id":"load","ok":true,"result":{"loading":"s1test"}}
+round 2: re-entered world
+=== round 3 ===
+round 3: frame bytes=35813 hash=20D0CF47AD6FCDCDB95002C300DA280A273F05F3FB7A5F10E2E3CEA94DC6B760
+round 3: left world=True resp={"id":"pose","ok":false,"error":{"code":"E_INTERNAL","message":"玩家尚未进入世界"}}
+round 3: load resp={"id":"load","ok":true,"result":{"loading":"s1test"}}
+round 3: re-entered world
+=== round 4 ===
+round 4: frame bytes=35171 hash=F3B40DDD2CC40127E5BF58ABF32C3BE6DB9D3B74207515703AC4394AC6891D8C
+round 4: left world=True resp={"id":"pose","ok":false,"error":{"code":"E_INTERNAL","message":"玩家尚未进入世界"}}
+round 4: load resp={"id":"load","ok":true,"result":{"loading":"s1test"}}
+round 4: re-entered world
+=== round 5 ===
+round 5: frame bytes=34481 hash=C28BD1C13C3FC80644C0D98D039EA57DC28C4B90F995B7017AE838BA35D184F0
+round 5: left world=True resp={"id":"pose","ok":false,"error":{"code":"E_INTERNAL","message":"玩家尚未进入世界"}}
+round 5: load resp={"id":"load","ok":true,"result":{"loading":"s1test"}}
+round 5: re-entered world
+=== round 6 ===
+round 6: frame bytes=33602 hash=8E068EF54265B015B6D1AA031110993FA003DB004188B39746E989E5FC14801B
+round 6: left world=True resp={"id":"pose","ok":false,"error":{"code":"E_INTERNAL","message":"玩家尚未进入世界"}}
+round 6: load resp={"id":"load","ok":true,"result":{"loading":"s1test"}}
+round 6: re-entered world
+=== round 7 ===
+round 7: frame bytes=33096 hash=09336DE7E606E666B0F90B9ED3F30965BB7DA04D4803BB3B3E41E5073FC24997
+round 7: left world=True resp={"id":"pose","ok":false,"error":{"code":"E_INTERNAL","message":"玩家尚未进入世界"}}
+round 7: load resp={"id":"load","ok":true,"result":{"loading":"s1test"}}
+round 7: re-entered world
+=== round 8 ===
+round 8: frame bytes=32300 hash=E3444606D00F2993AB6D5E80862813A1A11EDFD6DDB4E6567AC2933C0A9BA5F9
+round 8: left world=True resp={"id":"pose","ok":false,"error":{"code":"E_INTERNAL","message":"玩家尚未进入世界"}}
+round 8: load resp={"id":"load","ok":true,"result":{"loading":"s1test"}}
+round 8: re-entered world
+=== round 9 ===
+round 9: frame bytes=31595 hash=DFA88D67030DBBC9E9D2843AD5406703BF7591CDD20E517AC894DB27B7F75458
+round 9: left world=True resp={"id":"pose","ok":false,"error":{"code":"E_INTERNAL","message":"玩家尚未进入世界"}}
+round 9: load resp={"id":"load","ok":true,"result":{"loading":"s1test"}}
+round 9: re-entered world
+=== round 10 ===
+round 10: frame bytes=31199 hash=12534D9F7ABC43E54B2F4D69C5576C4744CD273BDBF40DF65AFE02659E1A2E17
+round 10: left world=True resp={"id":"pose","ok":false,"error":{"code":"E_INTERNAL","message":"玩家尚未进入世界"}}
+round 10: load resp={"id":"load","ok":true,"result":{"loading":"s1test"}}
+round 10: re-entered world
+
+FBO lifecycle (whole log): creates=0 destroys=0

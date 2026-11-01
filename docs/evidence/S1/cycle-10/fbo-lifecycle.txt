@@ -1,0 +1,66 @@
+﻿[0111月2026 21:09:47.315] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=2, destroyed=0, failedCreate=0, failedDestroy=0, aliveWorld=2, aliveGlobal=0, registeredWorld=2, worldReady=true}
+[0111月2026 21:09:47.316] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源已回收：WorldResourceStats{created=2, destroyed=2, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=0, registeredWorld=2, worldReady=false}
+[0111月2026 21:09:47.316] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 资源管理器自检 PASS：WorldResourceStats{created=2, destroyed=2, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=0, registeredWorld=2, worldReady=false}
+[0111月2026 21:09:53.085] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 创建：1280x1024，fbo=1，color=46，depth=47
+[0111月2026 21:09:53.086] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 双 PBO 创建：1280x1024，容量=5242880 bytes，pbo=[260, 261]
+[0111月2026 21:09:53.086] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=4, destroyed=0, failedCreate=0, failedDestroy=0, aliveWorld=2, aliveGlobal=2, registeredWorld=2, worldReady=true}
+[0111月2026 21:09:53.396] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 销毁：1280x1024，fbo=-1
+[0111月2026 21:09:53.397] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源已回收：WorldResourceStats{created=4, destroyed=2, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=2, registeredWorld=2, worldReady=false}
+[0111月2026 21:09:59.042] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 创建：1280x1024，fbo=1，color=46，depth=47
+[0111月2026 21:09:59.042] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 双 PBO 创建：1280x1024，容量=5242880 bytes，pbo=[260, 261]
+[0111月2026 21:09:59.042] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=6, destroyed=2, failedCreate=0, failedDestroy=0, aliveWorld=2, aliveGlobal=2, registeredWorld=2, worldReady=true}
+[0111月2026 21:10:35.711] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 销毁：1280x1024，fbo=-1
+[0111月2026 21:10:35.711] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源已回收：WorldResourceStats{created=6, destroyed=4, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=2, registeredWorld=2, worldReady=false}
+[0111月2026 21:11:24.173] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 创建：1280x1024，fbo=1，color=46，depth=47
+[0111月2026 21:11:24.179] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 双 PBO 创建：1280x1024，容量=5242880 bytes，pbo=[260, 261]
+[0111月2026 21:11:24.180] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=8, destroyed=4, failedCreate=0, failedDestroy=0, aliveWorld=2, aliveGlobal=2, registeredWorld=2, worldReady=true}
+[0111月2026 21:11:27.536] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 销毁：1280x1024，fbo=-1
+[0111月2026 21:11:27.536] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源已回收：WorldResourceStats{created=8, destroyed=6, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=2, registeredWorld=2, worldReady=false}
+[0111月2026 21:11:28.993] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 创建：1280x1024，fbo=1，color=46，depth=47
+[0111月2026 21:11:28.993] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 双 PBO 创建：1280x1024，容量=5242880 bytes，pbo=[260, 261]
+[0111月2026 21:11:28.993] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=10, destroyed=6, failedCreate=0, failedDestroy=0, aliveWorld=2, aliveGlobal=2, registeredWorld=2, worldReady=true}
+[0111月2026 21:11:32.277] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 销毁：1280x1024，fbo=-1
+[0111月2026 21:11:32.277] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源已回收：WorldResourceStats{created=10, destroyed=8, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=2, registeredWorld=2, worldReady=false}
+[0111月2026 21:11:33.787] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 创建：1280x1024，fbo=1，color=46，depth=47
+[0111月2026 21:11:33.787] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 双 PBO 创建：1280x1024，容量=5242880 bytes，pbo=[260, 261]
+[0111月2026 21:11:33.787] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=12, destroyed=8, failedCreate=0, failedDestroy=0, aliveWorld=2, aliveGlobal=2, registeredWorld=2, worldReady=true}
+[0111月2026 21:11:37.004] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 销毁：1280x1024，fbo=-1
+[0111月2026 21:11:37.004] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源已回收：WorldResourceStats{created=12, destroyed=10, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=2, registeredWorld=2, worldReady=false}
+[0111月2026 21:11:38.424] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 创建：1280x1024，fbo=1，color=46，depth=47
+[0111月2026 21:11:38.425] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 双 PBO 创建：1280x1024，容量=5242880 bytes，pbo=[260, 261]
+[0111月2026 21:11:38.425] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=14, destroyed=10, failedCreate=0, failedDestroy=0, aliveWorld=2, aliveGlobal=2, registeredWorld=2, worldReady=true}
+[0111月2026 21:11:41.751] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 销毁：1280x1024，fbo=-1
+[0111月2026 21:11:41.751] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源已回收：WorldResourceStats{created=14, destroyed=12, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=2, registeredWorld=2, worldReady=false}
+[0111月2026 21:11:43.139] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 创建：1280x1024，fbo=1，color=46，depth=47
+[0111月2026 21:11:43.139] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 双 PBO 创建：1280x1024，容量=5242880 bytes，pbo=[260, 261]
+[0111月2026 21:11:43.139] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=16, destroyed=12, failedCreate=0, failedDestroy=0, aliveWorld=2, aliveGlobal=2, registeredWorld=2, worldReady=true}
+[0111月2026 21:11:46.469] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 销毁：1280x1024，fbo=-1
+[0111月2026 21:11:46.469] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源已回收：WorldResourceStats{created=16, destroyed=14, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=2, registeredWorld=2, worldReady=false}
+[0111月2026 21:11:47.843] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 创建：1280x1024，fbo=1，color=46，depth=47
+[0111月2026 21:11:47.843] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 双 PBO 创建：1280x1024，容量=5242880 bytes，pbo=[260, 261]
+[0111月2026 21:11:47.844] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=18, destroyed=14, failedCreate=0, failedDestroy=0, aliveWorld=2, aliveGlobal=2, registeredWorld=2, worldReady=true}
+[0111月2026 21:11:51.160] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 销毁：1280x1024，fbo=-1
+[0111月2026 21:11:51.160] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源已回收：WorldResourceStats{created=18, destroyed=16, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=2, registeredWorld=2, worldReady=false}
+[0111月2026 21:11:52.627] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 创建：1280x1024，fbo=1，color=46，depth=47
+[0111月2026 21:11:52.627] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 双 PBO 创建：1280x1024，容量=5242880 bytes，pbo=[260, 261]
+[0111月2026 21:11:52.627] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=20, destroyed=16, failedCreate=0, failedDestroy=0, aliveWorld=2, aliveGlobal=2, registeredWorld=2, worldReady=true}
+[0111月2026 21:11:55.858] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 销毁：1280x1024，fbo=-1
+[0111月2026 21:11:55.858] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源已回收：WorldResourceStats{created=20, destroyed=18, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=2, registeredWorld=2, worldReady=false}
+[0111月2026 21:11:57.227] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 创建：1280x1024，fbo=1，color=46，depth=47
+[0111月2026 21:11:57.228] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 双 PBO 创建：1280x1024，容量=5242880 bytes，pbo=[260, 261]
+[0111月2026 21:11:57.228] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=22, destroyed=18, failedCreate=0, failedDestroy=0, aliveWorld=2, aliveGlobal=2, registeredWorld=2, worldReady=true}
+[0111月2026 21:12:00.560] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 销毁：1280x1024，fbo=-1
+[0111月2026 21:12:00.561] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源已回收：WorldResourceStats{created=22, destroyed=20, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=2, registeredWorld=2, worldReady=false}
+[0111月2026 21:12:01.935] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 创建：1280x1024，fbo=1，color=46，depth=47
+[0111月2026 21:12:01.935] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 双 PBO 创建：1280x1024，容量=5242880 bytes，pbo=[260, 261]
+[0111月2026 21:12:01.935] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=24, destroyed=20, failedCreate=0, failedDestroy=0, aliveWorld=2, aliveGlobal=2, registeredWorld=2, worldReady=true}
+[0111月2026 21:12:05.315] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 销毁：1280x1024，fbo=-1
+[0111月2026 21:12:05.315] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源已回收：WorldResourceStats{created=24, destroyed=22, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=2, registeredWorld=2, worldReady=false}
+[0111月2026 21:12:06.684] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 创建：1280x1024，fbo=1，color=46，depth=47
+[0111月2026 21:12:06.685] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 双 PBO 创建：1280x1024，容量=5242880 bytes，pbo=[260, 261]
+[0111月2026 21:12:06.685] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=26, destroyed=22, failedCreate=0, failedDestroy=0, aliveWorld=2, aliveGlobal=2, registeredWorld=2, worldReady=true}
+[0111月2026 21:12:10.045] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 销毁：1280x1024，fbo=-1
+[0111月2026 21:12:10.045] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源已回收：WorldResourceStats{created=26, destroyed=24, failedCreate=0, failedDestroy=0, aliveWorld=0, aliveGlobal=2, registeredWorld=2, worldReady=false}
+[0111月2026 21:12:11.421] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 离屏 FBO 创建：1280x1024，fbo=1，color=46，depth=47
+[0111月2026 21:12:11.421] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 双 PBO 创建：1280x1024，容量=5242880 bytes，pbo=[260, 261]
+[0111月2026 21:12:11.421] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 世界资源就绪：WorldResourceStats{created=28, destroyed=24, failedCreate=0, failedDestroy=0, aliveWorld=2, aliveGlobal=2, registeredWorld=2, worldReady=true}
