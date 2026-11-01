@@ -20,3 +20,11 @@
 - 本测试使用 dev 命名环境下的 serverComponent 源码，不是生产 Forge 专用服 + reobf `captureapi-0.5.0-server.jar`；
 - Permissions/单玩家/全局限额/多玩家并发矩阵未做；
 - 生产环境请按 `docs/evidence/P1.3/README.md` 使用 server jar 在真实专用服复核。
+
+## 追加：Ticket 限额路径（2026-11-01 22:45）
+
+- 服务端 config `max_chunks_per_player=32`、`max_chunks_global=64`，相机 +250/请求 109 区块；
+- 结果：客户端 `/health` → `remote_last_code=E_PLAYER_LIMIT`，`accepted=0`；**超限拒绝路径 PASS**；
+- 证据：`remote-limit-health.json`；
+- 注意：修改 `run/world/serverconfig/captureapi_server-server.toml` 必须无 BOM 写入（PowerShell 5.1 `Set-Content -Encoding UTF8` 带 BOM 会导致 TOML 解析失败，服务器崩溃）。
+
