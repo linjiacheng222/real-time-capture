@@ -1,0 +1,12 @@
+﻿six-dir start: 20261101-213203
+health OK
+unpause: {"id":"u","ok":true,"result":{"unpaused":true}}
+camera: {"id":"cam","ok":true,"result":{"id":1,"x":-33.96016602441578,"y":88.62000000476837,"z":68.54824351947042,"yaw":0.0,"pitch":0.0,"roll":0.0,"fov":70.0,"width":1280,"height":1024,"paused":false,"shape":"rect"}}
+front: chunks=201 bytes=354564 play={"id":"snd","ok":true,"result":{"x":-33.96016602441578,"y":88.62000000476837,"z":76.54824351947042,"volume":4.0}}
+back: chunks=201 bytes=354564 play={"id":"snd","ok":true,"result":{"x":-33.96016602441578,"y":88.62000000476837,"z":60.54824351947042,"volume":4.0}}
+left: chunks=200 bytes=352800 play={"id":"snd","ok":true,"result":{"x":-25.960166024415777,"y":88.62000000476837,"z":68.54824351947042,"volume":4.0}}
+right: chunks=201 bytes=354564 play={"id":"snd","ok":true,"result":{"x":-41.96016602441578,"y":88.62000000476837,"z":68.54824351947042,"volume":4.0}}
+up: chunks=201 bytes=354564 play={"id":"snd","ok":true,"result":{"x":-33.96016602441578,"y":96.62000000476837,"z":68.54824351947042,"volume":4.0}}
+down: chunks=200 bytes=352800 play={"id":"snd","ok":true,"result":{"x":-33.96016602441578,"y":80.62000000476837,"z":68.54824351947042,"volume":4.0}}
+camera delete: {"id":"del","ok":true,"result":{"deleted":1,"active":0}}
+DONE
