@@ -31,3 +31,17 @@
 5. 若需收尾，可重跑长跑开始脚本或重启客户端清空相机。
 
 **判据**：无崩溃；帧数持续增长；pipeline_failed/encode_failed/encode_dropped 无持续增长；heap 走势平稳（无单调上升）。
+
+## 追加：10 分钟自动化稳定性（2026-11-01 23:02–23:12）
+
+| 指标 | 结果 |
+|---|---|
+| 时长 | 600s（相机激活 + 周期调整） |
+| 帧增量 | **16242**（约 27fps，主循环/编码节拍限制） |
+| pipeline_failed | 0 → 0 |
+| encode_failed / dropped | 0 / 0 |
+| heap 起/止/峰 | 419.4 / 406.0 / 542.0 MB（波动，无持续增长） |
+| 结论 | **PASS（10min 自动化，不等于用户 4h 长跑）** |
+
+证据：`docs/evidence/S5/stability-600s/`（samples.csv、summary.txt）。
+

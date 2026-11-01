@@ -1,0 +1,6 @@
+﻿S5 stability start: 20261101-230204, duration=600s
+unpause: {"id":"u","ok":true,"result":{"unpaused":true}}
+camera=1 javaPid=49288
+frames delta=16242; pipeline_failed=0->0; encode_failed=0->0
+heap start=419.4 MB end=406 MB peak=542 MB
+camera delete: {"id":"d","ok":true,"result":{"deleted":1,"active":0}}
