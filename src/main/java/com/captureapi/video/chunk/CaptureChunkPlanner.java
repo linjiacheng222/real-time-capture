@@ -2,6 +2,7 @@ package com.captureapi.video.chunk;
 
 import com.captureapi.core.config.CaptureParams;
 import com.captureapi.core.constant.CaptureConstants;
+import com.captureapi.net.RemoteCaptureClient;
 import com.captureapi.video.camera.CameraPose;
 import java.util.Collections;
 import java.util.HashSet;
@@ -132,6 +133,7 @@ public final class CaptureChunkPlanner {
         }
 
         current = new CaptureChunkSet(chunks, chunks.size(), false, nowNanos);
+        RemoteCaptureClient.onChunks(current.chunks());
         lastScanNanos = nowNanos;
         lastX = pose.eyePosition().x;
         lastY = pose.eyePosition().y;

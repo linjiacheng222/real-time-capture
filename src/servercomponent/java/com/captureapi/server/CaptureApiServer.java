@@ -77,6 +77,15 @@ public final class CaptureApiServer {
                 buffer -> new ServerResponse(buffer.readBoolean(), buffer.readUtf(64), buffer.readInt()),
                 (message, contextSupplier) -> contextSupplier.get().setPacketHandled(true),
                 java.util.Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        channel.registerMessage(4, HandshakeResponse.class,
+                (message, buffer) -> {
+                    buffer.writeBoolean(message.supported());
+                    buffer.writeInt(message.protocolVersion());
+                    buffer.writeUtf(message.message(), 256);
+                },
+                buffer -> new HandshakeResponse(buffer.readBoolean(), buffer.readInt(), buffer.readUtf(256)),
+                (message, contextSupplier) -> contextSupplier.get().setPacketHandled(true),
+                java.util.Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         MinecraftForge.EVENT_BUS.register(this);
     }
 
