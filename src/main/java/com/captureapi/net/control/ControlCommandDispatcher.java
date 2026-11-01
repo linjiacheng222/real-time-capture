@@ -108,6 +108,7 @@ public final class ControlCommandDispatcher {
             case "camera.list" -> list();
             case "camera.status" -> status();
             case "audio.section" -> audioSection(params);
+            case "shader.status" -> shaderStatus();
             case "recording.start" -> recordingStart(params);
             case "recording.stop" -> recordingStop();
             case "recording.status" -> recordingStatus();
@@ -453,6 +454,15 @@ public final class ControlCommandDispatcher {
         result.addProperty("y", y);
         result.addProperty("z", z);
         result.addProperty("volume", volume);
+        return result;
+    }
+
+    /** 光影/渲染环境状态（P1.5 诊断）。 */
+    private JsonElement shaderStatus() {
+        JsonObject result = new JsonObject();
+        result.addProperty("detected", com.captureapi.video.shader.ShaderCompatHooks.detected());
+        result.addProperty("active", com.captureapi.video.shader.ShaderCompatHooks.isActive());
+        result.addProperty("backend", com.captureapi.video.shader.ShaderCompatHooks.backend());
         return result;
     }
 
