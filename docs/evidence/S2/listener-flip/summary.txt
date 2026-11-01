@@ -1,0 +1,17 @@
+﻿listener flip start: 20261101-212349
+health OK
+unpause: {"id":"u","ok":true,"result":{"unpaused":true}}
+camera create: {"id":"cam","ok":true,"result":{"id":1,"x":-33.96016602441578,"y":88.62000000476837,"z":68.54824351947042,"yaw":0.0,"pitch":0.0,"roll":0.0,"fov":70.0,"width":1280,"height":1024,"paused":false,"shape":"rect"}}
+segment yaw0-silence yaw=0 sound=False
+segment yaw0-silence chunks=332 bytes=585648
+segment yaw0-sound yaw=0 sound=True
+play -> {"id":"snd","ok":true,"result":{"x":-25.960166024415777,"y":88.62000000476837,"z":68.54824351947042,"volume":4.0}}
+segment yaw0-sound chunks=334 bytes=589176
+camera yaw180: {"id":"adj","ok":true,"result":{"id":1,"x":-33.96016602441578,"y":88.62000000476837,"z":68.54824351947042,"yaw":180.0,"pitch":0.0,"roll":0.0,"fov":70.0,"width":1280,"height":1024,"paused":false,"shape":"rect"}}
+segment yaw180-silence yaw=180 sound=False
+segment yaw180-silence chunks=332 bytes=585648
+segment yaw180-sound yaw=180 sound=True
+play -> {"id":"snd","ok":true,"result":{"x":-25.960166024415777,"y":88.62000000476837,"z":68.54824351947042,"volume":4.0}}
+segment yaw180-sound chunks=334 bytes=589176
+camera delete: {"id":"del","ok":true,"result":{"deleted":1,"active":0}}
+DONE
