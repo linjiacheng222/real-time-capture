@@ -29,11 +29,17 @@ public final class AudioListenerSync implements CameraSyncHook.Listener {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureConstants.LOG_MARKER);
     private static final AudioListenerSync INSTANCE = new AudioListenerSync();
     private static final float[] ORIENTATION = new float[6];
+    /** 音频截面虚拟监听器最短生效时间（纳秒）。 */
+    private static final long VIRTUAL_CAPTURE_MIN_NANOS = 1_000_000L;
 
     private long syncCount;
     private long errorCount;
     private volatile CameraPose latestPose;
     private volatile long latestPoseNanos;
+    private volatile double virtualX;
+    private volatile double virtualY;
+    private volatile double virtualZ;
+    private volatile long virtualUntilNanos;
 
     /** 客户端 setup 安装（AudioSetupHandler 调用）。 */
     public static void install() {
@@ -65,12 +71,46 @@ public final class AudioListenerSync implements CameraSyncHook.Listener {
         INSTANCE.applyCaptureInternal();
     }
 
+    /**
+     * 音频截面（W-071）：在指定时窗内把 listener 临时放到虚拟位置（朝向沿用玩家），
+     * 采集线程的每次 loopback render 使用该位置；到时窗结束自动恢复相机/玩家逻辑。
+     *
+     * @param x             虚拟位置 X
+     * @param y             虚拟位置 Y
+     * @param z             虚拟位置 Z
+     * @param durationNanos 生效时长
+     */
+    public static void beginVirtualCapture(double x, double y, double z, long durationNanos) {
+        INSTANCE.virtualX = x;
+        INSTANCE.virtualY = y;
+        INSTANCE.virtualZ = z;
+        INSTANCE.virtualUntilNanos = com.captureapi.core.time.CaptureClock.get().nowNanos()
+                + Math.max(VIRTUAL_CAPTURE_MIN_NANOS, durationNanos);
+    }
+
+    /** 提前结束音频截面的虚拟 listener（幂等）。 */
+    public static void endVirtualCapture() {
+        INSTANCE.virtualUntilNanos = 0L;
+    }
+
     private void applyCaptureInternal() {
         if (!AudioCaptureManager.get().isLoopbackActive()) {
             return;
         }
-        CameraPose pose = latestPose;
         long now = com.captureapi.core.time.CaptureClock.get().nowNanos();
+        if (now < virtualUntilNanos) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player == null) {
+                return;
+            }
+            AL10.alListener3f(AL10.AL_POSITION, (float) virtualX, (float) virtualY, (float) virtualZ);
+            AL10.alListener3f(AL10.AL_VELOCITY, 0.0F, 0.0F, 0.0F);
+            fillOrientation(player.getViewYRot(1.0F), player.getViewXRot(1.0F), 0.0F,
+                    (float) virtualX, (float) virtualY, (float) virtualZ);
+            syncCount++;
+            return;
+        }
+        CameraPose pose = latestPose;
         if (pose != null && now - latestPoseNanos < 250_000_000L) {
             CameraSpec spec = pose.spec();
             AL10.alListener3f(AL10.AL_POSITION, (float) pose.eyePosition().x, (float) pose.eyePosition().y,

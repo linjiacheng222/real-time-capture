@@ -298,6 +298,40 @@ public final class AudioRingBuffer implements ManagedResource {
      *
      * @return 最近音频块；无数据 null
      */
+    /**
+     * 快照最近 N 拍（音频截面 W-071 用；不推进读游标，不干扰 WS/录像消费端）。
+     *
+     * @param chunkCount 拍数（1..ring 容量）
+     * @return 合并后的 AudioChunk；无数据/未创建返回 null
+     */
+    public AudioChunk snapshotRecent(int chunkCount) {
+        byte[] ring = slots;
+        if (ring == null || chunkCount <= 0) {
+            return null;
+        }
+        int write = writeIndex;
+        // 音频截面需要最近 N 拍；WS 推送线程会持续消费 readIndex，因此不能只看可读队列。
+        // 这里按写入位置回看最近 N 个物理槽（不超过已写拍数与环容量）；并发覆盖窗口由调用方接受。
+        int count = Math.min(chunkCount, slotCount);
+        count = Math.min(count, (int) Math.min(writtenPolls.get(), slotCount));
+        if (count <= 0) {
+            return null;
+        }
+        int startIndex = (write - count + slotCount) % slotCount;
+        byte[] pcm = new byte[count * slotBytes];
+        for (int i = 0; i < count; i++) {
+            int index = (startIndex + i) % slotCount;
+            System.arraycopy(ring, index * slotBytes, pcm, i * slotBytes, slotBytes);
+        }
+        int first = startIndex;
+        int last = (startIndex + count - 1) % slotCount;
+        int samples = 0;
+        for (int i = 0; i < count; i++) {
+            samples += slotSampleCounts[(startIndex + i) % slotCount];
+        }
+        return new AudioChunk(slotStartNanos[first], slotEndNanos[last], samples, pcm);
+    }
+
     public AudioChunk peekLatest() {
         byte[] ring = slots;
         if (ring == null || writeIndex == readIndex) {

@@ -21,6 +21,8 @@ import net.minecraft.client.gui.screens.TitleScreen;
 import com.captureapi.core.time.CaptureClock;
 import com.captureapi.video.filter.RenderFilterRegistry;
 import com.captureapi.audio.AudioFilterRegistry;
+import com.captureapi.audio.timestamp.AudioChunk;
+import com.captureapi.net.CaptureApi;
 import com.captureapi.net.recording.RecordingParams;
 import com.captureapi.net.recording.RecordingSession;
 import com.captureapi.net.recording.RecordingStatus;
@@ -31,6 +33,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -48,6 +51,8 @@ import org.slf4j.LoggerFactory;
 public final class ControlCommandDispatcher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureConstants.LOG_MARKER);
+    /** 音频截面指令等待上限（秒）。 */
+    private static final long AUDIO_SECTION_TIMEOUT_SECONDS = 5L;
     private static final Gson GSON = new Gson();
     private static final ControlCommandDispatcher INSTANCE = new ControlCommandDispatcher();
 
@@ -102,6 +107,7 @@ public final class ControlCommandDispatcher {
             case "camera.delete" -> delete(params);
             case "camera.list" -> list();
             case "camera.status" -> status();
+            case "audio.section" -> audioSection(params);
             case "recording.start" -> recordingStart(params);
             case "recording.stop" -> recordingStop();
             case "recording.status" -> recordingStatus();
@@ -448,6 +454,44 @@ public final class ControlCommandDispatcher {
         result.addProperty("z", z);
         result.addProperty("volume", volume);
         return result;
+    }
+
+    /** 测试辅助：音频截面（W-071）调用并返回 PCM 统计，不返回原始大数组。 */
+    private JsonElement audioSection(JsonObject params) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player == null) {
+            throw new ControlException(ControlErrorCode.E_INTERNAL, "玩家尚未进入世界");
+        }
+        double x = optDouble(params, "x", minecraft.player.getEyePosition().x);
+        double y = optDouble(params, "y", minecraft.player.getEyePosition().y);
+        double z = optDouble(params, "z", minecraft.player.getEyePosition().z);
+        int chunks = optInt(params, "chunks", 3);
+        if (chunks < 1 || chunks > 100) {
+            throw new ControlException(ControlErrorCode.E_PARAM_RANGE, "chunks 范围 [1,100]");
+        }
+        try {
+            AudioChunk chunk = CaptureApi.grabAudioSection(x, y, z, chunks).get(AUDIO_SECTION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            byte[] pcm = chunk.pcm();
+            long sum = 0L;
+            int peak = 0;
+            int samples = pcm.length / 2;
+            for (int i = 0; i + 1 < pcm.length; i += 2) {
+                int v = (short) ((pcm[i] & 0xFF) | (pcm[i + 1] << 8));
+                sum += (long) v * v;
+                peak = Math.max(peak, Math.abs(v));
+            }
+            double rms = samples > 0 ? Math.sqrt(sum / (double) samples) : 0.0D;
+            JsonObject result = new JsonObject();
+            result.addProperty("start", chunk.startNanos());
+            result.addProperty("end", chunk.endNanos());
+            result.addProperty("samples", chunk.sampleCount());
+            result.addProperty("bytes", pcm.length);
+            result.addProperty("rms", rms);
+            result.addProperty("peak", peak);
+            return result;
+        } catch (Exception e) {
+            throw new ControlException(ControlErrorCode.E_INTERNAL, "音频截面失败：" + e.getMessage());
+        }
     }
 
     private JsonElement recordingStart(JsonObject params) {
