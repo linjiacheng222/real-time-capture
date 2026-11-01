@@ -33,3 +33,14 @@
 
 ## 判据
 远程 MP 下区块申请受理并实际加载远处内容；当前仅有客户端代码 + 单机 no-op 证据，**远程 MP 未验收**。
+
+## 补充：dev 专用服联调 **PASS**（2026-11-01 22:29）
+
+- dev 增补 `runServer` 配置（仅加载 serverComponent，移除客户端 mixin 注入），离线模式启动专用服；
+- 客户端 `--quickPlayMultiplayer 127.0.0.1:25565` 加入；
+- 结果：
+  - 客户端日志：`[REMOTE] 已发送 M9 握手（协议 v1）` → `握手响应 supported=true, serverProtocol=1, msg=OK`；
+  - `/health`：`remote_ready=true, remote_requests=1, remote_accepted=109, remote_last_code=OK`；
+  - 相机置于 +200 格，拉帧成功（38,319B），画面出现**已加载的远处地形**（`remote-mp-frame.jpg`）；
+- 结论：**P1.3 基础远程 MP 通路 PASS（dev 专用服）**；生产专用服/权限/限额矩阵与 reobf server jar 仍待用户环境复核。
+
