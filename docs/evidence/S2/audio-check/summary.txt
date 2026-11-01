@@ -1,0 +1,5 @@
+﻿S2 audio check start: 20261101-211645
+PASS /health 200
+baseline chunks=234 pcm=E:\捕获接口\docs\evidence\S2\audio-check\pcm-baseline.raw
+sound chunks=475 pcm=E:\捕获接口\docs\evidence\S2\audio-check\pcm-sound.raw
+total chunks=709 badFormat=0 monotonic=True
