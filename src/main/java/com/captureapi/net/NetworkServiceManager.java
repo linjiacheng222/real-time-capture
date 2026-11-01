@@ -294,6 +294,12 @@ public final class NetworkServiceManager {
         json.addProperty("http_streams", httpStreams.get());
         json.addProperty("http_slow_disconnects", httpSlowDisconnects.get());
         json.addProperty("video_frames_published", com.captureapi.video.frame.VideoFrameBus.get().publishedCount());
+        json.addProperty("game_fps", net.minecraft.client.Minecraft.getInstance().getFps());
+        json.addProperty("offscreen_rendered_frames", com.captureapi.video.render.OffscreenRenderPipeline.renderedFrames());
+        json.addProperty("readback_frames", com.captureapi.video.render.OffscreenRenderPipeline.readbackFrames());
+        json.addProperty("encoded_frames", com.captureapi.video.encode.EncodingPipeline.get().encodedFrames());
+        json.addProperty("encode_dropped_frames", com.captureapi.video.encode.EncodingPipeline.get().droppedFrames());
+        json.addProperty("encode_failed_frames", com.captureapi.video.encode.EncodingPipeline.get().failedFrames());
         json.addProperty("audio_ring_written", com.captureapi.audio.AudioRingBuffer.get().writtenPolls());
         json.addProperty("audio_ring_dropped", com.captureapi.audio.AudioRingBuffer.get().droppedPolls());
         json.addProperty("audio_ring_silent", com.captureapi.audio.AudioRingBuffer.get().silentPolls());
