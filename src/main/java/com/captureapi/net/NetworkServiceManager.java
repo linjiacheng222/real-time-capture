@@ -296,6 +296,9 @@ public final class NetworkServiceManager {
         json.addProperty("http_slow_disconnects", httpSlowDisconnects.get());
         json.addProperty("video_frames_published", com.captureapi.video.frame.VideoFrameBus.get().publishedCount());
         json.addProperty("game_fps", net.minecraft.client.Minecraft.getInstance().getFps());
+        json.addProperty("shader_backend", com.captureapi.video.shader.ShaderCompatHooks.backend());
+        json.addProperty("shader_detected", com.captureapi.video.shader.ShaderCompatHooks.detected());
+        json.addProperty("shader_active", com.captureapi.video.shader.ShaderCompatHooks.isActive());
         json.addProperty("offscreen_rendered_frames", com.captureapi.video.render.OffscreenRenderPipeline.renderedFrames());
         json.addProperty("readback_frames", com.captureapi.video.render.OffscreenRenderPipeline.readbackFrames());
         json.addProperty("encoded_frames", com.captureapi.video.encode.EncodingPipeline.get().encodedFrames());
