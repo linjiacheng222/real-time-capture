@@ -11,6 +11,7 @@ public final class ControlErrorCode {
     public static final String E_RATE_LIMIT = "E_RATE_LIMIT";
     public static final String E_NO_PERMISSION = "E_NO_PERMISSION";
     public static final String E_INTERNAL = "E_INTERNAL";
+    public static final String E_TEST_COMMANDS_DISABLED = "E_TEST_COMMANDS_DISABLED";
 
     private ControlErrorCode() {
         throw new AssertionError("no instances");

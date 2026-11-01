@@ -38,13 +38,24 @@ if (Test-Path $dispatcher) {
 }
 $testOnly = $testOnly | Sort-Object -Unique
 Log ("test-only actions present: " + ($testOnly -join ', '))
-$testBlock = ($testOnly.Count -gt 0) -and (-not $AllowTestCommands)
-if ($testBlock) {
-    Log 'RELEASE BLOCKER: test-only WS commands present; remove or gate behind a non-release flag before shipping.'
-} elseif ($testOnly.Count -gt 0) {
-    Log 'WARN: test-only commands present but explicitly allowed for test build (do not ship as release).'
-} else {
+$gateFile = Join-Path $root 'src\main\java\com\captureapi\net\control\TestCommandGate.java'
+$gateWired = $false
+if (Test-Path $gateFile) {
+    $gateWired = (Select-String -Path $dispatcher -Pattern 'TestCommandGate' -Encoding UTF8 | Measure-Object).Count -gt 0
+}
+if ($testOnly.Count -eq 0) {
     Log 'test-only commands: none'
+    $testBlock = $false
+} elseif ($gateWired) {
+    Log 'GATED: test-only commands require TestCommandGate (JVM debug property or config/captureapi/test_commands.enabled).'
+    Log '       release-safe; enable only for tests via scripts/enable-test-commands.ps1.'
+    $testBlock = $false
+} elseif ($AllowTestCommands) {
+    Log 'WARN: test-only commands present, not gated; explicitly allowed for test build (not release-safe).'
+    $testBlock = $false
+} else {
+    Log 'RELEASE BLOCKER: test-only WS commands present and not gated; remove or gate before shipping.'
+    $testBlock = $true
 }
 
 $docs = @(

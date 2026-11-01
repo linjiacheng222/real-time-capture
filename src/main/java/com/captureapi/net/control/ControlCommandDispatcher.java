@@ -98,6 +98,7 @@ public final class ControlCommandDispatcher {
     }
 
     private JsonElement dispatch(String action, JsonObject params) {
+        TestCommandGate.require(action);
         return switch (action) {
             case "camera.create" -> create(params);
             case "camera.adjust" -> adjust(params);
@@ -719,10 +720,10 @@ public final class ControlCommandDispatcher {
     }
 
     /** 控制异常（携带稳定错误码）。 */
-    private static final class ControlException extends RuntimeException {
+    static final class ControlException extends RuntimeException {
         private final String code;
 
-        private ControlException(String code, String message) {
+        ControlException(String code, String message) {
             super(message);
             this.code = code;
         }
