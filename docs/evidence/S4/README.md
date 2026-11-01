@@ -43,3 +43,18 @@
 - 数据目录：`perf-optimized/`、`perf-async/`、`perf-focused-async/`。
 - 下一步：启动后采样新 health 计数，判断瓶颈是主循环 fps、编码发布还是限流；决定默认 inline/async 及进一步优化。
 
+## 最终复测（2026-11-01 21:46–21:47）：**S4 稳态 PASS**
+
+修复 `FrameRateLimiter`（固定网格累加，避免 last=now 抖动累积）后复测：
+
+| 模式 | 帧率 | 单帧 HTTP P95 | pipeline total（稳态） | 结论 |
+|---|---|---|---|---|
+| inline（默认） | **30.03 fps** | 1.05–1.19 ms | 10.1–15.5 ms（前测）；30s 稳态 17.3–19.7 ms | **PASS（<23ms）** |
+| encode_async=true | 29.95 fps | 1.19 ms | 10.9–14.1 ms | PASS |
+
+30s inline 稳态证据：`final-steady/`（fps=30，encode 14.6→16.8ms，total 17.3→19.7ms，pipeline_failed=0，dropped=0）。
+- **冷启动**：JIT 预热前 300 帧 encode 可达 ~26ms、total ~28ms（超预算）；稳态后满足预算；建议 S5/M7 报告注明“预热后稳态”口径，或不将首 300 帧计入性能判据。
+- 2026-11-01 21:46 后 limiter 修复提交；编码器优化（状态复用/禁 ImageIO 缓存）保留。
+
+**S4 结论**：帧率达标（30fps）、单帧延迟达标、稳态编码预算达标；堆内存趋势仍待补测。
+

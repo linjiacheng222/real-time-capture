@@ -24,7 +24,8 @@ public final class FrameRateLimiter {
 
     private final AtomicLong allowedCount = new AtomicLong();
     private final AtomicLong droppedCount = new AtomicLong();
-    private long lastRenderNanos;
+    private long nextAllowedNanos;
+    private int configuredFpsMax;
 
     /**
      * 判定本次 AFTER_LEVEL 是否放行离屏渲染。
@@ -38,9 +39,20 @@ public final class FrameRateLimiter {
             fpsMax = 1;
         }
         long intervalNanos = CaptureConstants.NANOS_PER_SECOND / fpsMax;
-        long last = lastRenderNanos;
-        if (last == 0L || nowNanos - last >= intervalNanos) {
-            lastRenderNanos = nowNanos;
+        if (nextAllowedNanos == 0L || configuredFpsMax != fpsMax) {
+            // 首次/配置变更：从当前帧开始建立固定网格
+            configuredFpsMax = fpsMax;
+            nextAllowedNanos = nowNanos + intervalNanos;
+            allowedCount.incrementAndGet();
+            return true;
+        }
+        if (nowNanos >= nextAllowedNanos) {
+            // 固定网格累加，避免“last=now”抖动累积导致实际帧率低于目标
+            nextAllowedNanos += intervalNanos;
+            if (nowNanos - nextAllowedNanos > intervalNanos * 4L) {
+                // 长时间停顿后重新对齐，避免追赶风暴
+                nextAllowedNanos = nowNanos + intervalNanos;
+            }
             allowedCount.incrementAndGet();
             return true;
         }
@@ -64,7 +76,8 @@ public final class FrameRateLimiter {
 
     /** 重置（相机切换/测试用）。 */
     public void reset() {
-        lastRenderNanos = 0L;
+        nextAllowedNanos = 0L;
+        configuredFpsMax = 0;
         allowedCount.set(0L);
         droppedCount.set(0L);
     }
