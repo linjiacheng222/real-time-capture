@@ -196,9 +196,11 @@ $moved = $null
 $changed = $false
 if ($first.OK) {
     if (-not $NoCreate -and $cameraId -gt 0) {
-        $adjust = @{ id = 's1-adjust'; action = 'camera.adjust'; params = @{ id = $cameraId; x = ($X + $MoveDX); y = $Y; z = $Z; yaw = $Yaw; pitch = $Pitch; roll = $Roll; fov = $Fov } } | ConvertTo-Json -Compress -Depth 6
+        $adjust = @{ id = 's1-adjust'; action = 'camera.adjust'; params = @{ id = $cameraId; x = ($X + $MoveDX); y = $Y; z = $Z; yaw = ($Yaw + 90); pitch = $Pitch; roll = $Roll; fov = $Fov } } | ConvertTo-Json -Compress -Depth 6
         $adjustResp = Invoke-WsCommand $adjust
         Log "WS adjust: $adjustResp"
+        # 异步 PBO/帧缓存需要数帧稳定；先等待 3 秒再轮询，避免取到调整前旧帧。
+        Start-Sleep -Seconds 3
         $deadline = (Get-Date).AddSeconds($ChangeTimeoutSec)
         while ((Get-Date) -lt $deadline) {
             Start-Sleep -Milliseconds 800

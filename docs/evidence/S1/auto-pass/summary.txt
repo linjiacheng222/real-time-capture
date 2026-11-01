@@ -1,0 +1,14 @@
+﻿S1 check start: 20261101-210016
+OutDir: E:\捕获接口\docs\evidence\S1\auto-pass
+PASS /health 200
+WS unpause: {"id":"s1-unpause","ok":true,"result":{"unpaused":true}}
+WS create: {"id":"s1-create","ok":true,"result":{"id":6,"x":-32.0,"y":120.0,"z":61.0,"yaw":0.0,"pitch":60.0,"roll":0.0,"fov":70.0,"width":1280,"height":1024,"paused":false,"shape":"rect"}}
+camera id=6
+PASS frame-original.jpg bytes=390240 ts=110672293692400 analysis=jpeg-signature=OK; 1280x1024; mean=38.66; std=22.20
+WS adjust: {"id":"s1-adjust","ok":true,"result":{"id":6,"x":-20.0,"y":120.0,"z":61.0,"yaw":90.0,"pitch":60.0,"roll":0.0,"fov":70.0,"width":1280,"height":1024,"paused":false,"shape":"rect"}}
+PASS frame-moved.jpg bytes=388715 ts=110719553970000 analysis=jpeg-signature=OK; 1280x1024; mean=39.39; std=25.49
+S1.2 frame changed: True (hash FC57E9BB39BBEFB51EB3F92BDF73C04FBAB2B254A439854E0972BAC10FFD1E02 -> 49831D1ECA5F3B758CD50F595F5E89DB44B0F79C54F955DBAD57518BAD78D093)
+WS delete: {"id":"s1-delete","ok":true,"result":{"deleted":6,"active":0}}
+S1.1 RESULT: PASS (frame exists and is JPEG)
+S1.2 RESULT: PASS (camera adjustment changed frame)
+S1.3/S1.4: manual (compare with F2 screenshot; repeat world enter/leave 10 rounds)

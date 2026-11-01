@@ -36,7 +36,7 @@ public abstract class CameraPoseMixin {
             CameraStateSnapshot.applyPoseOnly((Camera) (Object) this, pose);
             long count = APPLIED.incrementAndGet();
             if (count <= 3 || count % 600 == 0) {
-                LOGGER.info("{} [S1-DIAG] Camera.setup override applied#={} eye=({},{},{}) yaw={} pitch={}",
+                LOGGER.debug("{} [PIPE] Camera.setup override applied#={} eye=({},{},{}) yaw={} pitch={}",
                         CaptureConstants.LOG_MARKER, count, pose.eyePosition().x, pose.eyePosition().y,
                         pose.eyePosition().z, pose.spec().yawDegrees(), pose.spec().pitchDegrees());
             }
