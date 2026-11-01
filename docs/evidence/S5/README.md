@@ -45,3 +45,11 @@
 
 证据：`docs/evidence/S5/stability-600s/`（samples.csv、summary.txt）。
 
+## 一键长跑（推荐）
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\s5-user-long-run.ps1 -Hours 4
+```
+
+脚本会创建相机并在同一终端持续采样 4h；结束后把 `docs/evidence/S5/long-run/health-*.csv` 与体感反馈给开发端。
+

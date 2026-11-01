@@ -1,0 +1,19 @@
+﻿release package check 2026-11-01T23:27:49
+zip: E:\捕获接口\release\captureapi-0.5.0-release.zip size=305987
+sha captureapi-0.5.0-server.jar match=True
+sha captureapi-0.5.0.jar match=True
+files=14
+  captureapi-0.5.0-server.jar
+  captureapi-0.5.0.jar
+  RELEASE-README.md
+  SHA256SUMS.txt
+  docs\S6终验报告.md
+  docs\专用服部署指南.md
+  docs\最终交付清单.md
+  scripts\build.ps1
+  scripts\disable-test-commands.ps1
+  scripts\enable-test-commands.ps1
+  scripts\install-server-component.ps1
+  scripts\install-to-instance.ps1
+  scripts\release-gate-check.ps1
+  scripts\s5-user-long-run.ps1
