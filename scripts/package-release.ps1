@@ -37,7 +37,7 @@ foreach ($d in @('S6终验报告.md', '专用服部署指南.md', '最终交付�
     $p = Join-Path $root "docs\$d"
     if (Test-Path $p) { Copy-Item $p (Join-Path $out 'docs') }
 }
-foreach ($s in @('build.ps1', 'install-to-instance.ps1', 'install-server-component.ps1', 'enable-test-commands.ps1', 'disable-test-commands.ps1', 'release-gate-check.ps1')) {
+foreach ($s in @('build.ps1', 'install-to-instance.ps1', 'install-server-component.ps1', 'enable-test-commands.ps1', 'disable-test-commands.ps1', 'release-gate-check.ps1', 's5-user-long-run.ps1')) {
     $p = Join-Path $root "scripts\$s"
     if (Test-Path $p) { Copy-Item $p (Join-Path $out 'scripts') }
 }
@@ -57,6 +57,7 @@ $readme = @'
 1. 客户端：客户端 jar 放 PCL 实例 mods；
 2. 测试指令门控：PCL 实例运行
    `powershell -ExecutionPolicy Bypass -File scripts\enable-test-commands.ps1 -GameDir "PCL实例目录"`
+   长跑一键脚本：`scripts\s5-user-long-run.ps1 -Hours 4`
    （正式发布不会预置该标记；测试后请 disable）
 3. 专用服：`captureapi-0.5.0-server.jar` 放服务端 mods，按 `docs/专用服部署指南.md` 验证；
 4. 发布门禁：`scripts/build.ps1` 24/24；`scripts/release-gate-check.ps1` PASS(GATED)。
