@@ -1,0 +1,15 @@
+﻿S4 perf start: 20261101-214630
+PASS health
+unpause: {"id":"u","ok":true,"result":{"unpaused":true}}
+config timing: {"id":"cfg","ok":true,"result":{"key":"log_pipeline_timing","value":true,"persisted":false,"message":"已生效"}}
+camera.create: {"id":"cam","ok":true,"result":{"id":3,"x":-33.96016602441578,"y":88.62000000476837,"z":68.54824351947042,"yaw":-18.449898,"pitch":77.25,"roll":0.0,"fov":70.0,"width":1280,"height":1024,"paused":false,"shape":"rect"}}
+java pid=49944
+frames: 1507 -> 1982 delta=475 in 15.8s => fps=30.03
+single-frame latency: n=100 fail=0 p50=0.65ms p95=1.05ms max=2.68ms
+pipeline: [0111月2026 21:46:31.318] [captureapi-ws-client/INFO] [[CaptureAPI]/]: [CaptureAPI] 参数快照刷新（Reloading）：fps_max=30, video_resolution=1280x1024, jpeg_quality=75, encode_async=false, near_plane=0.05, far_plane=0.0, sound_range=64, chunk_rescan_ms=500, audio_enabled=true, sample_rate=44100, bit_depth=16, channels=2, poll_interval_ms=10, thread_priority=9, ring_capacity_sec=1.0, net_port=25580, bind_local_only=true, lan_enabled=false, token_enabled=false, max_connections=16, max_qps=30, frame_cache_ttl_sec=30, recording_output_dir=config/captureapi/recordings, log_resource_lifecycle=config/captureapi/filters, log_frame_events=config/captureapi/overlays, log_frame_drops=false, log_pipeline_timing=config/captureapi/render_blacklist.txt, log_buffer_watermark=config/captureapi/render_whitelist.txt, log_gl_thread_violation=false, clock_logging=config/captureapi/audio_blacklist.txt
+pipeline: [0111月2026 21:46:31.318] [captureapi-ws-client/INFO] [[CaptureAPI]/]: [CaptureAPI] [CFG] 运行时改参：log_pipeline_timing=true（persisted=false）
+pipeline: [0111月2026 21:46:33.191] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 流水线耗时均值（1500帧）：render=0.30869373333333333ms，readback=1.8267910666666667ms，encode=7.934079666666667ms，total=10.069564466666666ms
+pipeline: [0111月2026 21:46:43.192] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 流水线耗时均值（1800帧）：render=0.29985788888888887ms，readback=2.066663333333333ms，encode=10.937056888888888ms，total=13.303578111111111ms
+pipeline: [0111月2026 21:46:53.191] [Render thread/INFO] [[CaptureAPI]/]: [CaptureAPI] 流水线耗时均值（2100帧）：render=0.2903679047619047ms，readback=2.21143119047619ms，encode=13.03776961904762ms，total=15.539568714285714ms
+camera delete: {"id":"del","ok":true,"result":{"deleted":3,"active":0}}
+config timing off: {"id":"cfg0","ok":true,"result":{"key":"log_pipeline_timing","value":false,"persisted":false,"message":"已生效"}}
