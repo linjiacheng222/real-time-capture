@@ -9,6 +9,7 @@ import com.captureapi.core.config.RuntimeConfigWriter;
 import com.captureapi.video.filter.FilterRegistry;
 import com.captureapi.video.overlay.OverlayModel;
 import com.captureapi.video.overlay.OverlayRegistry;
+import net.minecraft.client.Minecraft;
 import com.captureapi.video.filter.RenderFilterRegistry;
 import com.captureapi.audio.AudioFilterRegistry;
 import com.captureapi.net.recording.RecordingParams;
@@ -108,6 +109,7 @@ public final class ControlCommandDispatcher {
             case "renderfilter.reload" -> renderFilterReload();
             case "audiofilter.list" -> audioFilterList();
             case "audiofilter.reload" -> audioFilterReload();
+            case "client.unpause" -> clientUnpause();
             default -> throw new ControlException(ControlErrorCode.E_UNKNOWN_ACTION, "未知 action：" + action);
         };
     }
@@ -324,6 +326,23 @@ public final class ControlCommandDispatcher {
     private JsonElement audioFilterReload() {
         AudioFilterRegistry.get().reload();
         return audioFilterList();
+    }
+
+    /**
+     * 自动化验收辅助：关闭暂停界面并禁用失焦自动暂停（仅本地调试用）。
+     * 游戏暂停时世界不渲染，S1 自动化取帧会冻结；此指令把客户端恢复为运行态。
+     */
+    private JsonElement clientUnpause() {
+        Minecraft minecraft = Minecraft.getInstance();
+        minecraft.execute(() -> {
+            minecraft.options.pauseOnLostFocus = false;
+            if (minecraft.screen != null && minecraft.screen.isPauseScreen()) {
+                minecraft.setScreen(null);
+            }
+        });
+        JsonObject result = new JsonObject();
+        result.addProperty("unpaused", true);
+        return result;
     }
 
     private JsonElement recordingStart(JsonObject params) {
