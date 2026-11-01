@@ -12,6 +12,8 @@ import com.captureapi.video.overlay.OverlayRegistry;
 import java.io.File;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.client.gui.screens.TitleScreen;
 import com.captureapi.core.time.CaptureClock;
 import com.captureapi.video.filter.RenderFilterRegistry;
@@ -118,6 +120,7 @@ public final class ControlCommandDispatcher {
             case "client.screenshot" -> clientScreenshot();
             case "client.leaveWorld" -> clientLeaveWorld();
             case "client.loadWorld" -> clientLoadWorld(params);
+            case "client.playTestSound" -> clientPlayTestSound();
             default -> throw new ControlException(ControlErrorCode.E_UNKNOWN_ACTION, "未知 action：" + action);
         };
     }
@@ -405,6 +408,16 @@ public final class ControlCommandDispatcher {
         minecraft.execute(() -> minecraft.createWorldOpenFlows().loadLevel(new TitleScreen(), name));
         JsonObject result = new JsonObject();
         result.addProperty("loading", name);
+        return result;
+    }
+
+    /** 测试辅助：播放一个已知 UI 铃铛音效（S2 音频验收）。 */
+    private JsonElement clientPlayTestSound() {
+        Minecraft minecraft = Minecraft.getInstance();
+        minecraft.execute(() -> minecraft.getSoundManager()
+                .play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_BELL, 1.0F)));
+        JsonObject result = new JsonObject();
+        result.addProperty("played", "note_block.bell");
         return result;
     }
 

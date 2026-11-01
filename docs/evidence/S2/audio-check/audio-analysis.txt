@@ -1,0 +1,2 @@
+baseline: samples=206388 (stereo frames=103194) rms=153.11 peak=1148 windows=233 window_rms_min=48.62 max=327.98
+sound: samples=418950 (stereo frames=209475) rms=182.13 peak=1264 windows=474 window_rms_min=34.30 max=491.52
