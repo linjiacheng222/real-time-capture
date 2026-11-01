@@ -34,3 +34,12 @@
 2. 或评估 `encode_async=true` 下的帧率/编码队列/CPU 占用；
 3. 修复 heap 采样（`jcmd GC.heap_info` 输出格式/权限）并补 30min 内存趋势；
 4. S4 通过后再进入 S5 长跑/S6 红线终验。
+
+## 追加：编码优化与异步/聚焦复测（2026-11-01 21:39–21:40）
+
+- **JpegEncoder 优化**：复用 BufferedImage/行缓冲/BAOS，禁用 ImageIO 磁盘缓存，改用 MemoryCacheImageOutputStream；inline 编码 **28.4→26.45ms**（改善约 7%），total 31.5→28.2ms，仍超 23ms；fps 26.1。
+- **encode_async=true（运行时）**：聚焦窗口后总流水线 **≈10.3ms（PASS）**，其中 encode 指标 8.7ms；但 `video_frames_published` 仍 **27.55fps**。
+- 判断：async 已把流水线预算压到 <23ms；27.55fps 可能受**主游戏帧率/环境**限制，需用新增 health 计数（game_fps/offscreen_rendered/readback/encoded）区分“渲染帧率”与“编码发布帧率”。
+- 数据目录：`perf-optimized/`、`perf-async/`、`perf-focused-async/`。
+- 下一步：启动后采样新 health 计数，判断瓶颈是主循环 fps、编码发布还是限流；决定默认 inline/async 及进一步优化。
+

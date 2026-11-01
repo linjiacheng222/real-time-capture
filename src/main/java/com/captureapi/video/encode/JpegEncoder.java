@@ -10,6 +10,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
+import javax.imageio.stream.MemoryCacheImageOutputStream;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.slf4j.Logger;
@@ -35,6 +36,29 @@ public final class JpegEncoder {
         return it.next();
     });
     private final ThreadLocal<ImageWriteParam> params = ThreadLocal.withInitial(() -> writers.get().getDefaultWriteParam());
+    private final ThreadLocal<EncodeState> states = ThreadLocal.withInitial(EncodeState::new);
+
+    static {
+        // 禁用 ImageIO 磁盘缓存，避免每帧 createImageOutputStream 的缓存/临时文件开销
+        ImageIO.setUseCache(false);
+    }
+
+    /** 每线程复用的编码状态（图像/行缓冲/输出流），避免每帧大对象分配。 */
+    private static final class EncodeState {
+        private BufferedImage image;
+        private int[] row;
+        private ByteArrayOutputStream bytes;
+
+        private void ensure(int width, int height) {
+            if (image == null || image.getWidth() != width || image.getHeight() != height) {
+                image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+                row = new int[width];
+            }
+            if (bytes == null) {
+                bytes = new ByteArrayOutputStream(Math.max(4096, width * height / 8));
+            }
+        }
+    }
 
     /**
      * 编码一帧。
@@ -48,8 +72,10 @@ public final class JpegEncoder {
         int width = frame.width();
         int height = frame.height();
         byte[] rgba = frame.rgba();
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        int[] row = new int[width];
+        EncodeState state = states.get();
+        state.ensure(width, height);
+        BufferedImage image = state.image;
+        int[] row = state.row;
         for (int y = 0; y < height; y++) {
             int sourceRow = (height - 1 - y) * width * 4;
             for (int x = 0; x < width; x++) {
@@ -65,8 +91,10 @@ public final class JpegEncoder {
         ImageWriter writer = writers.get();
         ImageWriteParam param = params.get();
         writer.reset();
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream(Math.max(4096, width * height / 8));
-        try (ImageOutputStream output = ImageIO.createImageOutputStream(bytes)) {
+        ByteArrayOutputStream bytes = state.bytes;
+        bytes.reset();
+        ImageOutputStream output = new MemoryCacheImageOutputStream(bytes);
+        try {
             writer.setOutput(output);
             if (param.canWriteCompressed()) {
                 param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
@@ -76,7 +104,11 @@ public final class JpegEncoder {
             writer.write(null, new IIOImage(image, null, null), param);
             output.flush();
         } finally {
-            writer.setOutput(null);
+            try {
+                writer.setOutput(null);
+            } finally {
+                output.close();
+            }
         }
         return bytes.toByteArray();
     }
