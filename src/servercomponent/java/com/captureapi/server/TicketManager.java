@@ -117,6 +117,8 @@ public final class TicketManager {
         if (current.isEmpty()) {
             owned.remove(player.getUUID());
         }
+        LOGGER.info("[TICKETS] release player={} removed={} owned={} total={}", player.getUUID(),
+                removed, current.size(), total);
         return new Result(true, "OK", removed);
     }
 

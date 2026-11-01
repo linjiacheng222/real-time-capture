@@ -49,3 +49,13 @@
 
 证据：`permission-denied-health.json`、`global-limit-health.json`；配置已恢复默认。剩余：多玩家并发矩阵。
 
+## 追加：相机移动的 ChunkRelease 路径（生产专用服，2026-11-01 23:14）
+
+- 相机 +250 格申请 113 区块（total=113）；
+- 相机调整到 +500 格：服务端日志
+  - `request ... accepted=113 owned=226 total=226`
+  - `release ... removed=113 owned=113 total=113`
+- 客户端 `/health`：requests=2、accepted=339、code=OK；
+- 证据：`production-release-chunks-health.json`、`production-release-chunks.txt`；
+- 结论：**相机移动时旧区块释放 + 新区块申请路径 PASS**，总 ticket 稳定。
+

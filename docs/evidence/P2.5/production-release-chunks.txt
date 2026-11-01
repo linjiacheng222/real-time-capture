@@ -1,0 +1,3 @@
+﻿[0111��2026 23:14:31.637] [Server thread/INFO] [CaptureAPI-Server/]: [TICKETS] request player=380df991-f603-344c-a090-369bad2a924a accepted=113 owned=113 total=113
+[0111��2026 23:14:37.639] [Server thread/INFO] [CaptureAPI-Server/]: [TICKETS] request player=380df991-f603-344c-a090-369bad2a924a accepted=113 owned=226 total=226
+[0111��2026 23:14:37.642] [Server thread/INFO] [CaptureAPI-Server/]: [TICKETS] release player=380df991-f603-344c-a090-369bad2a924a removed=113 owned=113 total=113
