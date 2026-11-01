@@ -9,7 +9,10 @@ import com.captureapi.core.config.RuntimeConfigWriter;
 import com.captureapi.video.filter.FilterRegistry;
 import com.captureapi.video.overlay.OverlayModel;
 import com.captureapi.video.overlay.OverlayRegistry;
+import java.io.File;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Screenshot;
+import com.captureapi.core.time.CaptureClock;
 import com.captureapi.video.filter.RenderFilterRegistry;
 import com.captureapi.audio.AudioFilterRegistry;
 import com.captureapi.net.recording.RecordingParams;
@@ -110,6 +113,8 @@ public final class ControlCommandDispatcher {
             case "audiofilter.list" -> audioFilterList();
             case "audiofilter.reload" -> audioFilterReload();
             case "client.unpause" -> clientUnpause();
+            case "client.playerPose" -> clientPlayerPose();
+            case "client.screenshot" -> clientScreenshot();
             default -> throw new ControlException(ControlErrorCode.E_UNKNOWN_ACTION, "未知 action：" + action);
         };
     }
@@ -342,6 +347,37 @@ public final class ControlCommandDispatcher {
         });
         JsonObject result = new JsonObject();
         result.addProperty("unpaused", true);
+        return result;
+    }
+
+    private JsonElement clientPlayerPose() {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player == null) {
+            throw new ControlException(ControlErrorCode.E_INTERNAL, "玩家尚未进入世界");
+        }
+        JsonObject result = new JsonObject();
+        result.addProperty("x", minecraft.player.getX());
+        result.addProperty("y", minecraft.player.getY());
+        result.addProperty("z", minecraft.player.getZ());
+        result.addProperty("eyeY", minecraft.player.getEyeY());
+        result.addProperty("yaw", minecraft.player.getYRot());
+        result.addProperty("pitch", minecraft.player.getXRot());
+        result.addProperty("fov", minecraft.options.fov().get());
+        return result;
+    }
+
+    /**
+     * 自动化验收辅助：通过 Minecraft 截图接口保存主画面（不依赖窗口焦点/前台）。
+     *
+     * @return 相对游戏目录的截图路径（异步写入，调用方轮询文件）
+     */
+    private JsonElement clientScreenshot() {
+        Minecraft minecraft = Minecraft.getInstance();
+        String name = "captureapi-" + CaptureClock.get().nowNanos();
+        minecraft.execute(() -> Screenshot.grab(minecraft.gameDirectory, name,
+                minecraft.getMainRenderTarget(), component -> { }));
+        JsonObject result = new JsonObject();
+        result.addProperty("path", "screenshots/" + name + ".png");
         return result;
     }
 
