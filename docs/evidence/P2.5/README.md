@@ -40,3 +40,12 @@
 - 证据：`production-server-health.json`、`production-server-tickets.txt`、`production-server-release.txt`、`production-near-frame.jpg`、`production-far-frame.jpg`；
 - 结论：**P2.5/P1.3 生产专用服主链路 PASS**（reobf server jar + 握手 + ticket 申请/回收 + 远处画面）。Permissions/多玩家/全局限额矩阵仍待补。
 
+## 追加：权限/全局限额矩阵（生产专用服，2026-11-01 23:00）
+
+| 场景 | 配置 | 客户端 /health | 结论 |
+|---|---|---|---|
+| 权限拒绝 | `default_permission=false` | `code=E_NO_PERMISSION`，accepted=0 | **PASS** |
+| 全局限额 | `max_chunks_global=64`，请求 109 | `code=E_GLOBAL_LIMIT`，accepted=0 | **PASS** |
+
+证据：`permission-denied-health.json`、`global-limit-health.json`；配置已恢复默认。剩余：多玩家并发矩阵。
+
