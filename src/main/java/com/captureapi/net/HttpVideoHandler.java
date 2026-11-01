@@ -1,6 +1,7 @@
 package com.captureapi.net;
 
 import com.captureapi.core.constant.CaptureConstants;
+import com.captureapi.core.constant.ProtocolConstants;
 import com.captureapi.video.camera.CameraManager;
 import com.captureapi.video.frame.JpegFrame;
 import com.captureapi.video.frame.VideoFrameBus;
@@ -42,23 +43,23 @@ public final class HttpVideoHandler implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         try {
             if (!"GET".equals(exchange.getRequestMethod())) {
-                sendJson(exchange, 405, "{\"ok\":false,\"error\":{\"code\":\"E_METHOD_NOT_ALLOWED\"}}");
+                sendJson(exchange, ProtocolConstants.HTTP_METHOD_NOT_ALLOWED, "{\"ok\":false,\"error\":{\"code\":\"E_METHOD_NOT_ALLOWED\"}}");
                 return;
             }
             String path = exchange.getRequestURI().getPath();
             Route route = Route.parse(path);
             if (route == null) {
-                sendJson(exchange, 404, "{\"ok\":false,\"error\":{\"code\":\"E_NOT_FOUND\"}}");
+                sendJson(exchange, ProtocolConstants.HTTP_NOT_FOUND, "{\"ok\":false,\"error\":{\"code\":\"E_NOT_FOUND\"}}");
                 return;
             }
             int active = CameraManager.get().activeCameraId();
             if (route.cameraId != 0 && route.cameraId != active) {
-                sendJson(exchange, 404, "{\"ok\":false,\"error\":{\"code\":\"E_CAMERA_NOT_ACTIVE\"}}");
+                sendJson(exchange, ProtocolConstants.HTTP_NOT_FOUND, "{\"ok\":false,\"error\":{\"code\":\"E_CAMERA_NOT_ACTIVE\"}}");
                 return;
             }
             if (route.cameraId == 0 && active == 0) {
                 if (route.stream) {
-                    sendJson(exchange, 404, "{\"ok\":false,\"error\":{\"code\":\"E_NO_ACTIVE_CAMERA\"}}");
+                    sendJson(exchange, ProtocolConstants.HTTP_NOT_FOUND, "{\"ok\":false,\"error\":{\"code\":\"E_NO_ACTIVE_CAMERA\"}}");
                 } else {
                     // 无 active 相机即无帧：单帧路由按 T4.5.1 立即 204，不挂起
                     sendNoContent(exchange);
@@ -76,7 +77,7 @@ public final class HttpVideoHandler implements HttpHandler {
             manager.recordError();
             LOGGER.warn("{} [HTTP/VIDEO] 请求处理异常：{}", CaptureConstants.LOG_MARKER, t.toString());
             try {
-                sendJson(exchange, 500, "{\"ok\":false,\"error\":{\"code\":\"E_INTERNAL\"}}");
+                sendJson(exchange, ProtocolConstants.HTTP_INTERNAL_ERROR, "{\"ok\":false,\"error\":{\"code\":\"E_INTERNAL\"}}");
             } catch (IOException ignored) {
                 // 响应已开始/连接断开
             }
@@ -87,7 +88,7 @@ public final class HttpVideoHandler implements HttpHandler {
 
     private void handleFrame(HttpExchange exchange) throws IOException {
         if (!frameRateGate.tryAcquire()) {
-            sendJson(exchange, 429, "{\"ok\":false,\"error\":{\"code\":\"E_RATE_LIMIT\"}}");
+            sendJson(exchange, ProtocolConstants.HTTP_TOO_MANY_REQUESTS, "{\"ok\":false,\"error\":{\"code\":\"E_RATE_LIMIT\"}}");
             return;
         }
         JpegFrame frame = VideoFrameBus.get().latest();
@@ -101,7 +102,7 @@ public final class HttpVideoHandler implements HttpHandler {
         exchange.getResponseHeaders().set("X-Frame-Timestamp", Long.toString(frame.timestampNanos()));
         exchange.getResponseHeaders().set("X-Frame-Width", Integer.toString(frame.width()));
         exchange.getResponseHeaders().set("X-Frame-Height", Integer.toString(frame.height()));
-        exchange.sendResponseHeaders(200, jpeg.length);
+        exchange.sendResponseHeaders(ProtocolConstants.HTTP_OK, jpeg.length);
         try (OutputStream output = exchange.getResponseBody()) {
             output.write(jpeg);
         }
@@ -109,7 +110,7 @@ public final class HttpVideoHandler implements HttpHandler {
 
     private void handleStream(HttpExchange exchange) throws IOException {
         if (!manager.tryAcquireHttpStream()) {
-            sendJson(exchange, 503, "{\"ok\":false,\"error\":{\"code\":\"E_CONNECTION_LIMIT\"}}");
+            sendJson(exchange, ProtocolConstants.HTTP_SERVICE_UNAVAILABLE, "{\"ok\":false,\"error\":{\"code\":\"E_CONNECTION_LIMIT\"}}");
             return;
         }
         long lastTimestamp = 0L;
@@ -118,7 +119,7 @@ public final class HttpVideoHandler implements HttpHandler {
         exchange.getResponseHeaders().set("Content-Type", "multipart/x-mixed-replace; boundary=" + boundary);
         exchange.getResponseHeaders().set("Cache-Control", "no-store");
         exchange.getResponseHeaders().set("Connection", "close");
-        exchange.sendResponseHeaders(200, 0);
+        exchange.sendResponseHeaders(ProtocolConstants.HTTP_OK, 0);
         try (OutputStream output = exchange.getResponseBody()) {
             while (true) {
                 JpegFrame frame = VideoFrameBus.get().latest();
@@ -163,7 +164,7 @@ public final class HttpVideoHandler implements HttpHandler {
     }
 
     private static void sendNoContent(HttpExchange exchange) throws IOException {
-        exchange.sendResponseHeaders(204, -1);
+        exchange.sendResponseHeaders(ProtocolConstants.HTTP_NO_CONTENT, -1);
     }
 
     private static void sendJson(HttpExchange exchange, int status, String body) throws IOException {

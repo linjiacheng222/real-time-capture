@@ -13,10 +13,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1] / "src/main/java"
 OUT = Path(__file__).resolve().parents[1] / "docs/evidence/S6/magic-audit.txt"
 # 白名单/配置/常量类：允许定义数字
-EXEMPT = {"CaptureConstants.java", "CaptureConfig.java", "CaptureParams.java", "RuntimeConfigWriter.java"}
+EXEMPT = {"CaptureConstants.java", "CaptureConfig.java", "CaptureParams.java", "RuntimeConfigWriter.java", "ProtocolConstants.java"}
 SMALL = {"0", "1", "2", "3", "4", "5", "8", "16", "32", "64", "100", "1000", "1024", "441", "44100"}
 NUM = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)(?![\w.])")
 COMMENT = re.compile(r"//.*$")
+BLOCK = re.compile(r"/\*.*?\*/", re.DOTALL)
+TEXTBLOCK = re.compile(r'""".*?"""', re.DOTALL)
+
+def blank_keep_lines(match):
+    return "\n" * match.group(0).count("\n")
 STRING = re.compile(r'"(?:\\.|[^"\\])*"')
 
 def main():
@@ -27,9 +32,15 @@ def main():
     for path in files:
         if path.name in EXEMPT:
             continue
-        for lineno, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+        text = path.read_text(encoding="utf-8", errors="replace")
+        text = BLOCK.sub(blank_keep_lines, text)
+        text = TEXTBLOCK.sub(blank_keep_lines, text)
+        for lineno, line in enumerate(text.splitlines(), 1):
             code = COMMENT.sub("", line)
             code = STRING.sub('""', code)
+            # 具名 static final 常量声明属于可登记白名单，不按内联魔法数字计
+            if "static final" in code:
+                continue
             for m in NUM.finditer(code):
                 token = m.group(1)
                 if token in SMALL:

@@ -1,0 +1,13 @@
+﻿S3 E2E check start: 20261101-215658
+PASS health
+camera.create: {"id":"cam","ok":true,"result":{"id":1,"x":-33.96016602441578,"y":88.62000000476837,"z":68.54824351947042,"yaw":-18.449898,"pitch":77.25,"roll":0.0,"fov":70.0,"width":1280,"height":1024,"paused":false,"shape":"rect"}}
+PASS E2E-1 frame 200 jpeg=27948B ts=114119575635100
+E2E-2 ws video=86 audio=300 bad=0
+PASS E2E-2 binary framing
+E2E-3 mjpeg code=200 content-type=multipart/x-mixed-replace; boundary=captureapi-frame-boundary
+PASS E2E-3 MJPEG headers
+E2E-5 adjust={"id":"adj","ok":true,"result":{"id":1,"x":-33.96016602441578,"y":88.62000000476837,"z":68.54824351947042,"yaw":-8.449898,"pitch":77.25,"roll":0.0,"fov":70.0,"width":1280,"height":1024,"paused":false,"shape":"rect"}} bad={"id":"bad","ok":false,"error":{"code":"E_UNKNOWN_ACTION","message":"未知 action：unknown.action"}}
+PASS E2E-5 control/error
+E2E-6 frame2=200 ws=30/101 frame3=200 connections=0 streams=0
+PASS E2E-6 mode switch/leak
+camera.delete: {"id":"del","ok":true,"result":{"deleted":1,"active":0}}

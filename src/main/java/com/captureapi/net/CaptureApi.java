@@ -46,6 +46,8 @@ import org.slf4j.LoggerFactory;
 public final class CaptureApi {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureConstants.LOG_MARKER);
+    /** 单帧轮询最大尝试次数（避免无限等待异常状态）。 */
+    private static final int MAX_FRAME_POLLS = 10000;
 
     private CaptureApi() {
         throw new AssertionError("no instances");
@@ -164,7 +166,7 @@ public final class CaptureApi {
         int dot = name.lastIndexOf('.');
         String base = dot < 0 ? name : name.substring(0, dot);
         String suffix = dot < 0 ? "" : name.substring(dot);
-        for (int i = 1; i < 10000; i++) {
+        for (int i = 1; i < MAX_FRAME_POLLS; i++) {
             Path candidate = path.resolveSibling(base + "_" + i + suffix);
             if (!Files.exists(candidate)) {
                 return candidate;

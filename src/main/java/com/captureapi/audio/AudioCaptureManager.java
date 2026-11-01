@@ -39,6 +39,8 @@ public final class AudioCaptureManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureConstants.LOG_MARKER);
     private static final AudioCaptureManager INSTANCE = new AudioCaptureManager();
     private static final String THREAD_NAME = "captureapi-audio-capture";
+    /** ALC 环回格式属性个数（channels/type/frequency/结束哨兵）。 */
+    private static final int FORMAT_ATTRIBUTE_COUNT = 9;
 
     private volatile boolean loopbackMode;
     private long loopbackDevice;
@@ -95,7 +97,7 @@ public final class AudioCaptureManager {
     public long createContext(long device, IntBuffer attrs) {
         if (loopbackMode && device == loopbackDevice) {
             try (MemoryStack stack = MemoryStack.stackPush()) {
-                IntBuffer format = stack.mallocInt(9);
+                IntBuffer format = stack.mallocInt(FORMAT_ATTRIBUTE_COUNT);
                 format.put(SOFTLoopback.ALC_FORMAT_CHANNELS_SOFT)
                         .put(channels == 1 ? SOFTLoopback.ALC_MONO_SOFT : SOFTLoopback.ALC_STEREO_SOFT)
                         .put(SOFTLoopback.ALC_FORMAT_TYPE_SOFT).put(SOFTLoopback.ALC_SHORT_SOFT)

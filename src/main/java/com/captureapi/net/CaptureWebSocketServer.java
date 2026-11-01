@@ -3,6 +3,7 @@ package com.captureapi.net;
 import com.captureapi.core.config.CaptureParams;
 import com.captureapi.net.control.ControlCommandDispatcher;
 import com.captureapi.core.constant.CaptureConstants;
+import com.captureapi.core.constant.ProtocolConstants;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -84,7 +85,7 @@ public final class CaptureWebSocketServer {
             }
         }
         for (Client client : connections.keySet()) {
-            client.close(1001, "server shutting down");
+            client.close(ProtocolConstants.WS_CLOSE_GOING_AWAY, "server shutting down");
         }
         connections.clear();
         Thread thread = acceptThread;
@@ -125,17 +126,17 @@ public final class CaptureWebSocketServer {
             OutputStream output = socket.getOutputStream();
             Handshake handshake = readHandshake(input);
             if (handshake == null) {
-                reject(output, 400, "Bad Request");
+                reject(output, ProtocolConstants.HTTP_BAD_REQUEST, "Bad Request");
                 return;
             }
             if (!manager.authorizeWs(handshake.pathWithQuery())) {
                 manager.recordRejectedConnection();
-                reject(output, 401, "Unauthorized");
+                reject(output, ProtocolConstants.HTTP_UNAUTHORIZED, "Unauthorized");
                 return;
             }
             if (connections.size() >= CaptureParams.get().maxConnections()) {
                 manager.recordRejectedConnection();
-                reject(output, 503, "Service Unavailable");
+                reject(output, ProtocolConstants.HTTP_SERVICE_UNAVAILABLE, "Service Unavailable");
                 return;
             }
             String accept = websocketAccept(handshake.key());
@@ -306,7 +307,7 @@ public final class CaptureWebSocketServer {
             } catch (InterruptedException ignored) {
                 Thread.currentThread().interrupt();
             } catch (Throwable t) {
-                close(1011, "write error");
+                close(ProtocolConstants.WS_CLOSE_INTERNAL_ERROR, "write error");
             }
         }
 
@@ -331,7 +332,7 @@ public final class CaptureWebSocketServer {
                     }
                 }
                 if (length < 0 || length > MAX_PAYLOAD_BYTES) {
-                    close(1009, "payload too large");
+                    close(ProtocolConstants.WS_CLOSE_TOO_BIG, "payload too large");
                     return;
                 }
                 byte[] mask = new byte[4];
@@ -361,7 +362,7 @@ public final class CaptureWebSocketServer {
                     case 0xA -> {
                         // pong
                     }
-                    default -> close(1003, "unsupported opcode");
+                    default -> close(ProtocolConstants.WS_CLOSE_UNSUPPORTED, "unsupported opcode");
                 }
             }
         }
@@ -386,7 +387,7 @@ public final class CaptureWebSocketServer {
                 slowDisconnects.incrementAndGet();
                 LOGGER.warn("{} [NET/WS] 慢连接发送队列满（{}），断开：{}", CaptureConstants.LOG_MARKER,
                         SEND_QUEUE_CAPACITY, socket.getRemoteSocketAddress());
-                close(1013, "slow consumer");
+                close(ProtocolConstants.WS_CLOSE_TRY_AGAIN, "slow consumer");
                 return false;
             }
             return true;
@@ -399,16 +400,16 @@ public final class CaptureWebSocketServer {
             try {
                 output.write(0x80 | (opcode & 0x0F));
                 int length = payload.length;
-                if (length <= 125) {
+                if (length <= ProtocolConstants.WS_PAYLOAD_SMALL_MAX) {
                     output.write(length);
-                } else if (length <= 65535) {
-                    output.write(126);
+                } else if (length <= ProtocolConstants.WS_PAYLOAD_MEDIUM_MAX) {
+                    output.write(ProtocolConstants.WS_LENGTH_MARKER_16);
                     output.write((length >> 8) & 0xFF);
                     output.write(length & 0xFF);
                 } else {
-                    output.write(127);
+                    output.write(ProtocolConstants.WS_LENGTH_MARKER_64);
                     long longLength = length;
-                    for (int i = 7; i >= 0; i--) {
+                    for (int i = ProtocolConstants.WS_LENGTH_64_BYTES - 1; i >= 0; i--) {
                         output.write((int) ((longLength >> (8 * i)) & 0xFF));
                     }
                 }
@@ -424,7 +425,7 @@ public final class CaptureWebSocketServer {
                 return;
             }
             byte[] reasonBytes = reason.getBytes(StandardCharsets.UTF_8);
-            byte[] payload = new byte[2 + Math.min(reasonBytes.length, 123)];
+            byte[] payload = new byte[2 + Math.min(reasonBytes.length, ProtocolConstants.WS_CLOSE_REASON_MAX)];
             payload[0] = (byte) ((code >> 8) & 0xFF);
             payload[1] = (byte) (code & 0xFF);
             System.arraycopy(reasonBytes, 0, payload, 2, payload.length - 2);
