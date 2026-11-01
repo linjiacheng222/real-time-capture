@@ -14,6 +14,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.client.gui.screens.TitleScreen;
 import com.captureapi.core.time.CaptureClock;
 import com.captureapi.video.filter.RenderFilterRegistry;
@@ -121,6 +124,7 @@ public final class ControlCommandDispatcher {
             case "client.leaveWorld" -> clientLeaveWorld();
             case "client.loadWorld" -> clientLoadWorld(params);
             case "client.playTestSound" -> clientPlayTestSound();
+            case "client.playPosSound" -> clientPlayPosSound(params);
             default -> throw new ControlException(ControlErrorCode.E_UNKNOWN_ACTION, "未知 action：" + action);
         };
     }
@@ -418,6 +422,31 @@ public final class ControlCommandDispatcher {
                 .play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_BELL, 1.0F)));
         JsonObject result = new JsonObject();
         result.addProperty("played", "note_block.bell");
+        return result;
+    }
+
+    /** 测试辅助：在玩家周围指定偏移播放一个 3D 音符盒声源（S2.4 方向性验证）。 */
+    private JsonElement clientPlayPosSound(JsonObject params) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player == null) {
+            throw new ControlException(ControlErrorCode.E_INTERNAL, "玩家尚未进入世界");
+        }
+        double dx = optDouble(params, "dx", 0.0D);
+        double dy = optDouble(params, "dy", 0.0D);
+        double dz = optDouble(params, "dz", 0.0D);
+        double volume = optDouble(params, "volume", 1.0D);
+        Vec3 eye = minecraft.player.getEyePosition();
+        double x = eye.x + dx;
+        double y = eye.y + dy;
+        double z = eye.z + dz;
+        minecraft.execute(() -> minecraft.getSoundManager().play(new SimpleSoundInstance(
+                SoundEvents.NOTE_BLOCK_BELL.value(), SoundSource.BLOCKS, (float) volume, 1.0F,
+                RandomSource.create(), x, y, z)));
+        JsonObject result = new JsonObject();
+        result.addProperty("x", x);
+        result.addProperty("y", y);
+        result.addProperty("z", z);
+        result.addProperty("volume", volume);
         return result;
     }
 

@@ -1,0 +1,30 @@
+﻿S2.4 directional check start: 20261101-212044, out=E:\捕获接口\docs\evidence\S2\direction-check
+PASS /health 200
+unpause: {"id":"u","ok":true,"result":{"unpaused":true}}
+playerPose: {"id":"p","ok":true,"result":{"x":-33.96016602441578,"y":87.0,"z":68.54824351947042,"eyeY":88.62000000476837,"yaw":-18.449898,"pitch":78.30001,"fov":70}}
+camera.create yaw=0: {"id":"cam","ok":true,"result":{"id":1,"x":-33.96016602441578,"y":88.62000000476837,"z":68.54824351947042,"yaw":0.0,"pitch":0.0,"roll":0.0,"fov":70.0,"width":1280,"height":1024,"paused":false,"shape":"rect"}}
+front: baseline chunks=102
+front: playPos -> {"id":"snd","ok":true,"result":{"x":-33.96016602441578,"y":88.62000000476837,"z":76.54824351947042,"volume":1.0}}
+front: sound chunks=205 expected=L≈R, total high
+back: baseline chunks=151
+back: playPos -> {"id":"snd","ok":true,"result":{"x":-33.96016602441578,"y":88.62000000476837,"z":60.54824351947042,"volume":1.0}}
+back: sound chunks=204 expected=L≈R, total high (front/back may be indistinguishable in plain stereo)
+left: baseline chunks=155
+left: playPos -> {"id":"snd","ok":true,"result":{"x":-25.960166024415777,"y":88.62000000476837,"z":68.54824351947042,"volume":1.0}}
+left: sound chunks=205 expected=left channel higher
+right: baseline chunks=152
+right: playPos -> {"id":"snd","ok":true,"result":{"x":-41.96016602441578,"y":88.62000000476837,"z":68.54824351947042,"volume":1.0}}
+right: sound chunks=204 expected=right channel higher
+up: baseline chunks=153
+up: playPos -> {"id":"snd","ok":true,"result":{"x":-33.96016602441578,"y":96.62000000476837,"z":68.54824351947042,"volume":1.0}}
+up: sound chunks=203 expected=L≈R (vertical may be limited in stereo)
+down: baseline chunks=152
+down: playPos -> {"id":"snd","ok":true,"result":{"x":-33.96016602441578,"y":80.62000000476837,"z":68.54824351947042,"volume":1.0}}
+down: sound chunks=204 expected=L≈R (vertical may be limited in stereo)
+camera yaw=180: {"id":"adj","ok":true,"result":{"id":1,"x":-33.96016602441578,"y":88.62000000476837,"z":68.54824351947042,"yaw":180.0,"pitch":0.0,"roll":0.0,"fov":70.0,"width":1280,"height":1024,"paused":false,"shape":"rect"}}
+flip-left: playPos -> {"id":"snd","ok":true,"result":{"x":-25.960166024415777,"y":88.62000000476837,"z":68.54824351947042,"volume":1.0}}
+flip-left: sound chunks=0
+flip-right: playPos -> {"id":"snd","ok":true,"result":{"x":-41.96016602441578,"y":88.62000000476837,"z":68.54824351947042,"volume":1.0}}
+flip-right: sound chunks=0
+delete camera: {"id":"del","ok":true,"result":{"deleted":1,"active":0}}
+DONE. Run scripts/analyze-s2-directional.py <outDir> to compute channel energy.

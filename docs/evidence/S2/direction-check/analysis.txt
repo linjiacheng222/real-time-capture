@@ -1,0 +1,14 @@
+front: bytes=361620 left_rms=364.42 right_rms=485.43 total_rms=429.21 L-R=-121.01 peak=(1658,2648)
+  baseline: left_rms=264.05 right_rms=217.00
+back: bytes=359856 left_rms=433.11 right_rms=463.17 total_rms=448.39 L-R=-30.06 peak=(2756,1853)
+  baseline: left_rms=492.85 right_rms=421.30
+left: bytes=361620 left_rms=890.63 right_rms=846.15 total_rms=868.68 L-R=44.48 peak=(6724,3807)
+  baseline: left_rms=18943.45 right_rms=18902.16
+right: bytes=359856 left_rms=765.00 right_rms=845.39 total_rms=806.20 L-R=-80.39 peak=(4136,4438)
+  baseline: left_rms=735.93 right_rms=725.08
+up: bytes=358092 left_rms=753.59 right_rms=745.01 total_rms=749.31 L-R=8.59 peak=(4035,3881)
+  baseline: left_rms=1053.44 right_rms=1152.12
+down: bytes=359856 left_rms=708.32 right_rms=724.13 total_rms=716.27 L-R=-15.81 peak=(4048,3567)
+  baseline: left_rms=706.47 right_rms=874.27
+flip-left: bytes=0 left_rms=0.00 right_rms=0.00 total_rms=0.00 L-R=0.00 peak=(0,0)
+flip-right: bytes=0 left_rms=0.00 right_rms=0.00 total_rms=0.00 L-R=0.00 peak=(0,0)
