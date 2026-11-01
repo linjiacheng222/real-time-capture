@@ -12,6 +12,7 @@ import com.captureapi.video.overlay.OverlayRegistry;
 import java.io.File;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
+import net.minecraft.client.gui.screens.TitleScreen;
 import com.captureapi.core.time.CaptureClock;
 import com.captureapi.video.filter.RenderFilterRegistry;
 import com.captureapi.audio.AudioFilterRegistry;
@@ -115,6 +116,8 @@ public final class ControlCommandDispatcher {
             case "client.unpause" -> clientUnpause();
             case "client.playerPose" -> clientPlayerPose();
             case "client.screenshot" -> clientScreenshot();
+            case "client.leaveWorld" -> clientLeaveWorld();
+            case "client.loadWorld" -> clientLoadWorld(params);
             default -> throw new ControlException(ControlErrorCode.E_UNKNOWN_ACTION, "未知 action：" + action);
         };
     }
@@ -378,6 +381,30 @@ public final class ControlCommandDispatcher {
                 minecraft.getMainRenderTarget(), component -> { }));
         JsonObject result = new JsonObject();
         result.addProperty("path", "screenshots/" + name + ".png");
+        return result;
+    }
+
+    /** 测试辅助：退出当前世界到标题界面（S1.4 进出世界自动化）。 */
+    private JsonElement clientLeaveWorld() {
+        Minecraft minecraft = Minecraft.getInstance();
+        minecraft.execute(() -> {
+            if (minecraft.level != null) {
+                minecraft.level.disconnect();
+            }
+            minecraft.clearLevel(new TitleScreen());
+        });
+        JsonObject result = new JsonObject();
+        result.addProperty("leaving", true);
+        return result;
+    }
+
+    /** 测试辅助：从标题界面加载指定存档（S1.4 进出世界自动化）。 */
+    private JsonElement clientLoadWorld(JsonObject params) {
+        String name = optString(params, "name", "s1test");
+        Minecraft minecraft = Minecraft.getInstance();
+        minecraft.execute(() -> minecraft.createWorldOpenFlows().loadLevel(new TitleScreen(), name));
+        JsonObject result = new JsonObject();
+        result.addProperty("loading", name);
         return result;
     }
 
