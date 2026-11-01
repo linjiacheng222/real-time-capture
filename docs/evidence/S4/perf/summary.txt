@@ -1,0 +1,10 @@
+﻿S4 perf start: 20261101-213454
+PASS health
+unpause: {"id":"u","ok":true,"result":{"unpaused":true}}
+config timing: {"id":"cfg","ok":true,"result":{"key":"log_pipeline_timing","value":true,"persisted":false,"message":"已生效"}}
+camera.create: {"id":"cam","ok":true,"result":{"id":1,"x":-33.96016602441578,"y":88.62000000476837,"z":68.54824351947042,"yaw":-18.449898,"pitch":77.25,"roll":0.0,"fov":70.0,"width":1280,"height":1024,"paused":false,"shape":"rect"}}
+java pid=54252
+frames: 58 -> 744 delta=686 in 25.5s => fps=26.94
+single-frame latency: n=100 fail=0 p50=0.67ms p95=1.40ms max=9.14ms
+camera delete: {"id":"del","ok":true,"result":{"deleted":1,"active":0}}
+config timing off: {"id":"cfg0","ok":true,"result":{"key":"log_pipeline_timing","value":false,"persisted":false,"message":"已生效"}}
