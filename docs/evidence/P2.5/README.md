@@ -59,3 +59,14 @@
 - 证据：`production-release-chunks-health.json`、`production-release-chunks.txt`；
 - 结论：**相机移动时旧区块释放 + 新区块申请路径 PASS**，总 ticket 稳定。
 
+## 追加：多玩家并发矩阵（生产专用服，2026-11-01 23:21）
+
+- 两个客户端（Dev/Dev2，独立本地网络服务端口 25580/25680）同时连接生产专用服；
+- 两者各创建远处相机：
+  - Dev：request accepted=113，total=113；
+  - Dev2：request accepted=115，owned=115，**total=228**；
+  - 两路 `/health` 均 ready=true、code=OK；
+- 断开 Dev2：`releaseAll player=Dev2 released=115 total=113`；Dev 的 113 个 ticket 保留，客户端1仍 ready；
+- 证据：`multiplayer-health-25580.json`、`multiplayer-health-25680.json`、`multiplayer-tickets-before.txt`、`multiplayer-tickets-after.txt`；
+- 结论：**多玩家并发申请/独立回收 PASS**（生产专用服）。P2.5 矩阵全部主项完成。
+
