@@ -27,14 +27,17 @@ import org.slf4j.LoggerFactory;
 public final class AudioListenerSync implements CameraSyncHook.Listener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureConstants.LOG_MARKER);
+    private static final AudioListenerSync INSTANCE = new AudioListenerSync();
     private static final float[] ORIENTATION = new float[6];
 
     private long syncCount;
     private long errorCount;
+    private volatile CameraPose latestPose;
+    private volatile long latestPoseNanos;
 
     /** 客户端 setup 安装（AudioSetupHandler 调用）。 */
     public static void install() {
-        CameraSyncHook.install(new AudioListenerSync());
+        CameraSyncHook.install(INSTANCE);
         LOGGER.info("{} 监听器空间同步已挂接 CameraSyncHook（修改→渲染→恢复同帧）", CaptureConstants.LOG_MARKER);
     }
 
@@ -43,18 +46,39 @@ public final class AudioListenerSync implements CameraSyncHook.Listener {
         if (!AudioCaptureManager.get().isLoopbackActive()) {
             return;
         }
-        CameraSpec spec = pose.spec();
-        AL10.alListener3f(AL10.AL_POSITION, (float) pose.eyePosition().x, (float) pose.eyePosition().y,
-                (float) pose.eyePosition().z);
-        AL10.alListener3f(AL10.AL_VELOCITY, 0.0F, 0.0F, 0.0F);
-        fillOrientation(spec.yawDegrees(), spec.pitchDegrees(), spec.rollDegrees(),
-                (float) pose.eyePosition().x, (float) pose.eyePosition().y, (float) pose.eyePosition().z);
-        syncCount++;
+        // 只登记最新相机位姿；实际 AL listener 写入由采集线程在每次 loopback render 前执行
+        // （AL 上下文 current 在采集线程；渲染线程写入无效且会与采集线程竞争）。
+        latestPose = pose;
+        latestPoseNanos = com.captureapi.core.time.CaptureClock.get().nowNanos();
     }
 
     @Override
     public void afterOffscreenRender(CameraPose pose) {
+        // 采集线程负责按最新位姿/玩家位姿切换 listener；此处不写 AL，避免跨线程上下文问题。
+    }
+
+    /**
+     * 采集线程在每次 {@code alcRenderSamplesSOFT} 前调用：最新相机位姿新鲜则用相机 listener，
+     * 否则回退玩家 listener（相机暂停/删除/世界未渲染）。必须在 loopback 上下文 current 的线程调用。
+     */
+    public static void applyForCapture() {
+        INSTANCE.applyCaptureInternal();
+    }
+
+    private void applyCaptureInternal() {
         if (!AudioCaptureManager.get().isLoopbackActive()) {
+            return;
+        }
+        CameraPose pose = latestPose;
+        long now = com.captureapi.core.time.CaptureClock.get().nowNanos();
+        if (pose != null && now - latestPoseNanos < 250_000_000L) {
+            CameraSpec spec = pose.spec();
+            AL10.alListener3f(AL10.AL_POSITION, (float) pose.eyePosition().x, (float) pose.eyePosition().y,
+                    (float) pose.eyePosition().z);
+            AL10.alListener3f(AL10.AL_VELOCITY, 0.0F, 0.0F, 0.0F);
+            fillOrientation(spec.yawDegrees(), spec.pitchDegrees(), spec.rollDegrees(),
+                    (float) pose.eyePosition().x, (float) pose.eyePosition().y, (float) pose.eyePosition().z);
+            syncCount++;
             return;
         }
         LocalPlayer player = Minecraft.getInstance().player;
@@ -66,9 +90,6 @@ public final class AudioListenerSync implements CameraSyncHook.Listener {
         AL10.alListener3f(AL10.AL_VELOCITY, 0.0F, 0.0F, 0.0F);
         fillOrientation(player.getViewYRot(1.0F), player.getViewXRot(1.0F), 0.0F,
                 (float) eye.x, (float) eye.y, (float) eye.z);
-        if (errorCount > 0 && LOGGER.isDebugEnabled()) {
-            LOGGER.debug("{} 监听器恢复完成（累计错误={}）", CaptureConstants.LOG_MARKER, errorCount);
-        }
     }
 
     private static void fillOrientation(float yaw, float pitch, float roll, float x, float y, float z) {

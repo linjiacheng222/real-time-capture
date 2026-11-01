@@ -250,6 +250,8 @@ public final class AudioCaptureManager {
                 }
 
                 buffer.clear();
+                // P1.1/S2.4 修复：采集线程在 loopback render 前应用相机/玩家 listener
+                AudioListenerSync.applyForCapture();
                 SOFTLoopback.alcRenderSamplesSOFT(loopbackDevice, buffer, samplesPerPoll);
                 int error = ALC10.alcGetError(loopbackDevice);
                 if (error != ALC10.ALC_NO_ERROR) {
