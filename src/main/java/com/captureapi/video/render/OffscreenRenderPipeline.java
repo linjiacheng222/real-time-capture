@@ -64,7 +64,7 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
     private OffscreenRenderPipeline() {
     }
 
-    /** 注册到 M1 的 AFTER_LEVEL 钩子（VideoSetupHandler 调用，幂等）。 */
+    /** 注册离屏渲染触发（AFTER_LEVEL；GUI 后阶段实验无收益，恢复）。 */
     public static void install() {
         CaptureRenderHook.addAfterLevelListener(INSTANCE);
     }
@@ -91,13 +91,17 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
 
     @Override
     public void onAfterLevel(RenderLevelStageEvent event) {
+        trigger(event.getPartialTick());
+    }
+
+    private void trigger(float partialTick) {
         if (rendering.get()) {
             return;
         }
         // 实时调取优先且与流式同帧互斥：有请求时本帧只渲染临时相机
         OneShotRequest oneShot = VideoStreamHub.get().pollPending();
         if (oneShot != null) {
-            renderOneShot(oneShot, event.getPartialTick());
+            renderOneShot(oneShot, partialTick);
             return;
         }
         CameraSpec spec = CameraManager.get().active();
@@ -111,7 +115,7 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
         if (!limiter.allow(CaptureClock.get().nowNanos())) {
             return;
         }
-        renderOffscreen(minecraft, spec, event.getPartialTick());
+        renderOffscreen(minecraft, spec, partialTick);
     }
 
     /**
@@ -160,6 +164,8 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
             }
             CameraSyncHook.onAfterOffscreenRender(pose);
             ShaderCompatHooks.endOffscreenPass();
+            // S1/SpikeB 修复：回读前重新绑定离屏 FBO（同流式路径）
+            fbo.bind();
             PboPairResource pbo = WorldResourceManager.get().get(PboPairResource.KEY, PboPairResource.class);
             RawFrame raw = pbo.readbackImmediate();
             fbo.unbind();
@@ -211,12 +217,11 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
         try {
             fbo = WorldResourceManager.get().get(OffscreenFboResource.KEY, OffscreenFboResource.class);
             CameraPose pose = CameraMatrices.capture(spec, partialTick);
-            long diagnosticNo = renderedFrames.get();
-            if (diagnosticNo < 3 || diagnosticNo % 60 == 0) {
-                LOGGER.info("{} [S1-DIAG] frame#={} camera={} specPos=({},{},{}) yaw={} pitch={} eye=({},{},{})",
-                        CaptureConstants.LOG_MARKER, diagnosticNo, spec.id(), spec.position().x, spec.position().y,
-                        spec.position().z, spec.yawDegrees(), spec.pitchDegrees(), pose.eyePosition().x,
-                        pose.eyePosition().y, pose.eyePosition().z);
+            if (CaptureParams.get().logPipelineTiming()) {
+                LOGGER.info("{} [PIPE] frame#={} camera={} specPos=({},{},{}) yaw={} pitch={} eye=({},{},{})",
+                        CaptureConstants.LOG_MARKER, renderedFrames.get(), spec.id(), spec.position().x,
+                        spec.position().y, spec.position().z, spec.yawDegrees(), spec.pitchDegrees(),
+                        pose.eyePosition().x, pose.eyePosition().y, pose.eyePosition().z);
             }
             CaptureChunkPlanner.get().update(pose);
             renderState = RenderStateSnapshot.capture();
@@ -239,6 +244,9 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
             long renderNanos = CaptureClock.get().nowNanos() - renderStart;
             CameraSyncHook.onAfterOffscreenRender(pose);
             ShaderCompatHooks.endOffscreenPass();
+            // S1/SpikeB 修复：renderLevel 内部可能临时绑定主 framebuffer（itemEntityTarget 分支），
+            // 回读前必须重新绑定离屏 FBO，否则读到的是主画面（表现为“相机位姿不生效/条纹”）。
+            fbo.bind();
             // T2.4：FBO 仍为读/写目标时回读上一帧（写 N 读 N-1）
             PboPairResource pbo = WorldResourceManager.get().get(PboPairResource.KEY, PboPairResource.class);
             long readbackStart = CaptureClock.get().nowNanos();
