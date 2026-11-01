@@ -57,8 +57,24 @@ function Get-HeapUsedMb([int]$targetPid) {
     try {
         $out = & 'E:\Tools\jdk17\bin\jcmd.exe' $targetPid GC.heap_info 2>&1
         $text = $out -join "`n"
-        $m = [regex]::Match($text, 'used\s+(\d+)K')
-        if ($m.Success) { return [Math]::Round([double]$m.Groups[1].Value / 1024.0, 1) }
+        $m = [regex]::Match($text, 'used\s+(\d+)([KMG]?)')
+        if ($m.Success) {
+            $v = [double]$m.Groups[1].Value
+            switch ($m.Groups[2].Value) { 'K' { $v /= 1024.0 } 'M' { $v = $v } 'G' { $v *= 1024.0 } }
+            return [Math]::Round($v, 1)
+        }
+    } catch {}
+    try {
+        $lines = & 'E:\Tools\jdk17\bin\jstat.exe' -gc $targetPid 2>&1
+        $data = $lines | Select-Object -Last 1
+        if ($data) {
+            $parts = ($data -split '\s+') | Where-Object { $_ -ne '' }
+            # jstat -gc columns: S0C S1C S0U S1U EC EU OC OU ... (KB)
+            if ($parts.Count -ge 8) {
+                $usedKb = [double]$parts[2] + [double]$parts[3] + [double]$parts[5] + [double]$parts[7]
+                return [Math]::Round($usedKb / 1024.0, 1)
+            }
+        }
     } catch {}
     return ''
 }
