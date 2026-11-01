@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.minecraft.server.level.ChunkLevel;
 import net.minecraft.server.level.FullChunkStatus;
 import net.minecraft.server.level.ServerLevel;
@@ -20,6 +22,8 @@ import net.minecraft.world.level.ChunkPos;
  * ticket 级别取“类玩家级”（ENTITY_TICKING），ticket 主体为玩家 UUID，便于按玩家回收。</p>
  */
 public final class TicketManager {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger("CaptureAPI-Server");
 
     /** 自定义 ticket 类型（仅在服务端内存中使用，不持久化）。 */
     private static final TicketType<UUID> CAPTURE_TICKET = TicketType.create("captureapi_camera",
@@ -75,6 +79,8 @@ public final class TicketManager {
             current.add(encoded);
             total++;
         }
+        LOGGER.info("[TICKETS] request player={} accepted={} owned={} total={}", player.getUUID(),
+                incoming.size(), current.size(), total);
         return new Result(true, "OK", incoming.size());
     }
 
@@ -123,18 +129,23 @@ public final class TicketManager {
     private void releaseAllInternal(ServerPlayer player) {
         Set<Long> current = owned.remove(player.getUUID());
         if (current == null || current.isEmpty()) {
+            LOGGER.info("[TICKETS] releaseAll player={} released=0 total={}", player.getUUID(), total);
             return;
         }
         ServerLevel level = player.serverLevel();
+        int released = 0;
         for (long encoded : current) {
             level.getChunkSource().removeRegionTicket(CAPTURE_TICKET, decode(encoded), TICKET_LEVEL,
                     player.getUUID());
             total--;
+            released++;
         }
+        LOGGER.info("[TICKETS] releaseAll player={} released={} total={}", player.getUUID(), released, total);
     }
 
     /** 服务端停止清空（ticket 随世界关闭自然消失，内存计数归零）。 */
     public synchronized void clear() {
+        LOGGER.info("[TICKETS] clear totalBefore={}", total);
         owned.clear();
         rateWindows.clear();
         total = 0;

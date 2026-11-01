@@ -1,0 +1,3 @@
+﻿[0111��2026 22:41:17.233] [Server thread/INFO] [CaptureAPI-Server/]: [TICKETS] request player=380df991-f603-344c-a090-369bad2a924a accepted=109 owned=109 total=109
+[0111��2026 22:41:21.467] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Dev left the game
+[0111��2026 22:41:21.468] [Server thread/INFO] [CaptureAPI-Server/]: [TICKETS] releaseAll player=380df991-f603-344c-a090-369bad2a924a released=109 total=0
