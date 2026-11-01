@@ -10,6 +10,9 @@ import com.captureapi.video.frame.RawFrame;
  */
 public final class FilterEngine {
 
+    /** 8bit 颜色通道上限。 */
+    private static final int COLOR_MAX = 255;
+
     private FilterEngine() {
         throw new AssertionError("no instances");
     }
@@ -92,8 +95,8 @@ public final class FilterEngine {
         if (value <= 0.0D) {
             return 0;
         }
-        if (value >= 255.0D) {
-            return 255;
+        if (value >= COLOR_MAX) {
+            return COLOR_MAX;
         }
         return (int) Math.round(value);
     }

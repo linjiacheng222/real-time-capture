@@ -25,6 +25,12 @@ import org.slf4j.LoggerFactory;
  */
 public final class CoreSelfTest {
 
+    /** 自检参数上界（与附录 B 一致；测试夹具，不是运行时业务参数）。 */
+    private static final int TEST_FPS_MAX = 240;
+    private static final int TEST_NET_PORT_MAX = 65535;
+    private static final int TEST_SAMPLE_RATE_MIN = 8000;
+    private static final int TEST_SAMPLE_RATE_MAX = 192000;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureConstants.LOG_MARKER);
     private static final AtomicBoolean SCHEDULED = new AtomicBoolean(false);
     private static final AtomicBoolean RENDER_THREAD_DONE = new AtomicBoolean(false);
@@ -92,9 +98,9 @@ public final class CoreSelfTest {
                 boolean loaded = params.awaitLoaded(5000L);
                 String resolution = loaded ? params.videoResolution() : null;
                 configOk = loaded
-                        && params.fpsMax() >= 1 && params.fpsMax() <= 240
-                        && params.netPort() >= 1024 && params.netPort() <= 65535
-                        && params.sampleRate() >= 8000 && params.sampleRate() <= 192000
+                        && params.fpsMax() >= 1 && params.fpsMax() <= TEST_FPS_MAX
+                        && params.netPort() >= 1024 && params.netPort() <= TEST_NET_PORT_MAX
+                        && params.sampleRate() >= TEST_SAMPLE_RATE_MIN && params.sampleRate() <= TEST_SAMPLE_RATE_MAX
                         && (params.channels() == 1 || params.channels() == 2)
                         && resolution != null && resolution.matches("\\d{2,5}x\\d{2,5}");
                 if (loaded) {

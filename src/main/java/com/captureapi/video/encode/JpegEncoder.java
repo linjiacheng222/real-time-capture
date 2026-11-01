@@ -27,6 +27,10 @@ import org.slf4j.LoggerFactory;
 public final class JpegEncoder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureConstants.LOG_MARKER);
+    /** 输出缓冲初始容量（避免小帧反复扩容）。 */
+    private static final int INITIAL_OUTPUT_BUFFER = 4096;
+    /** 预热编码质量（仅触发 ImageIO 初始化）。 */
+    private static final int PREWARM_QUALITY = 75;
 
     private final ThreadLocal<ImageWriter> writers = ThreadLocal.withInitial(() -> {
         java.util.Iterator<ImageWriter> it = ImageIO.getImageWritersByFormatName("jpg");
@@ -55,7 +59,7 @@ public final class JpegEncoder {
                 row = new int[width];
             }
             if (bytes == null) {
-                bytes = new ByteArrayOutputStream(Math.max(4096, width * height / 8));
+                bytes = new ByteArrayOutputStream(Math.max(INITIAL_OUTPUT_BUFFER, width * height / 8));
             }
         }
     }
@@ -117,7 +121,7 @@ public final class JpegEncoder {
     public static void prewarm() {
         try {
             RawFrame one = new RawFrame(new byte[] {(byte) 0, (byte) 0, (byte) 0, (byte) 0xFF}, 1, 1, 0L);
-            new JpegEncoder().encode(one, 75);
+            new JpegEncoder().encode(one, PREWARM_QUALITY);
             LOGGER.debug("{} JPEG 编码器预热完成", CaptureConstants.LOG_MARKER);
         } catch (Throwable t) {
             LOGGER.warn("{} JPEG 编码器预热失败（不影响启动，首帧可能稍慢）", CaptureConstants.LOG_MARKER, t);

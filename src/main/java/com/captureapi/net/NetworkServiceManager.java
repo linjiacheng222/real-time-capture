@@ -3,6 +3,7 @@ package com.captureapi.net;
 import com.captureapi.CaptureInterface;
 import com.captureapi.core.config.CaptureParams;
 import com.captureapi.core.constant.CaptureConstants;
+import com.captureapi.core.constant.ProtocolConstants;
 import com.google.gson.JsonObject;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -121,11 +122,11 @@ public final class NetworkServiceManager {
         httpServer.createContext("/health", this::handleHealth);
         httpServer.createContext("/", exchange -> {
             if (!authorize(exchange)) {
-                send(exchange, 401, "application/json",
+                send(exchange, ProtocolConstants.HTTP_UNAUTHORIZED, "application/json",
                         "{\"ok\":false,\"code\":\"E_UNAUTHORIZED\"}");
                 return;
             }
-            send(exchange, 404, "application/json", "{\"ok\":false,\"code\":\"E_NOT_FOUND\"}");
+            send(exchange, ProtocolConstants.HTTP_NOT_FOUND, "application/json", "{\"ok\":false,\"code\":\"E_NOT_FOUND\"}");
         });
         httpServer.start();
         LOGGER.info("{} [NET/HTTP] 监听 http://{}:{}（回环={}）", CaptureConstants.LOG_MARKER,
@@ -133,7 +134,7 @@ public final class NetworkServiceManager {
     }
 
     private void startWebSocket(InetAddress bindAddress) {
-        wsPort = httpPort < 65535 ? httpPort + 1 : -1;
+        wsPort = httpPort < ProtocolConstants.MAX_TCP_PORT ? httpPort + 1 : -1;
         if (wsPort < 0) {
             LOGGER.warn("{} [NET/WS] net_port=65535 无可用 WS 端口，WS 服务不启动", CaptureConstants.LOG_MARKER);
             return;
@@ -269,7 +270,7 @@ public final class NetworkServiceManager {
 
     private void handleHealth(HttpExchange exchange) throws IOException {
         if (!"GET".equals(exchange.getRequestMethod())) {
-            send(exchange, 405, "application/json", "{\"ok\":false,\"code\":\"E_METHOD_NOT_ALLOWED\"}");
+            send(exchange, ProtocolConstants.HTTP_METHOD_NOT_ALLOWED, "application/json", "{\"ok\":false,\"code\":\"E_METHOD_NOT_ALLOWED\"}");
             return;
         }
         JsonObject json = new JsonObject();
@@ -309,7 +310,7 @@ public final class NetworkServiceManager {
         json.addProperty("sync_delta_samples", com.captureapi.audio.sync.SyncDeviationMonitor.get().deltaSamples());
         json.addProperty("sync_regressions", com.captureapi.audio.sync.SyncDeviationMonitor.get().regressions());
         json.addProperty("sync_warnings", com.captureapi.audio.sync.SyncDeviationMonitor.get().warnings());
-        send(exchange, 200, "application/json; charset=utf-8", json.toString());
+        send(exchange, ProtocolConstants.HTTP_OK, "application/json; charset=utf-8", json.toString());
     }
 
     private static void send(HttpExchange exchange, int status, String contentType, String body)
@@ -374,7 +375,7 @@ public final class NetworkServiceManager {
         if (server != null) {
             server.createContext(path, exchange -> {
                 if (!authorize(exchange)) {
-                    send(exchange, 401, "application/json", "{\"ok\":false,\"code\":\"E_UNAUTHORIZED\"}");
+                    send(exchange, ProtocolConstants.HTTP_UNAUTHORIZED, "application/json", "{\"ok\":false,\"code\":\"E_UNAUTHORIZED\"}");
                     return;
                 }
                 handler.handle(exchange);

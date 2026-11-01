@@ -27,6 +27,8 @@ public abstract class CameraPoseMixin {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureConstants.LOG_MARKER);
     private static final java.util.concurrent.atomic.AtomicLong APPLIED =
             new java.util.concurrent.atomic.AtomicLong();
+    /** 诊断日志抽样间隔（帧）。 */
+    private static final int DEBUG_LOG_INTERVAL = 600;
 
     @Inject(method = "setup", at = @At("TAIL"))
     private void captureapi$applyOffscreenPose(BlockGetter level, Entity entity, boolean detached,
@@ -35,7 +37,7 @@ public abstract class CameraPoseMixin {
         if (pose != null) {
             CameraStateSnapshot.applyPoseOnly((Camera) (Object) this, pose);
             long count = APPLIED.incrementAndGet();
-            if (count <= 3 || count % 600 == 0) {
+            if (count <= 3 || count % DEBUG_LOG_INTERVAL == 0) {
                 LOGGER.debug("{} [PIPE] Camera.setup override applied#={} eye=({},{},{}) yaw={} pitch={}",
                         CaptureConstants.LOG_MARKER, count, pose.eyePosition().x, pose.eyePosition().y,
                         pose.eyePosition().z, pose.spec().yawDegrees(), pose.spec().pitchDegrees());
