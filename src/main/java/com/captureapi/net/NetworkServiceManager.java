@@ -299,6 +299,10 @@ public final class NetworkServiceManager {
         json.addProperty("shader_backend", com.captureapi.video.shader.ShaderCompatHooks.backend());
         json.addProperty("shader_detected", com.captureapi.video.shader.ShaderCompatHooks.detected());
         json.addProperty("shader_active", com.captureapi.video.shader.ShaderCompatHooks.isActive());
+        json.addProperty("remote_ready", RemoteCaptureClient.isReady());
+        json.addProperty("remote_requests", RemoteCaptureClient.requests());
+        json.addProperty("remote_accepted", RemoteCaptureClient.accepted());
+        json.addProperty("remote_last_code", RemoteCaptureClient.lastCode());
         json.addProperty("offscreen_rendered_frames", com.captureapi.video.render.OffscreenRenderPipeline.renderedFrames());
         json.addProperty("readback_frames", com.captureapi.video.render.OffscreenRenderPipeline.readbackFrames());
         json.addProperty("encoded_frames", com.captureapi.video.encode.EncodingPipeline.get().encodedFrames());
