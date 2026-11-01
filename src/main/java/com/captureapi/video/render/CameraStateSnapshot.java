@@ -75,9 +75,24 @@ public record CameraStateSnapshot(
     public static CameraStateSnapshot applyPose(Camera camera, CameraPose pose) {
         GlThreadGuard.checkGlThread("CameraStateSnapshot.applyPose");
         CameraStateSnapshot saved = capture(camera);
+        applyPoseOnly(camera, pose);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("{} 相机临时替换：eye=({},{},{}) yaw={} pitch={} roll={}",
+                    CaptureConstants.LOG_MARKER, pose.eyePosition().x, pose.eyePosition().y, pose.eyePosition().z,
+                    pose.spec().yawDegrees(), pose.spec().pitchDegrees(), pose.spec().rollDegrees());
+        }
+        return saved;
+    }
+
+    /**
+     * 只应用机位（不保存状态）；供离屏 renderLevel 前的首次写入与 setup 后覆盖共用。
+     *
+     * @param camera 原版主相机
+     * @param pose   相机位姿
+     */
+    public static void applyPoseOnly(Camera camera, CameraPose pose) {
         CameraAccessor accessor = (CameraAccessor) camera;
         accessor.captureapi$setPosition(new Vec3(pose.eyePosition().x, pose.eyePosition().y, pose.eyePosition().z));
-        // 先走原版 setRotation（同步 forwards/up/left），再叠加 roll
         accessor.captureapi$setRotation(pose.spec().yawDegrees(), pose.spec().pitchDegrees());
         float yawRad = (float) Math.toRadians(-pose.spec().yawDegrees());
         float pitchRad = (float) Math.toRadians(pose.spec().pitchDegrees());
@@ -87,12 +102,6 @@ public record CameraStateSnapshot(
         accessor.captureapi$getForwards().set(0.0F, 0.0F, 1.0F).rotate(rotation);
         accessor.captureapi$getUp().set(0.0F, 1.0F, 0.0F).rotate(rotation);
         accessor.captureapi$getLeft().set(1.0F, 0.0F, 0.0F).rotate(rotation);
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("{} 相机临时替换：eye=({},{},{}) yaw={} pitch={} roll={}",
-                    CaptureConstants.LOG_MARKER, pose.eyePosition().x, pose.eyePosition().y, pose.eyePosition().z,
-                    pose.spec().yawDegrees(), pose.spec().pitchDegrees(), pose.spec().rollDegrees());
-        }
-        return saved;
     }
 
     /**

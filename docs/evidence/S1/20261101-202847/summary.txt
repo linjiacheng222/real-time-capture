@@ -1,0 +1,12 @@
+﻿S1 check start: 20261101-202847
+OutDir: E:\捕获接口\docs\evidence\S1\20261101-202847
+PASS /health 200
+WS create: {"id":"s1-create","ok":true,"result":{"id":1,"x":-32.0,"y":90.0,"z":61.0,"yaw":58.5,"pitch":15.0,"roll":0.0,"fov":70.0,"width":1280,"height":1024,"paused":false,"shape":"rect"}}
+camera id=1
+PASS frame-original.jpg bytes=99156 headers-ts=108826718636500 analysis=jpeg-signature=OK; 1280x1024; mean=20.33; std=9.66
+WS adjust: 
+PASS frame-moved.jpg bytes=99156 headers-ts=108831869027300 analysis=jpeg-signature=OK; 1280x1024; mean=20.33; std=9.66
+S1.2 frame changed: False (hash1=9F827E6EDB81EADD9EEE2D7297600AAACD850AAF3B45D22EA9761AB088BDAAFE hash2=9F827E6EDB81EADD9EEE2D7297600AAACD850AAF3B45D22EA9761AB088BDAAFE)
+WS delete: 
+S1.1 RESULT: PASS (frame exists and is JPEG)
+S1.3/S1.4: manual (compare with F2 screenshot; repeat world enter/leave 10 rounds)

@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p>AFTER_LEVEL 内按限流器放行：读 active 相机 → 保存渲染状态/相机状态 → 临时替换主相机
  * → 绑定离屏 FBO → 调 {@code GameRenderer#renderLevel} 重渲染完整场景 → 解绑 → 恢复相机/状态。
- * M3 的 CameraSyncHook 时序槽位以 TODO 标出，待 M3 接入。</p>
+ * M3 的 CameraSyncHook 时序：流式与实时调取路径均在渲染前 before、渲染后 after。</p>
  *
  * <p>重入守卫：离屏 {@code renderLevel} 会再次触发 AFTER_LEVEL；{@link #rendering} 为 true 时
  * 所有本管线回调直接跳过（防递归）。</p>
@@ -152,7 +152,12 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
             fbo.bind();
             ShaderCompatHooks.beginOffscreenPass(pose);
             CameraSyncHook.onBeforeOffscreenRender(pose);
-            gameRenderer.renderLevel(partialTick, 0L, new PoseStack());
+            OffscreenPoseContext.push(pose);
+            try {
+                gameRenderer.renderLevel(partialTick, 0L, new PoseStack());
+            } finally {
+                OffscreenPoseContext.pop();
+            }
             CameraSyncHook.onAfterOffscreenRender(pose);
             ShaderCompatHooks.endOffscreenPass();
             PboPairResource pbo = WorldResourceManager.get().get(PboPairResource.KEY, PboPairResource.class);
@@ -206,6 +211,13 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
         try {
             fbo = WorldResourceManager.get().get(OffscreenFboResource.KEY, OffscreenFboResource.class);
             CameraPose pose = CameraMatrices.capture(spec, partialTick);
+            long diagnosticNo = renderedFrames.get();
+            if (diagnosticNo < 3 || diagnosticNo % 60 == 0) {
+                LOGGER.info("{} [S1-DIAG] frame#={} camera={} specPos=({},{},{}) yaw={} pitch={} eye=({},{},{})",
+                        CaptureConstants.LOG_MARKER, diagnosticNo, spec.id(), spec.position().x, spec.position().y,
+                        spec.position().z, spec.yawDegrees(), spec.pitchDegrees(), pose.eyePosition().x,
+                        pose.eyePosition().y, pose.eyePosition().z);
+            }
             CaptureChunkPlanner.get().update(pose);
             renderState = RenderStateSnapshot.capture();
             cameraState = CameraStateSnapshot.applyPose(gameRenderer.getMainCamera(), pose);
@@ -216,9 +228,14 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
             target.clear(true);
             fbo.bind();
             ShaderCompatHooks.beginOffscreenPass(pose);
-            // TODO(M3)：CameraSyncHook.onBeforeOffscreenRender(pose)，同帧内改写监听器
+            CameraSyncHook.onBeforeOffscreenRender(pose);
             long renderStart = CaptureClock.get().nowNanos();
-            gameRenderer.renderLevel(partialTick, 0L, new PoseStack());
+            OffscreenPoseContext.push(pose);
+            try {
+                gameRenderer.renderLevel(partialTick, 0L, new PoseStack());
+            } finally {
+                OffscreenPoseContext.pop();
+            }
             long renderNanos = CaptureClock.get().nowNanos() - renderStart;
             CameraSyncHook.onAfterOffscreenRender(pose);
             ShaderCompatHooks.endOffscreenPass();

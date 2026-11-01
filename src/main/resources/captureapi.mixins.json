@@ -9,6 +9,7 @@
     "MinecraftMixin",
     "ClientLevelAccessor",
     "CameraAccessor",
+    "CameraPoseMixin",
     "GameRendererAccessor",
     "AudioLibraryMixin"
   ],
