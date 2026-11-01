@@ -1,0 +1,11 @@
+﻿[0111��2026 22:51:58.298] [main/WARN] [net.minecraft.server.packs.repository.Pack/]: Missing metadata in pack mod:captureapi_server
+[0111��2026 22:51:58.299] [main/WARN] [net.minecraft.server.MinecraftServer/]: Missing data pack mod:captureapi_server
+[0111��2026 22:52:00.057] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Configuration file .\world\serverconfig\captureapi_server-server.toml is not correct. Correcting
+[0111��2026 22:52:00.058] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key captureapi_server was corrected from null to its default, SimpleCommentedConfig:{}. 
+[0111��2026 22:52:00.058] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key captureapi_server.default_permission was corrected from null to its default, true. 
+[0111��2026 22:52:00.059] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key captureapi_server.permission_file was corrected from null to its default, config/captureapi/permissions.json. 
+[0111��2026 22:52:00.059] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key captureapi_server.max_chunks_per_player was corrected from null to its default, 4096. 
+[0111��2026 22:52:00.059] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key captureapi_server.max_chunks_global was corrected from null to its default, 16384. 
+[0111��2026 22:52:00.059] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key captureapi_server.max_requests_per_second was corrected from null to its default, 20. 
+[0111��2026 22:52:13.381] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Done (13.330s)! For help, type "help"
+[0111��2026 22:54:09.498] [Server thread/INFO] [CaptureAPI-Server/]: [TICKETS] request player=380df991-f603-344c-a090-369bad2a924a accepted=113 owned=113 total=113
