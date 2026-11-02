@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-02T22:36:08+08:00",
+  "test": "WS capture quality override + filter isolation",
+  "quality10": {
+    "bytes": 45202,
+    "location": "E:/捕获接口/testcases/q10.jpg"
+  },
+  "quality90": {
+    "bytes": 331068,
+    "location": "E:/捕获接口/testcases/q90.jpg"
+  },
+  "filterCapture": {
+    "bytes": 219766,
+    "filter": "grayscale",
+    "location": "E:/捕获接口/testcases/filter.jpg"
+  },
+  "filterListAfter": {
+    "filters": [
+      "grayscale",
+      "test_bright"
+    ]
+  },
+  "notes": "quality 10 vs 90 byte sizes differ as expected; captureFrame wrapper restores previous filter/overlay; filter.list response in this build does not expose selected, so restoration verified by code + no persistent selected effect semantics"
+}

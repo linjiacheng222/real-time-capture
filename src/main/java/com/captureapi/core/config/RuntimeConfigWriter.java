@@ -2,7 +2,11 @@ package com.captureapi.core.config;
 
 import com.captureapi.core.constant.CaptureConstants;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.fml.loading.FMLPaths;
 import com.google.gson.JsonElement;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -295,11 +299,30 @@ public final class RuntimeConfigWriter {
         if (!CaptureParams.get().persistChanges()) {
             return false;
         }
+        Path configFile = FMLPaths.CONFIGDIR.get().resolve(CaptureConfig.fileName());
+        byte[] backup = null;
         try {
+            if (Files.isRegularFile(configFile)) {
+                backup = Files.readAllBytes(configFile);
+            }
             CaptureConfig.SPEC.save();
+            // 保存后自校验：文件必须存在且非空；失败则回滚到保存前内容
+            if (!Files.isRegularFile(configFile) || Files.size(configFile) == 0L) {
+                throw new IOException("保存后 TOML 缺失或为空");
+            }
             return true;
         } catch (Throwable t) {
-            LOGGER.warn("{} [CFG] 持久化写回 TOML 失败（运行态已生效）", CaptureConstants.LOG_MARKER, t);
+            try {
+                if (backup != null) {
+                    Files.write(configFile, backup);
+                } else {
+                    Files.deleteIfExists(configFile);
+                }
+            } catch (Throwable rollbackError) {
+                t.addSuppressed(rollbackError);
+            }
+            LOGGER.warn("{} [CFG] 持久化写回 TOML 失败，已回滚文件（运行态仍生效）：{}",
+                    CaptureConstants.LOG_MARKER, t.getMessage());
             return false;
         }
     }

@@ -3,6 +3,7 @@ package com.captureapi.video.encode;
 import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.video.frame.RawFrame;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import javax.imageio.IIOImage;
@@ -97,6 +98,47 @@ public final class JpegEncoder {
         writer.reset();
         ByteArrayOutputStream bytes = state.bytes;
         bytes.reset();
+        ImageOutputStream output = new MemoryCacheImageOutputStream(bytes);
+        try {
+            writer.setOutput(output);
+            if (param.canWriteCompressed()) {
+                param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+                float q = Math.max(0.0F, Math.min(1.0F, quality / 100.0F));
+                param.setCompressionQuality(q);
+            }
+            writer.write(null, new IIOImage(image, null, null), param);
+            output.flush();
+        } finally {
+            try {
+                writer.setOutput(null);
+            } finally {
+                output.close();
+            }
+        }
+        return bytes.toByteArray();
+    }
+
+    /**
+     * 对已有 JPEG 重新编码为指定质量（用于 FrameRequest.quality 的请求级覆盖）。
+     *
+     * @param jpegBytes 原始 JPEG
+     * @param quality   目标质量 0~100
+     * @return 重编码 JPEG
+     * @throws IOException 解码/编码失败
+     */
+    public byte[] transcode(byte[] jpegBytes, int quality) throws IOException {
+        if (jpegBytes == null || jpegBytes.length == 0) {
+            throw new IOException("JPEG 字节不可为空");
+        }
+        BufferedImage image = ImageIO.read(new ByteArrayInputStream(jpegBytes));
+        if (image == null) {
+            throw new IOException("无法解码 JPEG（quality 覆盖失败）");
+        }
+        ImageWriter writer = writers.get();
+        ImageWriteParam param = params.get();
+        writer.reset();
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream(
+                Math.max(INITIAL_OUTPUT_BUFFER, jpegBytes.length));
         ImageOutputStream output = new MemoryCacheImageOutputStream(bytes);
         try {
             writer.setOutput(output);

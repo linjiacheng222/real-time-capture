@@ -11,7 +11,9 @@
     "CameraAccessor",
     "CameraPoseMixin",
     "GameRendererAccessor",
-    "AudioLibraryMixin"
+    "AudioLibraryMixin",
+    "RenderFilterMixin",
+    "AudioFilterMixin"
   ],
   "injectors": {
     "defaultRequire": 1

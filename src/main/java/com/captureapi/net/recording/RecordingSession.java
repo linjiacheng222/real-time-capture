@@ -5,6 +5,7 @@ import com.captureapi.audio.timestamp.AudioChunk;
 import com.captureapi.core.config.CaptureParams;
 import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.video.camera.CameraManager;
+import com.captureapi.video.encode.JpegEncoder;
 import com.captureapi.video.frame.JpegFrame;
 import com.captureapi.video.frame.VideoFrameBus;
 import java.io.IOException;
@@ -54,6 +55,7 @@ public final class RecordingSession {
     private static final String AUDIO_BITRATE = "128k";
 
     private final AtomicLong frames = new AtomicLong();
+    private final JpegEncoder jpegEncoder = new JpegEncoder();
     private final Deque<String> stderrTail = new ArrayDeque<>();
 
     private volatile boolean running;
@@ -61,6 +63,7 @@ public final class RecordingSession {
     private volatile String outputPath;
     private volatile boolean audioAvailable;
     private volatile boolean includeAudio;
+    private volatile int requestedJpegQuality;
     private Path finalOutputPath;
     private Path videoTempPath;
     private Path audioTempPath;
@@ -127,6 +130,7 @@ public final class RecordingSession {
             }
             finalOutputPath = output;
             includeAudio = params.includeAudio();
+            requestedJpegQuality = params.jpegQuality();
             Path videoOutput = output;
             if (includeAudio) {
                 // 先录纯视频临时文件，停止时再用第二输入流把 PCM 合流为最终 mp4
@@ -210,7 +214,11 @@ public final class RecordingSession {
                 JpegFrame frame = VideoFrameBus.get().latest();
                 if (frame != null && frame.timestampNanos() > lastTimestamp) {
                     lastTimestamp = frame.timestampNanos();
-                    processInput.write(frame.jpeg());
+                    byte[] jpeg = frame.jpeg();
+                    if (requestedJpegQuality != CaptureParams.get().jpegQuality()) {
+                        jpeg = jpegEncoder.transcode(jpeg, requestedJpegQuality);
+                    }
+                    processInput.write(jpeg);
                     processInput.flush();
                     frames.incrementAndGet();
                 } else {

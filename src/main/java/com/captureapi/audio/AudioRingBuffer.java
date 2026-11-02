@@ -146,7 +146,7 @@ public final class AudioRingBuffer implements ManagedResource {
      * @param sampleCount 实际采样数
      * @return 是否写入（封口/短拍/未创建时 false）
      */
-    public boolean write(byte[] pcm, long startNanos, long endNanos, int sampleCount) {
+    public synchronized boolean write(byte[] pcm, long startNanos, long endNanos, int sampleCount) {
         byte[] ring = slots;
         if (ring == null || sealed) {
             return false;
@@ -304,7 +304,7 @@ public final class AudioRingBuffer implements ManagedResource {
      * @param chunkCount 拍数（1..ring 容量）
      * @return 合并后的 AudioChunk；无数据/未创建返回 null
      */
-    public AudioChunk snapshotRecent(int chunkCount) {
+    public synchronized AudioChunk snapshotRecent(int chunkCount) {
         byte[] ring = slots;
         if (ring == null || chunkCount <= 0) {
             return null;
@@ -332,7 +332,7 @@ public final class AudioRingBuffer implements ManagedResource {
         return new AudioChunk(slotStartNanos[first], slotEndNanos[last], samples, pcm);
     }
 
-    public AudioChunk peekLatest() {
+    public synchronized AudioChunk peekLatest() {
         byte[] ring = slots;
         if (ring == null || writeIndex == readIndex) {
             return null;

@@ -104,7 +104,7 @@ AudioChunk audio = outcome.audio(); // 仅 request.includeAudio=true 时
 | `rotation(yaw,pitch,roll)` | 相机朝向，度，pitch 正向下 | 范围由服务端/相机校验 |
 | `fov(deg)` | 视场角 | (1,179) |
 | `resolution(w,h)` | 输出分辨率 | 省略用 active/全局 |
-| `quality(q)` | JPEG 质量 | **当前 captureFrame 未使用该字段（已知缺口）** |
+| `quality(q)` | JPEG 质量 | 已实现：captureFrame 在请求质量与全局不同时重编码；dev 实测 q10=45,202B/q90=331,068B |
 | `format(JPEG/PNG)` | 输出格式 | PNG 为 JPEG 解码后转 PNG |
 | `outputMethod(FILE/HTTP)` | 文件或 HTTP URL | HTTP 需网络服务运行 |
 | `outputPath(Path)` | 文件路径 | 省略则写 `recording_output_dir/capture_<ts>.jpg|png` |
@@ -116,11 +116,11 @@ AudioChunk audio = outcome.audio(); // 仅 request.includeAudio=true 时
 | `audio(boolean,chunks)` | 附带音频截面 | 仅 `CaptureApi.capture()` 生效；直接 `captureFrame()` 忽略 |
 | `filter/overlays` 在 `captureFrame` 内应用 | 选择/清空全局滤镜、叠加 | 不会自动恢复 |
 
-**滤镜/叠加副作用**：`captureFrame` 会调用全局 `FilterRegistry.select`、`OverlayRegistry.clear/show`，capture 结束后仍保留。需要隔离时由调用方自行保存/恢复。
+**滤镜/叠加作用域**：`captureFrame` 会快照滤镜/叠加全局状态，`request.filter/overlays` 覆盖仅在本帧生效，结束后恢复（由 `CAPTURE_LOCK` 串行化）。
 
 **音频语义**：
-- `capture()` 先取帧，再在 **active 相机位置**采集 `audioChunks` 拍；
-- 若没有 active 相机，音频截面坐标为 `(0,64,0)`（不是 request 的 pos）；
+- `capture()` 先取帧，再按 `request.toCameraParams(active)` 的位置采集 `audioChunks` 拍；
+- 显式 `position/boundEntity` 优先；无显式位置时使用 active 相机；两者都没有时为 `(0,0,0)`；
 - 音频失败只 WARN，`CaptureOutcome.audio()==null`，不影响帧；
 - 直接 `captureFrame()` 不执行音频（`includeAudio` 被忽略）。
 
@@ -240,7 +240,7 @@ ws://127.0.0.1:25581/
 | `rot` | `[yaw,pitch,(roll)]` | 度；pitch 正向下 |
 | `fov` | number | (1,179) |
 | `res` | `[w,h]` | 分辨率 |
-| `quality` | int | **当前下游忽略**（已知缺口） |
+| `quality` | int | 请求级 JPEG 质量；与全局不同时重编码 |
 | `filter` | string | 滤镜覆盖；`""` 关闭 |
 | `overlay` / `overlays` | object/array | 替换叠加层；全局副作用 |
 | `out` | string | FILE 输出路径 |
@@ -257,6 +257,7 @@ ws://127.0.0.1:25581/
 > 注意：若 active 存在且请求既无 `pos/rot` 也无 `temporary:true`，取的是**最新缓存帧**（不是新渲染），滤镜/叠加对已缓存帧可能不生效；要新画面请给 `pos/rot` 或 `temporary:true`。
 >
 > dev 实测（2026-11-02）：显式 pos/rot + temporary + PNG 成功；audio:true/audioChunks:5 返回 `sampleCount=2205` 的 PCM（Base64），证据 `docs/evidence/S6/api-capture-websocket.json`。
+> quality 覆盖实测 q10=45,202B / q90=331,068B；滤镜 capture 后已恢复，证据 `docs/evidence/S6/api-quality-filter.json`。
 
 ### 5.3 相机
 
@@ -280,8 +281,8 @@ ws://127.0.0.1:25581/
 | `overlay.list` / `overlay.reload` | 无 | 贴图/层 |
 | `overlay.show` | `image,x,y,scaleX,scaleY,rotation,opacity` | CPU 叠加 |
 | `overlay.clear` | 无 | 清空 |
-| `renderfilter.list/reload` | 无 | 解析摘要；**实际过滤未挂接** |
-| `audiofilter.list/reload` | 无 | 解析摘要；**实际过滤未挂接** |
+| `renderfilter.list/reload` | 无 | 解析摘要；**离屏实体渲染已挂接**（方块/粒子未覆盖） |
+| `audiofilter.list/reload` | 无 | 解析摘要；**SoundEngine.play 全局过滤已挂接**（含主画面音频） |
 
 ### 5.5 录像
 
@@ -291,7 +292,7 @@ ws://127.0.0.1:25581/
 | `recording.stop` | 无 | 停止；可能阻塞 |
 | `recording.status` | 无 | running/frames/path/audioAvailable/error |
 
-> `jpegQuality` 当前不参与二次编码（录像直接写已编码 JPEG，FFmpeg 再编码）；`fps` 仅声明 FFmpeg 输入帧率，实际节奏由帧总线决定。`includeAudio` 已实现（临时 PCM + 停止后 AAC 合流），与计划端旧文档“未实现”不同。
+> `jpegQuality` 已实现：与全局不同时对每帧重编码（增加 CPU）；默认取全局 jpeg_quality；`fps` 仅声明 FFmpeg 输入帧率，实际节奏由帧总线决定。`includeAudio` 已实现（临时 PCM + 停止后 AAC 合流），与计划端旧文档“未实现”不同。
 
 ### 5.6 音频截面 / 光影 / 测试指令
 
@@ -352,7 +353,7 @@ ws://127.0.0.1:25581/
 - `fov:1..178.9`
 - `filter:名称` / `filter:none`
 - `overlay:名称@x,y,scaleX,scaleY,rotation,opacity` / `overlay:none`
-- `quality:1..100`（**底层当前忽略**）
+- `quality:1..100`（请求级重编码，已生效）
 - `res:宽x高`
 - `audio:秒数`（最多 60；仅返回/提示采样数，不写音频文件）
 - `out:文件路径`
@@ -457,7 +458,7 @@ FrameRequest request = FrameRequest.builder()
 CaptureOutcome outcome = CaptureApi.capture(request); // 非渲染线程
 AudioChunk audio = outcome.audio();                   // 可能为 null
 ```
-> 音频采集位置是 **active 相机**（并非 request.position），无 active 时为 `(0,64,0)`。
+> 音频采集位置优先 request 的位置/绑定实体；无显式位置用 active 相机；两者都无为 `(0,0,0)`。
 
 ### 8.4 取帧 + HTTP URL
 
@@ -497,7 +498,7 @@ List<CameraSpec> all = CaptureApi.listCameras();
 
 ### 8.7 已知 Java API 缺口
 
-- `quality` 字段未生效；
+- `quality` 已生效（与全局不同时重编码，增加 CPU 成本）；
 - `continuous` 未实现；
 - `captureFrame` 不取音频；需 `capture`；
 - `capture` 音频位置取 active，不取 request 坐标；
@@ -579,8 +580,9 @@ WS `overlay.show` 参数：`image,x,y,scaleX,scaleY,rotation,opacity`；需 `ove
 
 ### 11.3 渲染/音频名单
 - 文件：`config/captureapi/render_blacklist.txt`、`render_whitelist.txt`、`audio_blacklist.txt`、`audio_whitelist.txt`；
-- `renderfilter.list/reload`、`audiofilter.list/reload` 只做解析/摘要；
-- **实际过滤未挂接**（画面/声音不会因名单变化）。
+- `renderfilter`：离屏渲染窗口内按实体注册名过滤（EntityRenderDispatcher HEAD）；主画面不受影响；方块/方块实体/粒子暂未覆盖；
+- `audiofilter`：SoundEngine.play HEAD 全局过滤；**会影响主画面音频**（当前没有 capture-only 混音分离）；
+- 名单为空时零行为。
 
 ---
 
@@ -615,14 +617,14 @@ WS `overlay.show` 参数：`image,x,y,scaleX,scaleY,rotation,opacity`；需 `ove
 | 音频截面 | ✅ 首版（语义待冻结） |
 | 录像 + 音频 | ✅ 短录 PASS；长录待 |
 | 运行时参数/JSON 滤镜/CPU 叠加 | ✅ |
-| 渲染/音频名单实际过滤 | ❌ W-095 未挂接 |
+| 渲染/音频名单实际过滤 | ⚠️ 首版挂接：离屏实体/全局音频；方块/粒子与 capture-only 未覆盖 |
 | 远程 MP/M9 | ✅ dev+生产主链路 PASS |
 | GLSL 滤镜 | ❌ P2.1 裁剪 |
 | 多路独立渲染 | ❌ P2.3 |
 | GPU 叠加 | ❌ P2.4 |
 | Oculus 离屏适配 | ❌ W-043；仅探测 |
 | continuous 连续帧 | ❌ Unsupported |
-| `quality` 参数 | ❌ 当前被忽略 |
+| `quality` 参数 | ✅ 请求级重编码已实现（q10/q90 实测） |
 
 ---
 
@@ -657,7 +659,7 @@ WS `overlay.show` 参数：`image,x,y,scaleX,scaleY,rotation,opacity`；需 `ove
 | 测试指令参数 `worldName`/`x,y,z` | 实际 `client.loadWorld` 用 `name`；`client.playPosSound` 用 `dx,dy,dz,volume` |
 | 错误码 E_CAMERA_LIMIT/E_NOT_IMPLEMENTED | 实际相机上限为 E_RATE_LIMIT；无 E_NOT_IMPLEMENTED |
 | HTTP `/health` 字段 | 以本文 4.1 实际字段为准（旧文档示例字段不全/有误） |
-| 录像 `jpegQuality` 生效 | 当前录像不二次使用该参数 |
+| 录像 `jpegQuality` 生效 | 已实现请求级重编码；默认=全局 jpeg_quality |
 | 游戏命令 `/get_image` | 已移除；现为 `/captureapi capture` |
 | `/captureapi` v2 参数 | 以本文第七节为准（旧文档未覆盖 v2） |
 
@@ -687,16 +689,27 @@ ffmpeg -y -i http://127.0.0.1:25580/camera/0/stream -t 10 -c copy mjpeg.mkv
 
 ---
 
-## 十七、版本与变更摘要
+## 十七、本轮非实测收口（2026-11-02）
+
+- `quality` 请求级重编码已实现并实测（q10 45,202B / q90 331,068B）；
+- 滤镜/叠加在 captureFrame 内快照/恢复，不再永久污染全局；`CAPTURE_LOCK` 串行化；
+- capture 音频位置改为 request 位置优先（显式 pos/绑定实体→active→0,0,0）；
+- AudioRingBuffer.write/snapshotRecent/peekLatest 加锁（P1.2 快照一致性）；
+- P1.7 配置持久化增加“保存前备份 + 保存后自校验 + 失败回滚文件”；
+- P2.2 首版挂接：离屏实体渲染名单 + SoundEngine 音频名单；
+- P1.4 录像 `jpegQuality` 已实现请求级重编码；
+- P2.1/P2.3/P2.4 按计划裁剪条件（GLSL/多路/GPU 叠加）仍不实施；如需产品化须立独立里程碑。
+
+## 十八、版本与变更摘要
 
 计划端本次新增/调整（`7da3b77..6782b9a`）：
 
 1. `docs/API全集与测试指令.md`：全量手册初稿（部分状态已过时）；
 2. `CaptureCommand`（`core`）：游戏内 `/captureapi` v1→v2，key:value 函数式；
-3. `FrameRequest`：新增 `filter`/`overlays`/`overlay(OverlayModel)`；`quality` 字段存在但下游未用；
+3. `FrameRequest`：新增 `filter`/`overlays`/`overlay(OverlayModel)`；`quality` 现已请求级重编码；
 4. `CaptureApi`：新增 `capture(FrameRequest)` + `CaptureOutcome`；filter/overlay 覆盖在 `captureFrame` 内；移除 `includeAudio` 直接 Unsupported；
 5. `ControlCommandDispatcher`：新增 WS `capture`，映射到同一 `CaptureApi.capture()`；
 6. 临时聊天壳 `/get_image` 已移除；当前游戏入口为 `/captureapi`（v2）；
 7. 旧 `JavaAPI门面.md`、`录像功能.md` 等仍部分过时，需按本文/代码逐步同步。
 
-> 本文是使用说明，不替代计划端接口裁决。已知语义缺口（quality、filter隔离、capture音频位置、continuous、游戏命令运行验证）应在正式冻结前决定。
+> 本文是使用说明，不替代计划端接口裁决。剩余语义缺口：`continuous` 未实现、游戏命令仅注册验证、滤镜/叠加为全局串行锁（非并发隔离）、capture 质量重编码增加 CPU 成本，应在正式冻结前决定。

@@ -11,7 +11,11 @@ import com.captureapi.core.time.CaptureClock;
 import com.captureapi.video.camera.CameraCreateParams;
 import com.captureapi.video.camera.CameraManager;
 import com.captureapi.video.camera.CameraSpec;
+import com.captureapi.video.encode.JpegEncoder;
+import com.captureapi.video.filter.FilterRegistry;
 import com.captureapi.video.frame.JpegFrame;
+import com.captureapi.video.overlay.OverlayModel;
+import com.captureapi.video.overlay.OverlayRegistry;
 import com.captureapi.video.frame.VideoFrameBus;
 import com.captureapi.video.stream.VideoStreamHub;
 import java.awt.image.BufferedImage;
@@ -42,8 +46,8 @@ import org.slf4j.LoggerFactory;
  * 线程语义：单帧/最新帧任意线程只读；调取返回 CompletableFuture（完成在渲染线程）；
  * 相机管理方法可任意线程（CameraManager 线程安全）。</p>
  *
- * <p>边界：音频截面（虚拟位）语义与实现待 W-071 冻结，当前以明确 UnsupportedOperationException
- * 标注（不为假实现）。</p>
+ * <p>统一入口 {@link #capture(FrameRequest)} 提供帧＋可选音频；{@link #captureFrame(FrameRequest)}
+ * 保持帧-only 语义。滤镜/叠加在 captureFrame 内做请求级快照/恢复，quality 通过重编码生效。</p>
  */
 @OnlyIn(Dist.CLIENT)
 public final class CaptureApi {
@@ -51,6 +55,8 @@ public final class CaptureApi {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureConstants.LOG_MARKER);
     /** 单帧轮询最大尝试次数（避免无限等待异常状态）。 */
     private static final int MAX_FRAME_POLLS = 10000;
+    /** captureFrame 全局滤镜/叠加状态序列化锁。 */
+    private static final Object CAPTURE_LOCK = new Object();
     /** 音频截面：等待拍数之外的静默余量（毫秒）。 */
     private static final long AUDIO_SECTION_MARGIN_MS = 80L;
     /** 音频截面：环形缓冲等待上限（纳秒）。 */
@@ -90,6 +96,28 @@ public final class CaptureApi {
      * @throws IOException 编码/写文件/调取失败
      */
     public static FrameResult captureFrame(FrameRequest request) throws IOException {
+        synchronized (CAPTURE_LOCK) {
+            FilterRegistry filters = FilterRegistry.get();
+            OverlayRegistry overlays = OverlayRegistry.get();
+            String previousFilter = filters.selected();
+            List<OverlayModel> previousOverlays = List.copyOf(overlays.layers());
+            try {
+                return captureFrameInternal(request);
+            } finally {
+                if (request.filter() != null) {
+                    filters.select(previousFilter == null ? "" : previousFilter);
+                }
+                if (request.overlays() != null) {
+                    overlays.clear();
+                    for (OverlayModel model : previousOverlays) {
+                        overlays.show(model);
+                    }
+                }
+            }
+        }
+    }
+
+    private static FrameResult captureFrameInternal(FrameRequest request) throws IOException {
         if (GlThreadGuard.isOnRenderThread()) {
             throw new IllegalStateException("captureFrame 不可在渲染线程调用（会阻塞渲染/调取完成）");
         }
@@ -145,6 +173,12 @@ public final class CaptureApi {
                 throw new IOException("等待帧超时（无流式帧）");
             }
         }
+        // request-level quality override: re-encode only when explicitly requested and different
+        int requestedQuality = request.quality();
+        if (requestedQuality >= 0 && requestedQuality != CaptureParams.get().jpegQuality()) {
+            byte[] reencoded = new JpegEncoder().transcode(frame.jpeg(), requestedQuality);
+            frame = new JpegFrame(reencoded, frame.width(), frame.height(), frame.timestampNanos());
+        }
         if (request.outputMethod() == FrameRequest.OutputMethod.HTTP) {
             NetworkServiceManager service = NetworkServiceManager.get();
             if (!service.isRunning()) {
@@ -190,11 +224,9 @@ public final class CaptureApi {
         AudioChunk audioChunk = null;
         if (request.includeAudio()) {
             try {
-                CameraSpec active = CameraManager.get().active();
-                double ax = active != null ? active.positionX() : 0;
-                double ay = active != null ? active.positionY() : 64;
-                double az = active != null ? active.positionZ() : 0;
-                audioChunk = grabAudioSection(ax, ay, az, request.audioChunks())
+                CameraCreateParams audioParams = request.toCameraParams(CameraManager.get().active());
+                audioChunk = grabAudioSection(audioParams.x(), audioParams.y(), audioParams.z(),
+                                request.audioChunks())
                         .get(5, TimeUnit.SECONDS);
             } catch (Exception e) {
                 LOGGER.warn("{} [API] capture 音频截面失败（不影响帧结果）：{}",

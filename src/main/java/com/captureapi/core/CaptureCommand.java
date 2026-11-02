@@ -419,7 +419,8 @@ public final class CaptureCommand {
         boolean audio = "true".equalsIgnoreCase(p.getOrDefault("audio", "false"));
         String out = p.get("out");
         try {
-            RecordingParams params = new RecordingParams(0, fps, 0, audio, out);
+            RecordingParams params = new RecordingParams(0, fps,
+                    com.captureapi.core.config.CaptureParams.get().jpegQuality(), audio, out);
             RecordingStatus st = RecordingSession.get().start(params);
             ok(ctx, "录像已启动 → " + st.outputPath() + "（音频=" + st.audioAvailable() + "）");
             return 1;
