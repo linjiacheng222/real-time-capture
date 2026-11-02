@@ -13,7 +13,10 @@
     "GameRendererAccessor",
     "AudioLibraryMixin",
     "RenderFilterMixin",
-    "AudioFilterMixin"
+    "AudioFilterMixin",
+    "ChannelMirrorMixin",
+    "ChannelAccessor",
+    "SoundBufferAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

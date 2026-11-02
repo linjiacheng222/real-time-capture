@@ -123,6 +123,15 @@ public final class AudioCaptureManager {
             return;
         }
         startCaptureThread();
+        if (Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_SPIKE_PROPERTY)) {
+            Thread spike = new Thread(
+                    com.captureapi.audio.multi.MultiListenerSpike::run,
+                    "captureapi-multilistener-spike");
+            spike.setDaemon(true);
+            spike.start();
+            LOGGER.info("{} 多 listener Phase 0 spike 已调度（player audio init 之后）",
+                    CaptureConstants.LOG_MARKER);
+        }
     }
 
     /** {@code Library#cleanup} 之前停止采集线程（Mixin Inject HEAD）。 */

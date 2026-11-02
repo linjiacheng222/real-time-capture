@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-03T00:21:05+08:00",
+  "phase": "Phase 0 multi-listener feasibility gate",
+  "result": "PASS",
+  "spike": {
+    "contexts": 2,
+    "samples_per_render": 441,
+    "output_bytes": 1764,
+    "rmsA": 0.02975536642045489,
+    "rmsB": 0.2005213791903094,
+    "different": true,
+    "notes": "same mono 441Hz source, listener A at 0, listener B at x=8; independent stereo PCM and different amplitudes"
+  },
+  "mirror_probe": {
+    "attachBufferStream": "PASS (#1)",
+    "attachStaticBuffer": "PASS (#1, PCM_SIGNED 48000 Hz 16-bit mono, 42134 bytes)",
+    "play": "PASS (#1/#2)",
+    "soundBufferAccessor": "data/format readable"
+  },
+  "player_audio": {
+    "audio_ring_written": 2152,
+    "note": "player capture thread continued after spike; no audio init failure in this run"
+  },
+  "evidence": "run/logs/latest.log filtered [MULTILISTENER] at 2026-11-03 00:20-00:21",
+  "notes": "Prior run failed due missing LWJGL capabilities and poisoned audio; fixed by deferring spike until player Library.init and creating context before ALC/AL capabilities. Mixin probe moved out of mixin package."
+}

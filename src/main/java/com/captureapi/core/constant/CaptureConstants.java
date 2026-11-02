@@ -77,6 +77,21 @@ public final class CaptureConstants {
 
     // ===== 调试/自检系统属性（非参数；仅 dev 运行设置）=====
 
+    /** 多 listener Phase 0 spike 开关（dev JVM 属性）。 */
+    public static final String DEBUG_MULTILISTENER_SPIKE_PROPERTY = "captureapi.debug.multilistener_spike";
+    /** 多 listener Phase 0 Channel/SoundBuffer 探针开关（dev JVM 属性）。 */
+    public static final String DEBUG_MULTILISTENER_PROBE_PROPERTY = "captureapi.debug.multilistener_probe";
+    /** Phase 0 合成源采样率（仅 spike）。 */
+    public static final int MULTILISTENER_SPIKE_SAMPLE_RATE = 44100;
+    /** Phase 0 合成源声道数（仅 spike）。 */
+    public static final int MULTILISTENER_SPIKE_CHANNELS = 2;
+    /** Phase 0 合成源采样数（10ms@44.1kHz）。 */
+    public static final int MULTILISTENER_SPIKE_SAMPLES = 441;
+    /** Phase 0 合成源频率（Hz）。 */
+    public static final float MULTILISTENER_SPIKE_FREQUENCY = 441.0F;
+    /** Phase 0 合成源/第二 listener 的 X 偏移（米）。 */
+    public static final float MULTILISTENER_SPIKE_SOURCE_X = 8.0F;
+
     /** dev Mixin 自检日志开关（build.gradle dev runs 设置）。 */
     public static final String DEBUG_MIXIN_PROPERTY = "captureapi.debug.mixin";
 
