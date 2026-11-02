@@ -1,6 +1,7 @@
 package com.captureapi.net.control;
 
 import com.captureapi.core.constant.CaptureConstants;
+import com.captureapi.net.FrameRequest;
 import com.captureapi.video.camera.CameraCreateParams;
 import com.captureapi.video.camera.CameraManager;
 import com.captureapi.video.camera.CameraSpec;
@@ -100,6 +101,7 @@ public final class ControlCommandDispatcher {
     private JsonElement dispatch(String action, JsonObject params) {
         TestCommandGate.require(action);
         return switch (action) {
+            case "capture" -> unifiedCapture(params);
             case "camera.create" -> create(params);
             case "camera.adjust" -> adjust(params);
             case "camera.activate" -> activate(params);
@@ -135,6 +137,89 @@ public final class ControlCommandDispatcher {
             case "client.playPosSound" -> clientPlayPosSound(params);
             default -> throw new ControlException(ControlErrorCode.E_UNKNOWN_ACTION, "未知 action：" + action);
         };
+    }
+
+    /**
+     * 统一 capture action：JSON 参数 → FrameRequest → CaptureApi.capture()。
+     * 与游戏指令和 Java API 调用同一函数，参数一一对应。
+     */
+    private JsonElement unifiedCapture(JsonObject params) {
+        try {
+            FrameRequest.Builder builder = FrameRequest.builder();
+            if (params.has("pos")) {
+                var a = params.getAsJsonArray("pos");
+                builder.position(a.get(0).getAsDouble(), a.get(1).getAsDouble(), a.get(2).getAsDouble());
+            }
+            if (params.has("rot")) {
+                var a = params.getAsJsonArray("rot");
+                builder.rotation(a.get(0).getAsFloat(), a.get(1).getAsFloat(),
+                        a.size() > 2 ? a.get(2).getAsFloat() : 0f);
+            }
+            if (params.has("fov")) builder.fov(params.get("fov").getAsDouble());
+            if (params.has("res")) {
+                var a = params.getAsJsonArray("res");
+                builder.resolution(a.get(0).getAsInt(), a.get(1).getAsInt());
+            }
+            if (params.has("quality")) builder.quality(params.get("quality").getAsInt());
+            if (params.has("filter")) builder.filter(params.get("filter").getAsString());
+            if (params.has("overlay")) {
+                var ov = params.getAsJsonObject("overlay");
+                builder.overlay(new com.captureapi.video.overlay.OverlayModel(
+                        ov.get("image").getAsString(),
+                        ov.has("x") ? ov.get("x").getAsDouble() : 0.5,
+                        ov.has("y") ? ov.get("y").getAsDouble() : 0.5,
+                        ov.has("scaleX") ? ov.get("scaleX").getAsDouble() : 1.0,
+                        ov.has("scaleY") ? ov.get("scaleY").getAsDouble() : 1.0,
+                        ov.has("rotation") ? ov.get("rotation").getAsDouble() : 0.0,
+                        ov.has("opacity") ? ov.get("opacity").getAsDouble() : 1.0));
+            }
+            if (params.has("overlays")) {
+                var list = new java.util.ArrayList<com.captureapi.video.overlay.OverlayModel>();
+                for (var el : params.getAsJsonArray("overlays")) {
+                    var ov = el.getAsJsonObject();
+                    list.add(new com.captureapi.video.overlay.OverlayModel(
+                            ov.get("image").getAsString(),
+                            ov.has("x") ? ov.get("x").getAsDouble() : 0.5,
+                            ov.has("y") ? ov.get("y").getAsDouble() : 0.5,
+                            ov.has("scaleX") ? ov.get("scaleX").getAsDouble() : 1.0,
+                            ov.has("scaleY") ? ov.get("scaleY").getAsDouble() : 1.0,
+                            ov.has("rotation") ? ov.get("rotation").getAsDouble() : 0.0,
+                            ov.has("opacity") ? ov.get("opacity").getAsDouble() : 1.0));
+                }
+                builder.overlays(list);
+            }
+            if (params.has("out")) builder.outputPath(java.nio.file.Path.of(params.get("out").getAsString()));
+            if (params.has("method")) {
+                builder.outputMethod(FrameRequest.OutputMethod.valueOf(params.get("method").getAsString().toUpperCase()));
+            }
+            if (params.has("format")) {
+                builder.format(FrameRequest.Format.valueOf(params.get("format").getAsString().toUpperCase()));
+            }
+            if (params.has("audio") && params.get("audio").getAsBoolean()) {
+                builder.audio(true, params.has("audioChunks") ? params.get("audioChunks").getAsInt() : 1);
+            }
+            if (params.has("bound")) builder.boundEntity(UUID.fromString(params.get("bound").getAsString()));
+            if (params.has("temporary")) builder.temporary(params.get("temporary").getAsBoolean());
+            if (params.has("timeout")) builder.timeoutMillis(params.get("timeout").getAsLong());
+            var outcome = com.captureapi.net.CaptureApi.capture(builder.build());
+            JsonObject result = new JsonObject();
+            result.addProperty("outputMethod", outcome.frame().outputMethod().name());
+            result.addProperty("location", outcome.frame().location());
+            result.addProperty("timestampNanos", outcome.frame().timestampNanos());
+            result.addProperty("width", outcome.frame().width());
+            result.addProperty("height", outcome.frame().height());
+            result.addProperty("sizeBytes", outcome.frame().sizeBytes());
+            if (outcome.audio() != null) {
+                JsonObject audio = new JsonObject();
+                audio.addProperty("sampleCount", outcome.audio().sampleCount());
+                audio.addProperty("startNanos", outcome.audio().startNanos());
+                audio.addProperty("endNanos", outcome.audio().endNanos());
+                audio.addProperty("pcmBase64", java.util.Base64.getEncoder().encodeToString(outcome.audio().pcm()));
+                result.add("audio", audio);
+            }
+            return result;
+        } catch (ControlException e) { throw e;
+        } catch (Exception e) { throw new ControlException(ControlErrorCode.E_INTERNAL, "capture 失败：" + e.getMessage()); }
     }
 
     private JsonElement create(JsonObject params) {

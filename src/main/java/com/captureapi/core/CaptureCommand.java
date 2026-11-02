@@ -134,7 +134,7 @@ public final class CaptureCommand {
             Map<String, String> p = ParamParser.parse(paramString);
             List<String> warnings = new ArrayList<>();
 
-            // 相机参数（pos/rot/fov 未提供时用 active 相机或玩家位置）
+            // 相机参数
             CameraSpec active = CameraManager.get().active();
             double x, y, z, yaw, pitch, roll, fov;
             if (active != null) {
@@ -150,107 +150,60 @@ public final class CaptureCommand {
                 roll = 0; fov = 70;
             }
             double[] pos = ParamParser.getVec3(p, "pos", x, y, z);
-            x = pos[0]; y = pos[1]; z = pos[2];
             double[] rot = ParamParser.getVec3(p, "rot", yaw, pitch, roll);
-            yaw = rot[0]; pitch = rot[1]; roll = rot[2];
             fov = ParamParser.getDouble(p, "fov", fov, 1, 179);
 
-            // 滤镜（per-request 覆盖）
-            String filterName = p.get("filter");
-            if (filterName != null) {
-                if ("none".equalsIgnoreCase(filterName) || "off".equalsIgnoreCase(filterName)) {
-                    FilterRegistry.get().select("");
-                    info(ctx, "滤镜已关闭");
-                } else if (FilterRegistry.get().names().contains(filterName)) {
-                    FilterRegistry.get().select(filterName);
-                    info(ctx, "滤镜：" + filterName);
-                } else {
-                    warnings.add("滤镜不存在：" + filterName + "（可用：" + String.join(",", FilterRegistry.get().names()) + "）");
-                }
-            }
+            // 构建统一 FrameRequest（与 WS/Java API 同一函数）
+            var builder = com.captureapi.net.FrameRequest.builder()
+                    .position(pos[0], pos[1], pos[2])
+                    .rotation((float) rot[0], (float) rot[1], (float) rot[2])
+                    .fov(fov);
 
-            // 叠加（per-request 覆盖）
+            // 滤镜
+            String filterName = p.get("filter");
+            if (filterName != null) builder.filter(filterName);
+
+            // 叠加
             String overlaySpec = p.get("overlay");
             if (overlaySpec != null) {
-                if ("none".equalsIgnoreCase(overlaySpec) || "clear".equalsIgnoreCase(overlaySpec)) {
-                    OverlayRegistry.get().clear();
-                    info(ctx, "叠加已清空");
-                } else {
-                    var result = ParamParser.parseOverlay(overlaySpec);
-                    if (result != null) {
-                        if (OverlayRegistry.get().show(result)) {
-                            info(ctx, "叠加：" + result.image() + " @(" + f2(result.x()) + "," + f2(result.y())
-                                    + ") scale=" + f2(result.scaleX()) + "x" + f2(result.scaleY())
-                                    + " rot=" + f2(result.rotation()) + " opacity=" + f2(result.opacity()));
-                        } else {
-                            warnings.add("叠加图不存在：" + result.image() + "（可用：" + String.join(",", OverlayRegistry.get().images()) + "）");
-                        }
-                    } else {
-                        warnings.add("叠加格式错误：" + overlaySpec + "（正确：名称 或 名称@x,y,scaleX,scaleY,rotation,opacity）");
-                    }
-                }
+                var model = ParamParser.parseOverlay(overlaySpec);
+                if (model != null) builder.overlay(model);
+                else warnings.add("叠加格式错误：" + overlaySpec);
             }
 
             // 质量/分辨率
             int quality = (int) ParamParser.getDouble(p, "quality", -1, 1, 100);
+            if (quality > 0) builder.quality(quality);
             String res = p.get("res");
-            int width = 0, height = 0;
             if (res != null) {
                 try {
                     String[] wh = res.toLowerCase().split("x");
-                    width = Integer.parseInt(wh[0].trim());
-                    height = Integer.parseInt(wh[1].trim());
+                    builder.resolution(Integer.parseInt(wh[0].trim()), Integer.parseInt(wh[1].trim()));
                 } catch (Exception e) { warnings.add("分辨率格式错误：" + res + "（正确：1280x1024）"); }
             }
 
             // 音频
             double audioSec = ParamParser.getDouble(p, "audio", 0, 0, 60);
+            if (audioSec > 0) builder.audio(true, (int) Math.ceil(audioSec * 100));
 
             // 输出
             String outPath = p.get("out");
+            if (outPath != null) builder.outputPath(java.nio.file.Path.of(outPath));
 
-            // 执行截取
-            var player = ctx.getSource().getPlayer();
-            CameraCreateParams.Builder builder = CameraCreateParams.builder()
-                    .position(x, y, z)
-                    .rotation((float) yaw, (float) pitch, (float) roll)
-                    .fov(fov);
-            if (width > 0 && height > 0) builder.resolution(width, height);
+            // ★ 调用统一函数（与 WS capture action / Java API 同一入口）
+            var outcome = com.captureapi.net.CaptureApi.capture(builder.build());
 
-            // 临时相机渲染一帧
-            var future = com.captureapi.net.CaptureApi.grabFrame(builder.build(), 10000);
-            var frame = future.get(10, java.util.concurrent.TimeUnit.SECONDS);
-
-            if (frame != null) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("§a截取成功§r ").append(frame.width()).append("x").append(frame.height())
-                        .append(" ts=").append(frame.timestampNanos())
-                        .append(" ").append(frame.jpeg().length).append("B");
-                if (outPath != null) {
-                    try {
-                        java.nio.file.Path path = java.nio.file.Path.of(outPath);
-                        java.nio.file.Files.createDirectories(path.getParent());
-                        java.nio.file.Files.write(path, frame.jpeg());
-                        sb.append(" §b→ ").append(path.toAbsolutePath());
-                    } catch (Exception e) { sb.append(" §c写文件失败：").append(e.getMessage()); }
-                }
-                ok(ctx, sb.toString());
-            } else {
-                err(ctx, "截取失败（无帧返回，需进入世界）");
+            var frame = outcome.frame();
+            StringBuilder sb = new StringBuilder();
+            sb.append("§a截取成功§r ").append(frame.width()).append("x").append(frame.height())
+                    .append(" ts=").append(frame.timestampNanos())
+                    .append(" ").append(frame.sizeBytes()).append("B");
+            if (frame.isFile()) sb.append(" §b→ ").append(frame.location());
+            if (outcome.audio() != null) {
+                sb.append(" §d+音频 ").append(outcome.audio().sampleCount()).append("采样");
             }
+            ok(ctx, sb.toString());
 
-            // 音频截面
-            if (audioSec > 0) {
-                try {
-                    var chunk = com.captureapi.net.CaptureApi.grabAudioSection(x, y, z, (int) Math.ceil(audioSec * 100))
-                            .get(5, java.util.concurrent.TimeUnit.SECONDS);
-                    if (chunk != null) {
-                        info(ctx, "音频截面：" + chunk.sampleCount() + " 采样 " + chunk.pcm().length + "B");
-                    }
-                } catch (Exception e) { warnings.add("音频截面失败：" + e.getMessage()); }
-            }
-
-            // 打印警告
             for (String w : warnings) err(ctx, "§e⚠ " + w + "§r");
             return 1;
         } catch (Exception e) {

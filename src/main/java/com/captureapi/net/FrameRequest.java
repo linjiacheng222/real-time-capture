@@ -2,7 +2,11 @@ package com.captureapi.net;
 
 import com.captureapi.video.camera.CameraCreateParams;
 import com.captureapi.video.camera.CameraSpec;
+import com.captureapi.video.overlay.OverlayModel;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -44,6 +48,8 @@ public final class FrameRequest {
     private final UUID boundEntity;
     private final boolean includeAudio;
     private final int audioChunks;
+    private final String filter;
+    private final List<OverlayModel> overlays;
 
     private FrameRequest(Builder builder) {
         this.outputMethod = builder.outputMethod;
@@ -68,6 +74,8 @@ public final class FrameRequest {
         this.boundEntity = builder.boundEntity;
         this.includeAudio = builder.includeAudio;
         this.audioChunks = builder.audioChunks;
+        this.filter = builder.filter;
+        this.overlays = builder.overlays == null ? null : Collections.unmodifiableList(new ArrayList<>(builder.overlays));
         if (builder.positionSet && builder.boundEntity != null) {
             throw new IllegalArgumentException("position 与 boundEntity 互斥，不能同时指定");
         }
@@ -121,6 +129,16 @@ public final class FrameRequest {
 
     public int audioChunks() {
         return audioChunks;
+    }
+
+    /** @return 滤镜覆盖（null=不覆盖沿用全局；空串=关闭滤镜；非空=选中该滤镜） */
+    public String filter() {
+        return filter;
+    }
+
+    /** @return 叠加覆盖（null=不覆盖沿用全局；空列表=清空；非空=替换为该列表） */
+    public List<OverlayModel> overlays() {
+        return overlays;
     }
 
     /**
@@ -188,6 +206,8 @@ public final class FrameRequest {
         private UUID boundEntity;
         private boolean includeAudio;
         private int audioChunks = 1;
+        private String filter;
+        private List<OverlayModel> overlays;
 
         public Builder outputMethod(OutputMethod outputMethod) {
             this.outputMethod = outputMethod;
@@ -261,6 +281,24 @@ public final class FrameRequest {
         public Builder audio(boolean includeAudio, int chunks) {
             this.includeAudio = includeAudio;
             this.audioChunks = chunks;
+            return this;
+        }
+
+        /** 滤镜覆盖：null=不覆盖；""=关闭；"name"=选中 */
+        public Builder filter(String filter) {
+            this.filter = filter;
+            return this;
+        }
+
+        /** 叠加覆盖（null=不覆盖；空列表=清空；非空=替换） */
+        public Builder overlays(List<OverlayModel> overlays) {
+            this.overlays = overlays;
+            return this;
+        }
+
+        /** 便捷：单层叠加覆盖 */
+        public Builder overlay(OverlayModel overlay) {
+            this.overlays = overlay == null ? null : List.of(overlay);
             return this;
         }
 

@@ -96,8 +96,16 @@ public final class CaptureApi {
         if (request.continuous()) {
             throw new UnsupportedOperationException("continuous=true 持续帧获取未实现（流式请用 WS/MJPEG）");
         }
-        if (request.includeAudio()) {
-            throw new UnsupportedOperationException("音频截面未实现（W-071）");
+        // ===== 统一滤镜覆盖 =====
+        if (request.filter() != null) {
+            com.captureapi.video.filter.FilterRegistry.get().select(request.filter());
+        }
+        // ===== 统一叠加覆盖 =====
+        if (request.overlays() != null) {
+            com.captureapi.video.overlay.OverlayRegistry.get().clear();
+            for (var model : request.overlays()) {
+                com.captureapi.video.overlay.OverlayRegistry.get().show(model);
+            }
         }
         CameraSpec active = CameraManager.get().active();
         boolean oneShot = request.temporary() || request.hasExplicitCamera() || active == null;
@@ -165,6 +173,39 @@ public final class CaptureApi {
         Files.write(path, output, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING,
                 StandardOpenOption.WRITE);
         return FrameResult.file(path, frame.timestampNanos(), frame.width(), frame.height(), output.length);
+    }
+
+    /**
+     * 统一帧获取＋音频截面：三接口（游戏指令/WS/Java）唯一汇聚点。
+     *
+     * <p>滤镜/叠加在 captureFrame 内部作为 request 级覆盖处理；音频截面在帧获取后异步采集。
+     * 返回 CaptureOutcome 含 FrameResult＋可选 AudioChunk。</p>
+     *
+     * @param request 统一参数
+     * @return 帧＋可选音频
+     * @throws IOException 帧获取/文件写入失败
+     */
+    public static CaptureOutcome capture(FrameRequest request) throws IOException {
+        FrameResult frameResult = captureFrame(request);
+        AudioChunk audioChunk = null;
+        if (request.includeAudio()) {
+            try {
+                CameraSpec active = CameraManager.get().active();
+                double ax = active != null ? active.positionX() : 0;
+                double ay = active != null ? active.positionY() : 64;
+                double az = active != null ? active.positionZ() : 0;
+                audioChunk = grabAudioSection(ax, ay, az, request.audioChunks())
+                        .get(5, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                LOGGER.warn("{} [API] capture 音频截面失败（不影响帧结果）：{}",
+                        CaptureConstants.LOG_MARKER, e.getMessage());
+            }
+        }
+        return new CaptureOutcome(frameResult, audioChunk);
+    }
+
+    /** 统一 capture 结果：帧＋可选音频 */
+    public record CaptureOutcome(FrameResult frame, AudioChunk audio) {
     }
 
     private static Path uniquePath(Path path) {
