@@ -2,6 +2,7 @@ package com.captureapi.net;
 
 import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.core.constant.ProtocolConstants;
+import com.captureapi.video.camera.CameraFrameStore;
 import com.captureapi.video.camera.CameraManager;
 import com.captureapi.video.frame.JpegFrame;
 import com.captureapi.video.frame.VideoFrameBus;
@@ -53,8 +54,10 @@ public final class HttpVideoHandler implements HttpHandler {
                 return;
             }
             int active = CameraManager.get().activeCameraId();
-            if (route.cameraId != 0 && route.cameraId != active) {
-                sendJson(exchange, ProtocolConstants.HTTP_NOT_FOUND, "{\"ok\":false,\"error\":{\"code\":\"E_CAMERA_NOT_ACTIVE\"}}");
+            if (route.cameraId != 0 && route.cameraId != active
+                    && CameraManager.get().get(route.cameraId) == null) {
+                sendJson(exchange, ProtocolConstants.HTTP_NOT_FOUND,
+                        "{\"ok\":false,\"error\":{\"code\":\"E_CAMERA_NOT_FOUND\"}}");
                 return;
             }
             if (route.cameraId == 0 && active == 0) {
@@ -67,9 +70,9 @@ public final class HttpVideoHandler implements HttpHandler {
                 return;
             }
             if (route.stream) {
-                handleStream(exchange);
+                handleStream(exchange, route.cameraId);
             } else {
-                handleFrame(exchange);
+                handleFrame(exchange, route.cameraId);
             }
         } catch (IOException e) {
             throw e;
@@ -86,12 +89,21 @@ public final class HttpVideoHandler implements HttpHandler {
         }
     }
 
-    private void handleFrame(HttpExchange exchange) throws IOException {
+    /** 取指定相机最新帧：0/active 走全局流，其余走多相机缓存。 */
+    private static JpegFrame latestFrame(int cameraId) {
+        int active = CameraManager.get().activeCameraId();
+        if (cameraId == 0 || cameraId == active) {
+            return VideoFrameBus.get().latest();
+        }
+        return CameraFrameStore.get(cameraId);
+    }
+
+    private void handleFrame(HttpExchange exchange, int cameraId) throws IOException {
         if (!frameRateGate.tryAcquire()) {
             sendJson(exchange, ProtocolConstants.HTTP_TOO_MANY_REQUESTS, "{\"ok\":false,\"error\":{\"code\":\"E_RATE_LIMIT\"}}");
             return;
         }
-        JpegFrame frame = VideoFrameBus.get().latest();
+        JpegFrame frame = latestFrame(cameraId);
         if (frame == null) {
             sendNoContent(exchange);
             return;
@@ -108,7 +120,7 @@ public final class HttpVideoHandler implements HttpHandler {
         }
     }
 
-    private void handleStream(HttpExchange exchange) throws IOException {
+    private void handleStream(HttpExchange exchange, int cameraId) throws IOException {
         if (!manager.tryAcquireHttpStream()) {
             sendJson(exchange, ProtocolConstants.HTTP_SERVICE_UNAVAILABLE, "{\"ok\":false,\"error\":{\"code\":\"E_CONNECTION_LIMIT\"}}");
             return;
@@ -122,7 +134,7 @@ public final class HttpVideoHandler implements HttpHandler {
         exchange.sendResponseHeaders(ProtocolConstants.HTTP_OK, 0);
         try (OutputStream output = exchange.getResponseBody()) {
             while (true) {
-                JpegFrame frame = VideoFrameBus.get().latest();
+                JpegFrame frame = latestFrame(cameraId);
                 if (frame != null && frame.timestampNanos() != lastTimestamp) {
                     lastTimestamp = frame.timestampNanos();
                     long writeStart = com.captureapi.core.time.CaptureClock.get().nowNanos();

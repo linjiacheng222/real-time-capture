@@ -303,6 +303,10 @@ public final class NetworkServiceManager {
         json.addProperty("remote_requests", RemoteCaptureClient.requests());
         json.addProperty("remote_accepted", RemoteCaptureClient.accepted());
         json.addProperty("remote_last_code", RemoteCaptureClient.lastCode());
+        json.addProperty("multicam_cached_cameras",
+                com.captureapi.video.camera.CameraFrameStore.size());
+        json.addProperty("multicam_interval_ms",
+                com.captureapi.core.constant.CaptureConstants.MULTI_CAMERA_INTERVAL_MS);
         json.addProperty("offscreen_rendered_frames", com.captureapi.video.render.OffscreenRenderPipeline.renderedFrames());
         json.addProperty("readback_frames", com.captureapi.video.render.OffscreenRenderPipeline.readbackFrames());
         json.addProperty("encoded_frames", com.captureapi.video.encode.EncodingPipeline.get().encodedFrames());

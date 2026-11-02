@@ -160,6 +160,7 @@ GET http://127.0.0.1:25580/health
 | `audio_ring_written/dropped/silent` | 音频环计数 |
 | `shader_backend/shader_detected/shader_active` | 光影探测（Oculus 未适配） |
 | `remote_ready/remote_requests/remote_accepted/remote_last_code` | M9 远程申请 |
+| `multicam_cached_cameras/multicam_interval_ms` | P2.3 v1 多相机缓存/时间片间隔 |
 | `sync_delta_ms_avg/sync_delta_samples/sync_regressions/sync_warnings` | 同步监测 |
 | `render_backpressure` | 固定为 `drop_old_keep_latest` |
 
@@ -169,13 +170,15 @@ GET http://127.0.0.1:25580/health
 GET /camera/{id}/frame
 ```
 - `id=0` = active；
-- id 非 0 且不是 active → `404 E_CAMERA_NOT_ACTIVE`；
-- 无 active 且 id=0 → `204`（不挂起）；
+- `id` = active：读 `VideoFrameBus.latest()`；
+- `id` = 非 active 相机：读 `CameraFrameStore`（多相机时间片 v1，约 250ms/帧）；
+- 不存在的相机 → `404 E_CAMERA_NOT_FOUND`；
+- 相机存在但暂无缓存帧 → `204`（单帧）/心跳（流）；
+- 无 active 且 id=0 → `204`（单帧）/`404 E_NO_ACTIVE_CAMERA`（流）；
 - 成功：`200 image/jpeg` + `X-Frame-Timestamp/Width/Height`；
-- 限速：超过 `max_qps` → `429 E_RATE_LIMIT`；
-- **注意**：当前单帧/流读取的是 `VideoFrameBus.latest()`，并不按相机 id 独立取每台相机；id 只用于 active 校验。
+- 限速：超过 `max_qps` → `429 E_RATE_LIMIT`。
 
-### 4.3 MJPEG
+### 4.3 MJPEG（多相机 v1）
 
 ```
 GET /camera/{id}/stream
@@ -184,7 +187,8 @@ GET /camera/{id}/stream
 - 每帧附带 `X-Frame-Timestamp`；
 - 无帧时写心跳空行；
 - 并发流上限：超过 `max_connections` → `503 E_CONNECTION_LIMIT`；
-- 无 active 且 id=0 → `404 E_NO_ACTIVE_CAMERA`。
+- 无 active 且 id=0 → `404 E_NO_ACTIVE_CAMERA`；
+- 非 active id 使用 `CameraFrameStore` 时间片帧（约 250ms/帧），不是连续 30fps。
 
 ### 4.4 鉴权
 
@@ -419,6 +423,7 @@ import com.captureapi.net.CaptureApi.CaptureOutcome;
 | 方法 | 说明 | 线程 |
 |---|---|---|
 | `latestFrame()` | 最新 `JpegFrame` 或 null | 任意线程只读 |
+| `latestCameraFrame(id)` | 指定相机最新帧：active/0 走总线，非 active 走多相机缓存 | 任意线程只读 |
 | `grabFrame(CameraCreateParams,timeoutMs)` | 临时相机渲一帧 Future | 任意线程提交；渲染线程完成 |
 | `captureFrame(FrameRequest)` | 同步取帧（FILE/HTTP），不取音频 | **禁止渲染线程** |
 | `capture(FrameRequest)` | 帧 + 可选音频（推荐统一入口） | **禁止渲染线程**，可能阻塞到音频完成 |
@@ -535,6 +540,15 @@ RecordingStatus st = RecordingSession.get().stop();
 
 ---
 
+## 九点五、P2.3 v1 多相机输出
+
+- 存在多个相机时，后台服务每 250ms 对每个**非 active** 相机提交一次实时调取，结果存 `CameraFrameStore`；
+- active 相机继续走原有连续 `VideoFrameBus`；
+- HTTP `/camera/{id}/frame|stream` 与 Java `CaptureApi.latestCameraFrame(id)` 可按 id 读取；
+- 仍是**时间片 + 共享 FBO/PBO**：active 流会被 one-shot 挤占降帧，不是每相机独立 FBO/PBO 并行渲染；
+- `camera.pause` 的相机不参与；删除相机后缓存清理；
+- `/health` 暴露 `multicam_cached_cameras/multicam_interval_ms`。
+
 ## 十、参数（config）
 
 ### 10.1 WS / 游戏
@@ -620,7 +634,7 @@ WS `overlay.show` 参数：`image,x,y,scaleX,scaleY,rotation,opacity`；需 `ove
 | 渲染/音频名单实际过滤 | ⚠️ 首版挂接：离屏实体/全局音频；方块/粒子与 capture-only 未覆盖 |
 | 远程 MP/M9 | ✅ dev+生产主链路 PASS |
 | GLSL 滤镜 | ❌ P2.1 裁剪 |
-| 多路独立渲染 | ❌ P2.3 |
+| 多路独立渲染 | ⚠️ P2.3 v1：非 active 相机时间片独立输出（共享 FBO/PBO，约250ms）；非并行独立 FBO/PBO |
 | GPU 叠加 | ❌ P2.4 |
 | Oculus 离屏适配 | ❌ W-043；仅探测 |
 | continuous 连续帧 | ❌ Unsupported |
@@ -698,7 +712,8 @@ ffmpeg -y -i http://127.0.0.1:25580/camera/0/stream -t 10 -c copy mjpeg.mkv
 - P1.7 配置持久化增加“保存前备份 + 保存后自校验 + 失败回滚文件”；
 - P2.2 首版挂接：离屏实体渲染名单 + SoundEngine 音频名单；
 - P1.4 录像 `jpegQuality` 已实现请求级重编码；
-- P2.1/P2.3/P2.4 按计划裁剪条件（GLSL/多路/GPU 叠加）仍不实施；如需产品化须立独立里程碑。
+- P2.3 v1 多相机时间片输出已实现（HTTP/Java 按相机 id 读取；共享 FBO/PBO，非并行）；
+- P2.1 GLSL、P2.4 GPU 叠加仍按计划裁剪条件不实施。
 
 ## 十八、版本与变更摘要
 

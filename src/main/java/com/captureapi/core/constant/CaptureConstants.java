@@ -51,6 +51,10 @@ public final class CaptureConstants {
 
     /** 实时调取同帧请求上限（超出拒绝；队列结构常数；附录 B §四白名单）。 */
     public static final int ONESHOT_QUEUE_CAPACITY = 4;
+    /** P2.3 v1 多相机时间片间隔（毫秒）。 */
+    public static final long MULTI_CAMERA_INTERVAL_MS = 250L;
+    /** P2.3 v1 多相机单次调取超时（毫秒）。 */
+    public static final long MULTI_CAMERA_TIMEOUT_MS = 2000L;
 
     // ===== 换算类 =====
 

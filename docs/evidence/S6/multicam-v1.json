@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-02T22:47:00+08:00",
+  "test": "P2.3 v1 multi-camera time-sliced frames via HTTP",
+  "cameras": [
+    {
+      "id": 1,
+      "active": true,
+      "http_bytes": 228108,
+      "http_status": 200
+    },
+    {
+      "id": 2,
+      "active": false,
+      "http_bytes": 209391,
+      "http_status": 200
+    }
+  ],
+  "nonexistent_camera": {
+    "id": 3,
+    "http_status": 404
+  },
+  "notes": "active uses VideoFrameBus; non-active rendered by MultiCameraCaptureService one-shot every 250ms into CameraFrameStore; shared FBO/PBO sequential, not independent parallel FBO/PBO; MJPEG/WS active only; camera limit 2"
+}
