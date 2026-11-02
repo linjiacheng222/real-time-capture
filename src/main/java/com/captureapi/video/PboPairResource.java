@@ -45,6 +45,19 @@ public final class PboPairResource implements ManagedGlResource {
     private long readFrameCount;
     private long droppedFrameCount;
     private long rebuildCount;
+    private final int fixedWidth;
+    private final int fixedHeight;
+
+    /** 默认构造：尺寸跟随全局 video_resolution（单路管线）。 */
+    public PboPairResource() {
+        this(-1, -1);
+    }
+
+    /** 固定尺寸构造（多相机独立 PBO；不注册 WorldResourceManager）。 */
+    public PboPairResource(int width, int height) {
+        this.fixedWidth = width;
+        this.fixedHeight = height;
+    }
 
     @Override
     public String key() {
@@ -190,8 +203,8 @@ public final class PboPairResource implements ManagedGlResource {
      * @return true=容量就绪且本帧可读；false=刚重建（本帧应丢）
      */
     private boolean ensureCapacity() {
-        int desiredWidth = CaptureParams.get().videoWidth();
-        int desiredHeight = CaptureParams.get().videoHeight();
+        int desiredWidth = fixedWidth > 0 ? fixedWidth : CaptureParams.get().videoWidth();
+        int desiredHeight = fixedHeight > 0 ? fixedHeight : CaptureParams.get().videoHeight();
         int desiredCapacity = desiredWidth * desiredHeight * CaptureConstants.RGBA_BYTES_PER_PIXEL;
         if (isCreated() && width == desiredWidth && height == desiredHeight && capacity == desiredCapacity) {
             return true;

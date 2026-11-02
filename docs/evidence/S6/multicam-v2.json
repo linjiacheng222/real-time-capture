@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-02T22:50:00+08:00",
+  "test": "P2.3 v2 per-camera independent FBO/PBO/JPEG renderer",
+  "cameras": [
+    {
+      "id": 1,
+      "active": true,
+      "http_bytes": 238053,
+      "timestamps": [
+        203723907224500,
+        203724730578900,
+        203725460189800,
+        203726204531400
+      ]
+    },
+    {
+      "id": 2,
+      "active": false,
+      "http_bytes": 203814,
+      "timestamps": [
+        203724095166200,
+        203724622082400,
+        203725418357900,
+        203726251118400
+      ]
+    }
+  ],
+  "health": {
+    "frames": 70,
+    "fps": 18,
+    "multicam_cached_cameras": 1
+  },
+  "notes": "non-active camera rendered by MultiCameraRenderer with independent TextureTarget+PboPair+JpegEncoder every ~250ms; active camera continues VideoFrameBus; no GL/Mixin errors observed; sequential time-slice, not simultaneous parallel; WS binary still active only"
+}

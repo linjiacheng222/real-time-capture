@@ -171,7 +171,7 @@ GET /camera/{id}/frame
 ```
 - `id=0` = active；
 - `id` = active：读 `VideoFrameBus.latest()`；
-- `id` = 非 active 相机：读 `CameraFrameStore`（多相机时间片 v1，约 250ms/帧）；
+- `id` = 非 active 相机：读 `CameraFrameStore`（多相机时间片 v2，约 250ms/帧；独立 FBO/PBO/编码器）；
 - 不存在的相机 → `404 E_CAMERA_NOT_FOUND`；
 - 相机存在但暂无缓存帧 → `204`（单帧）/心跳（流）；
 - 无 active 且 id=0 → `204`（单帧）/`404 E_NO_ACTIVE_CAMERA`（流）；
@@ -540,14 +540,17 @@ RecordingStatus st = RecordingSession.get().stop();
 
 ---
 
-## 九点五、P2.3 v1 多相机输出
+## 九点五、P2.3 v2 多相机独立渲染
 
-- 存在多个相机时，后台服务每 250ms 对每个**非 active** 相机提交一次实时调取，结果存 `CameraFrameStore`；
+- 存在多个相机时，`MultiCameraRenderer` 每 250ms 轮询一个**非 active** 相机，用该相机自己的
+  `TextureTarget + PboPair + JpegEncoder` 独立渲染一帧，写入 `CameraFrameStore`；
 - active 相机继续走原有连续 `VideoFrameBus`；
 - HTTP `/camera/{id}/frame|stream` 与 Java `CaptureApi.latestCameraFrame(id)` 可按 id 读取；
-- 仍是**时间片 + 共享 FBO/PBO**：active 流会被 one-shot 挤占降帧，不是每相机独立 FBO/PBO 并行渲染；
-- `camera.pause` 的相机不参与；删除相机后缓存清理；
+- 已做每相机独立 FBO/PBO/编码器；但仍是**渲染线程时间片顺序**，不是同一帧并行多路；active 流会因额外渲染降帧；
+- `camera.pause` 的相机不参与；删除相机后 GL 资源/缓存清理；
 - `/health` 暴露 `multicam_cached_cameras/multicam_interval_ms`。
+
+dev 实测（2026-11-02）：cam1 active 238,053B、cam2 非 active 203,814B，四次采样时间戳持续更新；无 GL/Mixin 错误；证据 `docs/evidence/S6/multicam-v2.json`。
 
 ## 十、参数（config）
 
@@ -634,7 +637,7 @@ WS `overlay.show` 参数：`image,x,y,scaleX,scaleY,rotation,opacity`；需 `ove
 | 渲染/音频名单实际过滤 | ⚠️ 首版挂接：离屏实体/全局音频；方块/粒子与 capture-only 未覆盖 |
 | 远程 MP/M9 | ✅ dev+生产主链路 PASS |
 | GLSL 滤镜 | ❌ P2.1 裁剪 |
-| 多路独立渲染 | ⚠️ P2.3 v1：非 active 相机时间片独立输出（共享 FBO/PBO，约250ms）；非并行独立 FBO/PBO |
+| 多路独立渲染 | ⚠️ P2.3 v2：每相机独立 FBO/PBO/编码器，时间片顺序渲染（约250ms）；非同一帧并行 |
 | GPU 叠加 | ❌ P2.4 |
 | Oculus 离屏适配 | ❌ W-043；仅探测 |
 | continuous 连续帧 | ❌ Unsupported |
@@ -712,7 +715,7 @@ ffmpeg -y -i http://127.0.0.1:25580/camera/0/stream -t 10 -c copy mjpeg.mkv
 - P1.7 配置持久化增加“保存前备份 + 保存后自校验 + 失败回滚文件”；
 - P2.2 首版挂接：离屏实体渲染名单 + SoundEngine 音频名单；
 - P1.4 录像 `jpegQuality` 已实现请求级重编码；
-- P2.3 v1 多相机时间片输出已实现（HTTP/Java 按相机 id 读取；共享 FBO/PBO，非并行）；
+- P2.3 v2 多相机独立 FBO/PBO/编码器已实现（时间片循环；HTTP/Java 按相机 id 读取；非同一帧并行）；
 - P2.1 GLSL、P2.4 GPU 叠加仍按计划裁剪条件不实施。
 
 ## 十八、版本与变更摘要

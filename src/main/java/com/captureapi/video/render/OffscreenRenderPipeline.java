@@ -95,7 +95,7 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
     }
 
     private void trigger(float partialTick) {
-        if (rendering.get()) {
+        if (rendering.get() || OffscreenPoseContext.current() != null) {
             return;
         }
         // 实时调取优先且与流式同帧互斥：有请求时本帧只渲染临时相机

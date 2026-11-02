@@ -2,7 +2,7 @@ package com.captureapi.core;
 
 import com.captureapi.CaptureInterface;
 import com.captureapi.net.RemoteCaptureClient;
-import com.captureapi.video.camera.MultiCameraCaptureService;
+import com.captureapi.video.camera.MultiCameraRenderer;
 import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.core.resource.WorldResourceManager;
 import com.captureapi.core.time.CaptureClock;
@@ -41,7 +41,7 @@ public final class ClientSetupHandler {
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         RemoteCaptureClient.init();
-        MultiCameraCaptureService.install();
+        MultiCameraRenderer.install();
         // T1.4：时钟作为全局级资源（T1.2 同构），随模组生命周期。
         WorldResourceManager.get().registerGlobalScoped(CaptureClock.KEY, CaptureClock::get);
 
