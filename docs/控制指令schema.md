@@ -1,5 +1,7 @@
 # WebSocket 控制指令 Schema（T4.3，契约冻结候选）
 
+> 2026-11-02 修订提示：当前已有 34 个 action（含 capture/recording/config/filter/overlay 等），本文仅覆盖相机域；完整列表以 `docs/API使用说明.md` 为准。
+
 > 状态：**T4.3 代码完成**（2026-11-01）；dev 运行时已实测 create/list/status/delete 与三类错误路径；运镜延迟/视频实推待测试分计划。
 > 关联：I4.3.1~I4.3.4、CameraManager（I2.1）、错误码表。
 
