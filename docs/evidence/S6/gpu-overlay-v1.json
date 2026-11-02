@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-02T22:57:00+08:00",
+  "test": "P2.4 GPU overlay v1 (one-shot capture)",
+  "jvm_property": "captureapi.overlay.gpu=true",
+  "overlay": {
+    "image": "test_overlay",
+    "width": 32,
+    "height": 16,
+    "x": 0.5,
+    "y": 0.5,
+    "scaleX": 30,
+    "scaleY": 30,
+    "opacity": 1.0
+  },
+  "output": {
+    "file": "testcases/gpu-overlay2.png",
+    "bytes": 2166560,
+    "width": 1280,
+    "height": 1024
+  },
+  "log": [
+    "[OVERLAY/GPU] GPU 叠加已启用",
+    "[OVERLAY/GPU] 纹理上传：test_overlay（32x16，id=54）"
+  ],
+  "visual": "红色矩形叠加在画面中心，确认 GPU 路径可见；无 GL/shader 异常",
+  "notes": "GPU overlay renders into offscreen FBO before readback; CPU overlay skipped when property enabled; texture cache per image name; default off (JVM property)"
+}

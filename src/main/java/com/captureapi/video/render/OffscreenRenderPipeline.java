@@ -14,6 +14,7 @@ import com.captureapi.video.encode.EncodingPipeline;
 import com.captureapi.video.encode.JpegEncoder;
 import com.captureapi.video.frame.JpegFrame;
 import com.captureapi.video.filter.FilterRegistry;
+import com.captureapi.video.overlay.GpuOverlayRenderer;
 import com.captureapi.video.overlay.OverlayRegistry;
 import com.captureapi.video.frame.RawFrame;
 import com.captureapi.video.camera.CameraManager;
@@ -166,6 +167,7 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
             ShaderCompatHooks.endOffscreenPass();
             // S1/SpikeB 修复：回读前重新绑定离屏 FBO（同流式路径）
             fbo.bind();
+            GpuOverlayRenderer.render(target.width, target.height);
             PboPairResource pbo = WorldResourceManager.get().get(PboPairResource.KEY, PboPairResource.class);
             RawFrame raw = pbo.readbackImmediate();
             fbo.unbind();
@@ -247,6 +249,7 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
             // S1/SpikeB 修复：renderLevel 内部可能临时绑定主 framebuffer（itemEntityTarget 分支），
             // 回读前必须重新绑定离屏 FBO，否则读到的是主画面（表现为“相机位姿不生效/条纹”）。
             fbo.bind();
+            GpuOverlayRenderer.render(target.width, target.height);
             // T2.4：FBO 仍为读/写目标时回读上一帧（写 N 读 N-1）
             PboPairResource pbo = WorldResourceManager.get().get(PboPairResource.KEY, PboPairResource.class);
             long readbackStart = CaptureClock.get().nowNanos();

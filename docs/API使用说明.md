@@ -595,6 +595,11 @@ WS `overlay.show` 参数：`image,x,y,scaleX,scaleY,rotation,opacity`；需 `ove
 游戏：`overlay:name@x,y,sx,sy,rot,opacity`；`overlay:none` 清空。
 > 叠加/滤镜均为全局状态；`capture` 的参数不是隔离的一次性 overlay。
 
+**GPU 叠加（P2.4 v1）**：JVM 属性 `-Dcaptureapi.overlay.gpu=true` 时启用；在离屏 FBO 回读前用
+OpenGL 绘制图层，CPU 合成自动跳过。默认关闭仍走 CPU。限制：纹理按名称缓存、overlay.reload 后旧纹理
+不立即删除；只支持矩形贴图；不进入主画面。dev 已实测红色矩形可见，证据
+`docs/evidence/S6/gpu-overlay-v1.json`。
+
 ### 11.3 渲染/音频名单
 - 文件：`config/captureapi/render_blacklist.txt`、`render_whitelist.txt`、`audio_blacklist.txt`、`audio_whitelist.txt`；
 - `renderfilter`：离屏渲染窗口内按实体注册名过滤（EntityRenderDispatcher HEAD）；主画面不受影响；方块/方块实体/粒子暂未覆盖；
@@ -716,7 +721,8 @@ ffmpeg -y -i http://127.0.0.1:25580/camera/0/stream -t 10 -c copy mjpeg.mkv
 - P2.2 首版挂接：离屏实体渲染名单 + SoundEngine 音频名单；
 - P1.4 录像 `jpegQuality` 已实现请求级重编码；
 - P2.3 v2 多相机独立 FBO/PBO/编码器已实现（时间片循环；HTTP/Java 按相机 id 读取；非同一帧并行）；
-- P2.1 GLSL、P2.4 GPU 叠加仍按计划裁剪条件不实施。
+- P2.4 GPU 叠加 v1 已实现（JVM 属性 `captureapi.overlay.gpu=true`，默认 CPU；证据 gpu-overlay-v1.json）；
+- P2.1 GLSL 仍按计划裁剪条件不实施。
 
 ## 十八、版本与变更摘要
 

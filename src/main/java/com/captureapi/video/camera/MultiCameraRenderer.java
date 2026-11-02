@@ -12,6 +12,7 @@ import com.captureapi.video.encode.JpegEncoder;
 import com.captureapi.video.filter.FilterRegistry;
 import com.captureapi.video.frame.JpegFrame;
 import com.captureapi.video.frame.RawFrame;
+import com.captureapi.video.overlay.GpuOverlayRenderer;
 import com.captureapi.video.overlay.OverlayRegistry;
 import com.captureapi.video.render.CameraStateSnapshot;
 import com.captureapi.video.render.CameraSyncHook;
@@ -140,6 +141,7 @@ public final class MultiCameraRenderer implements CaptureRenderHook.AfterLevelLi
             ShaderCompatHooks.endOffscreenPass();
             // renderLevel 可能重绑主 framebuffer；回读前必须重新绑定独立 FBO（S1/SpikeB 同类修复）
             target.target.bindWrite(true);
+            GpuOverlayRenderer.render(target.width, target.height);
             RawFrame raw = target.pbo.readbackImmediate();
             target.target.unbindWrite();
             if (raw == null) {

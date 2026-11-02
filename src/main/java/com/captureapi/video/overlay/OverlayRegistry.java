@@ -92,6 +92,7 @@ public final class OverlayRegistry {
             }
         }
         images = Collections.unmodifiableMap(loaded);
+        GpuOverlayRenderer.invalidate();
         if (!layers.isEmpty()) {
             List<OverlayModel> valid = new ArrayList<>();
             for (OverlayModel layer : layers) {
@@ -111,6 +112,11 @@ public final class OverlayRegistry {
     /** @return 已加载贴图名 */
     public List<String> images() {
         return new ArrayList<>(images.keySet());
+    }
+
+    /** @return 指定贴图；不存在时 null（GPU 叠加读取） */
+    public BufferedImage image(String name) {
+        return images.get(name);
     }
 
     /** @return 当前图层列表（按层序） */
@@ -151,7 +157,7 @@ public final class OverlayRegistry {
      * @return 合成后的帧（未启用/无图层时原帧）
      */
     public RawFrame apply(RawFrame frame) {
-        if (!active()) {
+        if (GpuOverlayRenderer.isEnabled() || !active()) {
             return frame;
         }
         try {
