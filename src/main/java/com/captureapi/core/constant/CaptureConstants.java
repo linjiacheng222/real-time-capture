@@ -81,6 +81,14 @@ public final class CaptureConstants {
     public static final String DEBUG_MULTILISTENER_SPIKE_PROPERTY = "captureapi.debug.multilistener_spike";
     /** 多 listener Phase 0 Channel/SoundBuffer 探针开关（dev JVM 属性）。 */
     public static final String DEBUG_MULTILISTENER_PROBE_PROPERTY = "captureapi.debug.multilistener_probe";
+    /** Phase 1 多通道合成 self-test 开关（dev JVM 属性）。 */
+    public static final String DEBUG_MULTILISTENER_CHANNELS_PROPERTY = "captureapi.debug.multilistener_channels";
+    /** 多 listener worker 线程优先级（略低于主音频采集）。 */
+    public static final int AUDIO_CHANNEL_THREAD_PRIORITY = 8;
+    /** 多 listener worker 停止 join 上限（毫秒）。 */
+    public static final long AUDIO_CHANNEL_STOP_JOIN_MS = 2000L;
+    /** Phase 1 合成通道 self-test 渲染等待（毫秒）。 */
+    public static final long MULTILISTENER_CHANNEL_TEST_MS = 300L;
     /** Phase 0 合成源采样率（仅 spike）。 */
     public static final int MULTILISTENER_SPIKE_SAMPLE_RATE = 44100;
     /** Phase 0 合成源声道数（仅 spike）。 */

@@ -307,6 +307,18 @@ public final class NetworkServiceManager {
                 com.captureapi.video.camera.CameraFrameStore.size());
         json.addProperty("multicam_interval_ms",
                 com.captureapi.core.constant.CaptureConstants.MULTI_CAMERA_INTERVAL_MS);
+        json.addProperty("audio_multi_listener_enabled",
+                com.captureapi.core.config.CaptureParams.get().audioMultiListenerEnabled());
+        json.addProperty("audio_listener_channels",
+                com.captureapi.audio.multi.AudioChannelRegistry.get().channels().size());
+        json.addProperty("audio_listener_active",
+                com.captureapi.audio.multi.AudioChannelRegistry.get().activeChannelCount());
+        json.addProperty("audio_listener_written",
+                com.captureapi.audio.multi.AudioChannelRegistry.get().writtenTotal());
+        json.addProperty("audio_listener_dropped",
+                com.captureapi.audio.multi.AudioChannelRegistry.get().droppedTotal());
+        json.addProperty("audio_listener_failures",
+                com.captureapi.audio.multi.AudioChannelRegistry.get().failures());
         json.addProperty("offscreen_rendered_frames", com.captureapi.video.render.OffscreenRenderPipeline.renderedFrames());
         json.addProperty("readback_frames", com.captureapi.video.render.OffscreenRenderPipeline.readbackFrames());
         json.addProperty("encoded_frames", com.captureapi.video.encode.EncodingPipeline.get().encodedFrames());

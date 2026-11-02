@@ -214,7 +214,8 @@ public final class RuntimeConfigWriter {
                 }
                 // 需重启类：明确拒绝，不静默生效
                 case "video_resolution", "sample_rate", "bit_depth", "channels", "thread_priority",
-                        "ring_capacity_sec", "net_port", "bind_local_only", "token_enabled", "recording_format" ->
+                        "ring_capacity_sec", "net_port", "bind_local_only", "token_enabled", "recording_format",
+    "audio_multi_listener_enabled", "audio_max_listener_channels", "audio_primary_channel" ->
                         {
                             return new Result(false, key, null, false,
                                     "该参数需重启对应服务/采集/渲染后生效（运行时拒绝，避免结构不一致）");

@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-03T00:27:20+08:00",
+  "phase": "Phase 1 multi-channel infrastructure",
+  "result": "PASS",
+  "selfTest": {
+    "channels": 2,
+    "samplesA": 2205,
+    "samplesB": 2205,
+    "rmsA": 0.0314903592585163,
+    "rmsB": 0.03132625658526441,
+    "nonSilent": true,
+    "different": true,
+    "timestamps": true
+  },
+  "threadLocalContexts": true,
+  "notes": "LoopbackAudioContext uses ALC_EXT_thread_local_context (alcSetThreadContext), so worker context switches do not steal Minecraft player context; no Allocate new source/Invalid operation errors after self-test. Registry created/stopped 2 channels; health counts return to 0."
+}

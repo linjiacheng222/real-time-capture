@@ -1,0 +1,231 @@
+package com.captureapi.audio.multi;
+
+import com.captureapi.core.config.CaptureParams;
+import com.captureapi.core.constant.CaptureConstants;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * 多 listener 音频通道注册表（Phase 1）。
+ *
+ * <p>Phase 1 只负责通道/worker/ring 生命周期与合成 self-test；Phase 4 才接相机/API/WS。
+ * 所有通道都在玩家 audio 初始化后创建，避免 LWJGL AL capabilities 竞态。</p>
+ */
+public final class AudioChannelRegistry {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CaptureConstants.LOG_MARKER);
+    private static final AudioChannelRegistry INSTANCE = new AudioChannelRegistry();
+
+    private final Map<Integer, AudioListenerChannel> channels = new ConcurrentHashMap<>();
+    private final AtomicLong createdTotal = new AtomicLong();
+    private final AtomicLong destroyedTotal = new AtomicLong();
+    private final AtomicLong failures = new AtomicLong();
+    private volatile boolean installed;
+
+    private AudioChannelRegistry() {
+    }
+
+    public static AudioChannelRegistry get() {
+        return INSTANCE;
+    }
+
+    /** 客户端 setup 安装（幂等；不创建通道）。 */
+    public synchronized void install() {
+        if (installed) {
+            return;
+        }
+        installed = true;
+        LOGGER.info("{} [AUDIO/CH] 多 listener 通道注册表已安装（enabled={}，maxListenerChannels={}）",
+                CaptureConstants.LOG_MARKER, CaptureParams.get().audioMultiListenerEnabled(),
+                CaptureParams.get().audioMaxListenerChannels());
+    }
+
+    /** @return 多 listener 功能是否开启 */
+    public boolean enabled() {
+        return CaptureParams.get().audioMultiListenerEnabled();
+    }
+
+    /** 创建并启动相机 listener 通道（Phase 4 使用；Phase 1 self-test 也用）。 */
+    public AudioListenerChannel createCameraChannel(int cameraId, AudioListenerPose pose,
+                                                    double testFrequency, double testX) {
+        if (!enabled() && !Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_CHANNELS_PROPERTY)) {
+            return null;
+        }
+        int existing = channels.size();
+        if (existing >= CaptureParams.get().audioMaxListenerChannels()) {
+            failures.incrementAndGet();
+            LOGGER.warn("{} [AUDIO/CH] listener 通道上限已到：{}", CaptureConstants.LOG_MARKER,
+                    CaptureParams.get().audioMaxListenerChannels());
+            return null;
+        }
+        AudioPcmRing ring = newRing();
+        AudioContextWorker worker = new AudioContextWorker(
+                "captureapi-audio-ch-" + cameraId, ring,
+                ring.sampleRate(), ring.channels(), CaptureParams.get().pollIntervalMs());
+        AudioListenerChannel channel = new AudioListenerChannel(cameraId, AudioChannelKind.CAMERA,
+                cameraId, ring, worker);
+        channel.setListenerPose(pose);
+        if (!channel.start(testFrequency, testX)) {
+            failures.incrementAndGet();
+            return null;
+        }
+        AudioListenerChannel previous = channels.putIfAbsent(cameraId, channel);
+        if (previous != null) {
+            channel.stop();
+            return previous;
+        }
+        createdTotal.incrementAndGet();
+        LOGGER.info("{} [AUDIO/CH] 相机通道启动：camera={}，ring={}B，testTone={}Hz",
+                CaptureConstants.LOG_MARKER, cameraId, ring.slotBytes(), testFrequency);
+        return channel;
+    }
+
+    /** 删除并停止相机通道。 */
+    public void removeChannel(int channelId) {
+        AudioListenerChannel channel = channels.remove(channelId);
+        if (channel != null) {
+            channel.stop();
+            destroyedTotal.incrementAndGet();
+            LOGGER.info("{} [AUDIO/CH] 通道关闭：id={}", CaptureConstants.LOG_MARKER, channelId);
+        }
+    }
+
+    /** 停止全部通道（世界退出/关闭）。 */
+    public synchronized void stopAll() {
+        for (Integer id : new ArrayList<>(channels.keySet())) {
+            removeChannel(id);
+        }
+    }
+
+    public List<AudioChannelInfo> channels() {
+        List<AudioChannelInfo> result = new ArrayList<>();
+        for (AudioListenerChannel channel : channels.values()) {
+            result.add(channel.info());
+        }
+        return List.copyOf(result);
+    }
+
+    public int activeChannelCount() {
+        int count = 0;
+        for (AudioListenerChannel channel : channels.values()) {
+            if (channel.active()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public long createdTotal() {
+        return createdTotal.get();
+    }
+
+    public long destroyedTotal() {
+        return destroyedTotal.get();
+    }
+
+    public long failures() {
+        return failures.get();
+    }
+
+    public long writtenTotal() {
+        long total = 0L;
+        for (AudioListenerChannel channel : channels.values()) {
+            total += channel.ring().writtenPolls();
+        }
+        return total;
+    }
+
+    public long droppedTotal() {
+        long total = 0L;
+        for (AudioListenerChannel channel : channels.values()) {
+            total += channel.ring().droppedPolls();
+        }
+        return total;
+    }
+
+    /**
+     * Phase 1 开发 self-test：两个合成 camera 通道，验证独立 PCM/线程/ring。
+     * 由 dev 属性触发，不进入正式 API。
+     */
+    public boolean runSyntheticSelfTest() {
+        if (!Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_CHANNELS_PROPERTY)) {
+            return true;
+        }
+        LOGGER.info("{} [AUDIO/CH] Phase 1 合成通道 self-test 开始", CaptureConstants.LOG_MARKER);
+        AudioListenerChannel first = null;
+        AudioListenerChannel second = null;
+        try {
+            first = createCameraChannel(1, new AudioListenerPose(0.0D, 0.0D, 0.0D, 0.0F, 0.0F, 0.0F),
+                    CaptureConstants.MULTILISTENER_SPIKE_FREQUENCY,
+                    CaptureConstants.MULTILISTENER_SPIKE_SOURCE_X);
+            second = createCameraChannel(2,
+                    new AudioListenerPose(CaptureConstants.MULTILISTENER_SPIKE_SOURCE_X, 0.0D, 0.0D,
+                            0.0F, 0.0F, 0.0F),
+                    CaptureConstants.MULTILISTENER_SPIKE_FREQUENCY * 2.0D,
+                    CaptureConstants.MULTILISTENER_SPIKE_SOURCE_X);
+            if (first == null || second == null) {
+                failures.incrementAndGet();
+                LOGGER.error("{} [AUDIO/CH] self-test FAIL：通道创建失败", CaptureConstants.LOG_MARKER);
+                return false;
+            }
+            Thread.sleep(CaptureConstants.MULTILISTENER_CHANNEL_TEST_MS);
+            var a = first.ring().snapshotRecent(5);
+            var b = second.ring().snapshotRecent(5);
+            if (a == null || b == null) {
+                failures.incrementAndGet();
+                LOGGER.error("{} [AUDIO/CH] self-test FAIL：ring 快照为空", CaptureConstants.LOG_MARKER);
+                return false;
+            }
+            boolean nonSilent = rms(a.pcm()) > 0.0D && rms(b.pcm()) > 0.0D;
+            boolean different = !Arrays.equals(a.pcm(), b.pcm());
+            boolean mono = a.startNanos() > 0L && b.startNanos() > 0L;
+            LOGGER.info("{} [AUDIO/CH] self-test samplesA={} samplesB={} rmsA={} rmsB={} "
+                            + "nonSilent={} different={} timestamps={}",
+                    CaptureConstants.LOG_MARKER, a.sampleCount(), b.sampleCount(), rms(a.pcm()),
+                    rms(b.pcm()), nonSilent, different, mono);
+            if (nonSilent && different && mono) {
+                LOGGER.info("{} [AUDIO/CH] self-test PASS：双通道独立 PCM/ring/时间戳",
+                        CaptureConstants.LOG_MARKER);
+                return true;
+            }
+            LOGGER.error("{} [AUDIO/CH] self-test FAIL：不满足非静音/独立/时间戳", CaptureConstants.LOG_MARKER);
+            return false;
+        } catch (Throwable t) {
+            failures.incrementAndGet();
+            LOGGER.error("{} [AUDIO/CH] self-test FAIL：{}", CaptureConstants.LOG_MARKER, t.toString());
+            return false;
+        } finally {
+            if (first != null) {
+                removeChannel(first.id());
+            }
+            if (second != null) {
+                removeChannel(second.id());
+            }
+        }
+    }
+
+    private static AudioPcmRing newRing() {
+        return new AudioPcmRing(CaptureParams.get().sampleRate(), CaptureParams.get().channels(),
+                CaptureParams.get().pollIntervalMs(), CaptureParams.get().ringCapacitySec());
+    }
+
+    private static double rms(byte[] pcm) {
+        if (pcm == null || pcm.length < 2) {
+            return 0.0D;
+        }
+        double sum = 0.0D;
+        int count = pcm.length / 2;
+        for (int i = 0; i < count; i++) {
+            short sample = (short) (((pcm[i * 2 + 1] & 0xFF) << 8) | (pcm[i * 2] & 0xFF));
+            double value = sample / (double) Short.MAX_VALUE;
+            sum += value * value;
+        }
+        return Math.sqrt(sum / count);
+    }
+}

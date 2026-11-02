@@ -62,6 +62,9 @@ public final class CaptureParams {
                 CaptureConfig.POLL_INTERVAL_MS.get(),
                 CaptureConfig.THREAD_PRIORITY.get(),
                 CaptureConfig.RING_CAPACITY_SEC.get(),
+                CaptureConfig.AUDIO_MULTI_LISTENER_ENABLED.get(),
+                CaptureConfig.AUDIO_MAX_LISTENER_CHANNELS.get(),
+                CaptureConfig.AUDIO_PRIMARY_CHANNEL.get(),
                 CaptureConfig.NET_PORT.get(),
                 CaptureConfig.BIND_LOCAL_ONLY.get(),
                 CaptureConfig.LAN_ENABLED.get(),
@@ -222,6 +225,18 @@ public final class CaptureParams {
     /** @return 环形音频缓冲容量（秒，T3.2.3） */
     public double ringCapacitySec() {
         return current().ringCapacitySec();
+    }
+
+    public boolean audioMultiListenerEnabled() {
+        return current().audioMultiListenerEnabled();
+    }
+
+    public int audioMaxListenerChannels() {
+        return current().audioMaxListenerChannels();
+    }
+
+    public String audioPrimaryChannel() {
+        return current().audioPrimaryChannel();
     }
 
     /** @return 是否输出音频缓冲水位（T3.2.3） */
@@ -432,6 +447,9 @@ public final class CaptureParams {
             int pollIntervalMs,
             int threadPriority,
             double ringCapacitySec,
+            boolean audioMultiListenerEnabled,
+            int audioMaxListenerChannels,
+            String audioPrimaryChannel,
             int netPort,
             boolean bindLocalOnly,
             boolean lanEnabled,

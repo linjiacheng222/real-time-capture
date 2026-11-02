@@ -40,6 +40,9 @@ public final class CaptureConfig {
     static final ForgeConfigSpec.IntValue POLL_INTERVAL_MS;
     static final ForgeConfigSpec.IntValue THREAD_PRIORITY;
     static final ForgeConfigSpec.DoubleValue RING_CAPACITY_SEC;
+    static final ForgeConfigSpec.BooleanValue AUDIO_MULTI_LISTENER_ENABLED;
+    static final ForgeConfigSpec.IntValue AUDIO_MAX_LISTENER_CHANNELS;
+    static final ForgeConfigSpec.ConfigValue<String> AUDIO_PRIMARY_CHANNEL;
 
     // ===== [server] =====
     static final ForgeConfigSpec.IntValue NET_PORT;
@@ -127,6 +130,15 @@ public final class CaptureConfig {
         RING_CAPACITY_SEC = builder
                 .comment("环形音频缓冲容量（秒，T3.2.3）")
                 .defineInRange("ring_capacity_sec", 1.0D, 0.1D, 10.0D);
+        AUDIO_MULTI_LISTENER_ENABLED = builder
+                .comment("多 listener 音频总开关（需要 player audio 初始化后生效；重启生效）")
+                .define("audio_multi_listener_enabled", false);
+        AUDIO_MAX_LISTENER_CHANNELS = builder
+                .comment("相机 listener 通道上限（不含 player/virtual；1~4）")
+                .defineInRange("audio_max_listener_channels", 2, 1, 4);
+        AUDIO_PRIMARY_CHANNEL = builder
+                .comment("主音频出口：camera=active 相机（无 active 回退 player），player=玩家")
+                .defineInList("audio_primary_channel", "camera", List.of("camera", "player"));
         builder.pop();
 
         builder.comment("对外网络服务参数（M4 使用）").push("server");

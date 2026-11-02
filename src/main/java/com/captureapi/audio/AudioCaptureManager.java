@@ -132,6 +132,14 @@ public final class AudioCaptureManager {
             LOGGER.info("{} 多 listener Phase 0 spike 已调度（player audio init 之后）",
                     CaptureConstants.LOG_MARKER);
         }
+        if (Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_CHANNELS_PROPERTY)) {
+            Thread test = new Thread(
+                    () -> com.captureapi.audio.multi.AudioChannelRegistry.get().runSyntheticSelfTest(),
+                    "captureapi-multilistener-chtest");
+            test.setDaemon(true);
+            test.start();
+            LOGGER.info("{} Phase 1 多通道合成 self-test 已调度", CaptureConstants.LOG_MARKER);
+        }
     }
 
     /** {@code Library#cleanup} 之前停止采集线程（Mixin Inject HEAD）。 */

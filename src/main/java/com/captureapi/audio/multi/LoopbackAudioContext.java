@@ -10,7 +10,10 @@ import org.lwjgl.openal.ALC;
 import org.lwjgl.openal.ALC10;
 import org.lwjgl.openal.ALCapabilities;
 import org.lwjgl.openal.ALCCapabilities;
+import org.lwjgl.openal.EXTThreadLocalContext;
 import org.lwjgl.openal.SOFTLoopback;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.lwjgl.system.MemoryStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +35,7 @@ public final class LoopbackAudioContext {
     private long device;
     private long context;
     private boolean open;
+    private boolean threadLocalContext;
 
     public LoopbackAudioContext(int sampleRate, int channels) {
         this.sampleRate = sampleRate;
@@ -73,12 +77,16 @@ public final class LoopbackAudioContext {
             LOGGER.warn("{} [AUDIO/CTX] alcCreateContext 返回 0", CaptureConstants.LOG_MARKER);
             return false;
         }
-        if (!ALC10.alcMakeContextCurrent(context)) {
+        // 优先使用线程本地上下文，避免把进程/其他线程的 current context 切走
+        threadLocalContext = ALC10.alcIsExtensionPresent(device, "ALC_EXT_thread_local_context")
+                && EXTThreadLocalContext.alcSetThreadContext(context);
+        if (!threadLocalContext && !ALC10.alcMakeContextCurrent(context)) {
             ALC10.alcDestroyContext(context);
             ALC10.alcCloseDevice(device);
             context = 0L;
             device = 0L;
-            LOGGER.warn("{} [AUDIO/CTX] alcMakeContextCurrent 失败", CaptureConstants.LOG_MARKER);
+            LOGGER.warn("{} [AUDIO/CTX] 设置上下文失败（thread-local={}）",
+                    CaptureConstants.LOG_MARKER, threadLocalContext);
             return false;
         }
         try {
@@ -88,22 +96,24 @@ public final class LoopbackAudioContext {
                 throw new IllegalStateException("ALC/AL capabilities 创建返回 null");
             }
         } catch (Throwable t) {
-            ALC10.alcMakeContextCurrent(0L);
+            releaseCurrentContext();
             ALC10.alcDestroyContext(context);
             ALC10.alcCloseDevice(device);
             context = 0L;
             device = 0L;
+            threadLocalContext = false;
             LOGGER.warn("{} [AUDIO/CTX] OpenAL capabilities 初始化失败：{}",
                     CaptureConstants.LOG_MARKER, t.toString());
             return false;
         }
         if (!SOFTLoopback.alcIsRenderFormatSupportedSOFT(device, sampleRate, channelCode,
                 SOFTLoopback.ALC_SHORT_SOFT)) {
-            ALC10.alcMakeContextCurrent(0L);
+            releaseCurrentContext();
             ALC10.alcDestroyContext(context);
             ALC10.alcCloseDevice(device);
             context = 0L;
             device = 0L;
+            threadLocalContext = false;
             LOGGER.warn("{} [AUDIO/CTX] 环回格式不支持：{}Hz/{}ch/16bit",
                     CaptureConstants.LOG_MARKER, sampleRate, channels);
             return false;
@@ -118,7 +128,7 @@ public final class LoopbackAudioContext {
             return;
         }
         try {
-            ALC10.alcMakeContextCurrent(0L);
+            releaseCurrentContext();
         } catch (Throwable ignored) {
             // 上下文可能已丢失
         }
@@ -131,6 +141,15 @@ public final class LoopbackAudioContext {
             device = 0L;
         }
         open = false;
+        threadLocalContext = false;
+    }
+
+    private void releaseCurrentContext() {
+        if (threadLocalContext) {
+            EXTThreadLocalContext.alcSetThreadContext(0L);
+        } else {
+            ALC10.alcMakeContextCurrent(0L);
+        }
     }
 
     /** @return 当前 context 是否打开 */
@@ -188,6 +207,19 @@ public final class LoopbackAudioContext {
         byte[] pcm = new byte[samples * channels * 2];
         buffer.get(pcm);
         return pcm;
+    }
+
+    /** 设置 listener 位姿（位置/朝向）。 */
+    public void setListener(AudioListenerPose pose) {
+        setListener((float) pose.x(), (float) pose.y(), (float) pose.z());
+        Quaternionf rotation = new Quaternionf().rotationYXZ(
+                (float) Math.toRadians(-pose.yawDegrees()),
+                (float) Math.toRadians(pose.pitchDegrees()),
+                (float) Math.toRadians(pose.rollDegrees()));
+        Vector3f forward = new Vector3f(0.0F, 0.0F, 1.0F).rotate(rotation);
+        Vector3f up = new Vector3f(0.0F, 1.0F, 0.0F).rotate(rotation);
+        AL10.alListenerfv(AL10.AL_ORIENTATION,
+                new float[] {forward.x, forward.y, forward.z, up.x, up.y, up.z});
     }
 
     /** 设置 listener 位置（朝向默认 +Z）。 */

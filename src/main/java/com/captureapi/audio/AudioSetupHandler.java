@@ -1,6 +1,7 @@
 package com.captureapi.audio;
 
 import com.captureapi.CaptureInterface;
+import com.captureapi.audio.multi.AudioChannelRegistry;
 import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.core.resource.WorldResourceManager;
 import net.minecraftforge.api.distmarker.Dist;
@@ -29,6 +30,7 @@ public final class AudioSetupHandler {
     public static void onClientSetup(FMLClientSetupEvent event) {
         WorldResourceManager.get().registerGlobalScoped(AudioRingBuffer.KEY, AudioRingBuffer::get);
         AudioListenerSync.install();
+        AudioChannelRegistry.get().install();
         LOGGER.info("{} 音频设施装配：环形缓冲已注册（{}）", CaptureConstants.LOG_MARKER,
                 AudioRingBuffer.KEY);
     }
