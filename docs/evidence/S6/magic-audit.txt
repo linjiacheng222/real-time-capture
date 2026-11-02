@@ -1,5 +1,5 @@
 Redline-1 magic-number heuristic audit
-files scanned: 97; exempt: ['CaptureConfig.java', 'CaptureConstants.java', 'CaptureParams.java', 'ProtocolConstants.java', 'RuntimeConfigWriter.java']
+files scanned: 96; exempt: ['CaptureConfig.java', 'CaptureConstants.java', 'CaptureParams.java', 'ProtocolConstants.java', 'RuntimeConfigWriter.java']
 numeric literals not in small whitelist: 0
 
 top files:

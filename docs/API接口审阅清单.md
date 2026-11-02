@@ -12,7 +12,7 @@
 |---|---|---|---|
 | Java 门面 | `com.captureapi.net.CaptureApi` | 二次开发唯一编程入口（文档口径） | 画面/音频/相机已实现；录像走 `RecordingSession`，不在门面 |
 | WS 控制 | `CaptureCommandDispatcher` + `CaptureWebSocketServer` | 网络控制/自动化 | 33 个 action；部分 test-only 已门控 |
-| 聊天命令 | `com.captureapi.client.command.CaptureCommands` | **2026-11-02 临时测试壳**，非正式 API | `/captureapi` + `/get_image`；**仅编译/安装，未运行实测** |
+| 聊天命令 | ~~`com.captureapi.client.command.CaptureCommands`~~ | **已按用户要求移除（2026-11-02）**，仅保留历史审阅记录 | 不再存在于当前源码/jar |
 
 **核心问题**：三层入口没有统一的契约来源；WS schema 文档只覆盖相机域，聊天命令又直接调用混合的 WS/Java/内部类，正式接口前需确定“哪一层是对外产品接口”。
 
@@ -110,9 +110,11 @@
 
 ---
 
-## 四、临时聊天命令层（`/captureapi`、`/get_image`）
+## 四、已移除的临时聊天命令层（历史审阅记录）
 
-**定位：测试壳，不是正式接口**。覆盖入口与映射：
+> 2026-11-02 按用户要求已从源码移除；仅保留本节作为“为什么不应把测试壳当 API”的复盘。
+
+**原定位：测试壳，不是正式接口**。原覆盖入口与映射：
 
 | 聊天命令域 | 底层入口 | 状态 |
 |---|---|---|
@@ -168,7 +170,7 @@
 | `docs/JavaAPI门面.md` | 已部分更新 P1.2/P1.4，但仍需逐方法核对线程/错误/录像入口 |
 | `docs/录像功能.md` / `RecordingParams` 注释 | 录像音频注释仍写“回退纯视频”，与 AAC 合流实现不一致 |
 | `CaptureApi` 类注释 | 仍称音频截面 Unsupported，与实现冲突 |
-| `docs/临时测试指令表.md` | 临时命令现状；未实测 |
+| ~~`docs/临时测试指令表.md`~~ | **已移除**（随临时壳一起删除） |
 | `docs/网络推流协议.md` / `HTTP视频接口说明.md` | 需核对最新字段与错误码 |
 
 ---
