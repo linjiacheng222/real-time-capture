@@ -55,6 +55,11 @@ public final class ControlCommandDispatcher {
     /** 音频截面指令等待上限（秒）。 */
     private static final long AUDIO_SECTION_TIMEOUT_SECONDS = 5L;
     private static final Gson GSON = new Gson();
+    private static final double OVERLAY_DEFAULT_X = 0.5D;
+    private static final double OVERLAY_DEFAULT_Y = 0.5D;
+    private static final double OVERLAY_DEFAULT_SCALE = 1.0D;
+    private static final double OVERLAY_DEFAULT_ROTATION = 0.0D;
+    private static final double OVERLAY_DEFAULT_OPACITY = 1.0D;
     private static final ControlCommandDispatcher INSTANCE = new ControlCommandDispatcher();
 
     private ControlCommandDispatcher() {
@@ -166,12 +171,12 @@ public final class ControlCommandDispatcher {
                 var ov = params.getAsJsonObject("overlay");
                 builder.overlay(new com.captureapi.video.overlay.OverlayModel(
                         ov.get("image").getAsString(),
-                        ov.has("x") ? ov.get("x").getAsDouble() : 0.5,
-                        ov.has("y") ? ov.get("y").getAsDouble() : 0.5,
-                        ov.has("scaleX") ? ov.get("scaleX").getAsDouble() : 1.0,
-                        ov.has("scaleY") ? ov.get("scaleY").getAsDouble() : 1.0,
-                        ov.has("rotation") ? ov.get("rotation").getAsDouble() : 0.0,
-                        ov.has("opacity") ? ov.get("opacity").getAsDouble() : 1.0));
+                        ov.has("x") ? ov.get("x").getAsDouble() : OVERLAY_DEFAULT_X,
+                        ov.has("y") ? ov.get("y").getAsDouble() : OVERLAY_DEFAULT_Y,
+                        ov.has("scaleX") ? ov.get("scaleX").getAsDouble() : OVERLAY_DEFAULT_SCALE,
+                        ov.has("scaleY") ? ov.get("scaleY").getAsDouble() : OVERLAY_DEFAULT_SCALE,
+                        ov.has("rotation") ? ov.get("rotation").getAsDouble() : OVERLAY_DEFAULT_ROTATION,
+                        ov.has("opacity") ? ov.get("opacity").getAsDouble() : OVERLAY_DEFAULT_OPACITY));
             }
             if (params.has("overlays")) {
                 var list = new java.util.ArrayList<com.captureapi.video.overlay.OverlayModel>();
@@ -179,12 +184,12 @@ public final class ControlCommandDispatcher {
                     var ov = el.getAsJsonObject();
                     list.add(new com.captureapi.video.overlay.OverlayModel(
                             ov.get("image").getAsString(),
-                            ov.has("x") ? ov.get("x").getAsDouble() : 0.5,
-                            ov.has("y") ? ov.get("y").getAsDouble() : 0.5,
-                            ov.has("scaleX") ? ov.get("scaleX").getAsDouble() : 1.0,
-                            ov.has("scaleY") ? ov.get("scaleY").getAsDouble() : 1.0,
-                            ov.has("rotation") ? ov.get("rotation").getAsDouble() : 0.0,
-                            ov.has("opacity") ? ov.get("opacity").getAsDouble() : 1.0));
+                            ov.has("x") ? ov.get("x").getAsDouble() : OVERLAY_DEFAULT_X,
+                            ov.has("y") ? ov.get("y").getAsDouble() : OVERLAY_DEFAULT_Y,
+                            ov.has("scaleX") ? ov.get("scaleX").getAsDouble() : OVERLAY_DEFAULT_SCALE,
+                            ov.has("scaleY") ? ov.get("scaleY").getAsDouble() : OVERLAY_DEFAULT_SCALE,
+                            ov.has("rotation") ? ov.get("rotation").getAsDouble() : OVERLAY_DEFAULT_ROTATION,
+                            ov.has("opacity") ? ov.get("opacity").getAsDouble() : OVERLAY_DEFAULT_OPACITY));
                 }
                 builder.overlays(list);
             }

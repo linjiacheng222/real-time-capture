@@ -47,6 +47,12 @@ import java.util.Map;
 public final class CaptureCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureConstants.LOG_MARKER);
+    private static final double DEFAULT_FOV = 70.0D;
+    private static final double MAX_FOV = 179.0D;
+    private static final double MAX_AUDIO_SECONDS = 60.0D;
+    private static final int DEFAULT_RECORD_FPS = 30;
+    private static final int MAX_RECORD_FPS = 240;
+    private static final double OVERLAY_DEFAULT_POS = 0.5D;
 
     private CaptureCommand() {
     }
@@ -147,11 +153,11 @@ public final class CaptureCommand {
                     x = player.position().x; y = player.position().y; z = player.position().z;
                     yaw = player.getYRot(); pitch = player.getXRot();
                 } else { x = 0; y = 64; z = 0; yaw = 0; pitch = 0; }
-                roll = 0; fov = 70;
+                roll = 0; fov = DEFAULT_FOV;
             }
             double[] pos = ParamParser.getVec3(p, "pos", x, y, z);
             double[] rot = ParamParser.getVec3(p, "rot", yaw, pitch, roll);
-            fov = ParamParser.getDouble(p, "fov", fov, 1, 179);
+            fov = ParamParser.getDouble(p, "fov", fov, 1, MAX_FOV);
 
             // 构建统一 FrameRequest（与 WS/Java API 同一函数）
             var builder = com.captureapi.net.FrameRequest.builder()
@@ -183,7 +189,7 @@ public final class CaptureCommand {
             }
 
             // 音频
-            double audioSec = ParamParser.getDouble(p, "audio", 0, 0, 60);
+            double audioSec = ParamParser.getDouble(p, "audio", 0, 0, MAX_AUDIO_SECONDS);
             if (audioSec > 0) builder.audio(true, (int) Math.ceil(audioSec * 100));
 
             // 输出
@@ -247,14 +253,14 @@ public final class CaptureCommand {
         try {
             Map<String, String> p = ParamParser.parse(paramString);
             var player = ctx.getSource().getPlayer();
-            double x = 0, y = 64, z = 0, yaw = 0, pitch = 0, roll = 0, fov = 70;
+            double x = 0, y = 64, z = 0, yaw = 0, pitch = 0, roll = 0, fov = DEFAULT_FOV;
             if (player != null) {
                 x = player.position().x; y = player.position().y; z = player.position().z;
                 yaw = player.getYRot(); pitch = player.getXRot();
             }
             double[] pos = ParamParser.getVec3(p, "pos", x, y, z);
             double[] rot = ParamParser.getVec3(p, "rot", yaw, pitch, roll);
-            fov = ParamParser.getDouble(p, "fov", fov, 1, 179);
+            fov = ParamParser.getDouble(p, "fov", fov, 1, MAX_FOV);
             var builder = CameraCreateParams.builder()
                     .position(pos[0], pos[1], pos[2])
                     .rotation((float) rot[0], (float) rot[1], (float) rot[2])
@@ -305,7 +311,7 @@ public final class CaptureCommand {
             double fov = old.fovDegrees();
             double[] pos = ParamParser.getVec3(p, "pos", x, y, z);
             double[] rot = ParamParser.getVec3(p, "rot", yaw, pitch, roll);
-            fov = ParamParser.getDouble(p, "fov", fov, 1, 179);
+            fov = ParamParser.getDouble(p, "fov", fov, 1, MAX_FOV);
             var builder = CameraCreateParams.builder()
                     .position(pos[0], pos[1], pos[2])
                     .rotation((float) rot[0], (float) rot[1], (float) rot[2])
@@ -409,7 +415,7 @@ public final class CaptureCommand {
 
     private static int doRecordStart(CommandContext<CommandSourceStack> ctx, String paramString) {
         Map<String, String> p = ParamParser.parse(paramString);
-        int fps = (int) ParamParser.getDouble(p, "fps", 30, 1, 240);
+        int fps = (int) ParamParser.getDouble(p, "fps", DEFAULT_RECORD_FPS, 1, MAX_RECORD_FPS);
         boolean audio = "true".equalsIgnoreCase(p.getOrDefault("audio", "false"));
         String out = p.get("out");
         try {
@@ -625,13 +631,13 @@ public final class CaptureCommand {
         static OverlayModel parseOverlay(String spec) {
             if (spec == null || spec.isBlank()) return null;
             String name = spec;
-            double x = 0.5, y = 0.5, sx = 1, sy = 1, rot = 0, op = 1;
+            double x = OVERLAY_DEFAULT_POS, y = OVERLAY_DEFAULT_POS, sx = 1, sy = 1, rot = 0, op = 1;
             int at = spec.indexOf('@');
             if (at > 0) {
                 name = spec.substring(0, at);
                 String[] parts = spec.substring(at + 1).split(",");
-                if (parts.length > 0) x = parseD(parts[0], 0.5);
-                if (parts.length > 1) y = parseD(parts[1], 0.5);
+                if (parts.length > 0) x = parseD(parts[0], OVERLAY_DEFAULT_POS);
+                if (parts.length > 1) y = parseD(parts[1], OVERLAY_DEFAULT_POS);
                 if (parts.length > 2) sx = parseD(parts[2], 1);
                 if (parts.length > 3) sy = parseD(parts[3], sx);
                 if (parts.length > 4) rot = parseD(parts[4], 0);
