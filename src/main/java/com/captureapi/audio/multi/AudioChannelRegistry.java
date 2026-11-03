@@ -216,7 +216,12 @@ public final class AudioChannelRegistry {
                 && !Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_STREAM_PROPERTY)) {
             return null;
         }
-        int existing = channels.size();
+        int existing = 0;
+        for (AudioListenerChannel channel : channels.values()) {
+            if (channel.kind() == AudioChannelKind.CAMERA) {
+                existing++;
+            }
+        }
         if (existing >= CaptureParams.get().audioMaxListenerChannels()) {
             failures.incrementAndGet();
             LOGGER.warn("{} [AUDIO/CH] listener 通道上限已到：{}", CaptureConstants.LOG_MARKER,

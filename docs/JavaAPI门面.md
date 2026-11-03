@@ -1,5 +1,7 @@
 # 模组内 Java API 门面（T4.7）
 
+> 2026-11-03：新增多 listener 音频 API，见 `docs/多监听器音频架构.md` 与 `docs/API使用说明.md` 第九点六节。
+
 > 2026-11-02 修订提示：统一 `capture(FrameRequest)` 已新增；本文旧表未完全覆盖，完整用法以 `docs/API使用说明.md` 为准。
 
 > 状态：**I4.7.1 门面、I4.7.2 grabFrame、I4.7.3 音频截面首版、I4.7.4 一致性方案完成**（2026-11-01）；音频截面虚拟位置/快照已实现，世界内真实位置听感与长时对拍待测试分计划。
@@ -39,3 +41,11 @@
 - `grabFrame` 在无世界/主菜单下会异常完成（预期）；世界内真实调取与主画面零扰动未测；
 - 一致性对拍脚本/Java API 示例未写（I7.1.4 后续）；
 - 门面版本标注 v0.5，未来扩展走新增方法。
+
+## 六、多 listener 音频（2026-11-03）
+
+- `CaptureApi.audioChannels()`：player/camera/virtual 通道信息；
+- `CaptureApi.latestAudioChunk(id)`：0=player，>0=camera，-1=virtual；
+- `CaptureApi.primaryAudioChannelId()` / `multiListenerEnabled()`；
+- `grabAudioSection` feature 开启时走 virtual channel；
+- 详见 `docs/多监听器音频架构.md`。

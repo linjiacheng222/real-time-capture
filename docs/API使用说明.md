@@ -1,5 +1,7 @@
 # CaptureAPI 完整 API 使用说明（v0.5 第二阶段）
 
+> 2026-11-03 追加：**同客户端多 Listener 音频后端**（见 `docs/多监听器音频架构.md`）。feature 默认关闭；相关 API/WS/配置见本文第九点六节。
+>
 > 基准代码：2026-11-02 计划端整肃后的 `main`（HEAD `6782b9a`）。本说明以**实际代码**为准；计划端早先的 `docs/API全集与测试指令.md` 部分内容已过时（见文末差异表）。
 > 构建状态：`build.ps1` 24/24 PASS；magic-number audit 0（本轮修复计划端新增代码的数字白名单回归）。
 > dev 运行验证（2026-11-02）：WS `capture` 统一入口实测成功——PNG 1,489,357B；`audio:true,audioChunks:5` 返回 sampleCount=2205 + PCM；证据 `docs/evidence/S6/api-capture-websocket.json`。游戏内 `/captureapi` 仅确认注册日志，完整命令未系统实测。
@@ -292,7 +294,7 @@ ws://127.0.0.1:25581/
 
 | action | params | 说明 |
 |---|---|---|
-| `recording.start` | `cameraId(0=active)`、`fps`、`jpegQuality`、`includeAudio`、`outputPath` | 需 active 相机 + FFmpeg |
+| `recording.start` | `cameraId(0=active)`、`fps`、`jpegQuality`、`includeAudio`、`outputPath`、`audioChannel(-1=primary/0=player/>0=camera)` | 需 active 相机 + FFmpeg |
 | `recording.stop` | 无 | 停止；可能阻塞 |
 | `recording.status` | 无 | running/frames/path/audioAvailable/error |
 
@@ -302,7 +304,7 @@ ws://127.0.0.1:25581/
 
 | action | params | 说明 |
 |---|---|---|
-| `audio.section` | `x,y,z`（可选，默认玩家眼位）、`chunks`(1–100) | **test-only**；返回 start/end/samples/bytes/rms/peak，不返回 PCM |
+| `audio.section` | `x,y,z`（可选，默认玩家眼位）、`chunks`(1–100) | **test-only**；feature 开启时走 virtual listener；返回 start/end/samples/bytes/rms/peak，不返回 PCM |
 | `shader.status` | 无 | **test-only**；backend/detected/active（Oculus 仅探测） |
 | `client.unpause` | 无 | test-only |
 | `client.playerPose` | 无 | test-only |
@@ -427,7 +429,10 @@ import com.captureapi.net.CaptureApi.CaptureOutcome;
 | `grabFrame(CameraCreateParams,timeoutMs)` | 临时相机渲一帧 Future | 任意线程提交；渲染线程完成 |
 | `captureFrame(FrameRequest)` | 同步取帧（FILE/HTTP），不取音频 | **禁止渲染线程** |
 | `capture(FrameRequest)` | 帧 + 可选音频（推荐统一入口） | **禁止渲染线程**，可能阻塞到音频完成 |
-| `latestAudioChunk()` | 最近音频块（非消费） | 任意线程 |
+| `latestAudioChunk()` | primary 最近音频块（非消费） | 任意线程 |
+| `latestAudioChunk(int channelId)` | 指定通道最近音频块（0/相机/-1） | 任意线程 |
+| `audioChannels()` | List<AudioChannelInfo> | 任意线程 |
+| `primaryAudioChannelId()` | 主出口 id | 任意线程 |
 | `grabAudioSection(x,y,z,chunks)` | 虚拟位置音频截面 Future | 任意线程 |
 | `createCamera(CameraCreateParams)` 等 7 个 | 相机 CRUD/激活/列表 | 任意线程 |
 | `RecordingSession.get().start/stop/status` | 录像（不在门面） | stop 可能阻塞，勿渲染线程 |
@@ -551,6 +556,32 @@ RecordingStatus st = RecordingSession.get().stop();
 - `/health` 暴露 `multicam_cached_cameras/multicam_interval_ms`。
 
 dev 实测（2026-11-02）：cam1 active 238,053B、cam2 非 active 203,814B，四次采样时间戳持续更新；无 GL/Mixin 错误；证据 `docs/evidence/S6/multicam-v2.json`。
+
+## 九点六、同客户端多 Listener 音频（2026-11-03）
+
+完整架构：`docs/多监听器音频架构.md`。
+
+- feature 默认关闭；配置：
+  - `audio_multi_listener_enabled`（bool，默认 false，重启生效）
+  - `audio_max_listener_channels`（1..4，默认 2，不含 player/virtual）
+  - `audio_primary_channel`（`camera`/`player`，默认 camera）
+- dev 属性：`-Dcaptureapi.debug.multilistener_feature=true` 强制开启（仅 dev）。
+- Java：
+  - `CaptureApi.audioChannels()` → List<AudioChannelInfo>
+  - `CaptureApi.latestAudioChunk(id)`（0=player，>0=camera，-1=virtual）
+  - `CaptureApi.primaryAudioChannelId()`、`multiListenerEnabled()`
+- WS：
+  - `audio.channels.list` → channels + primary
+  - `audio.channels.peek` `{channel}` → found/start/end/sampleCount/rms/peak
+  - `audio.subscribe` `{channels:[...]}` / `audio.unsubscribe`
+  - primary 仍走 legacy 0x02；额外订阅通道走 **0x03**：
+    ```text
+    [4B magic 0x03 'C' 'A' 'P'][4B channelId][8B start][8B end][4B sampleCount][PCM]
+    ```
+    头 28B；客户端必须按 magic 识别 0x03（旧视频/音频帧没有 type）。
+- 录像：`recording.start.audioChannel` 选择音频源；-1=primary。
+- 自动 smoke：`scripts/audio-multilistener-smoke.ps1`；证据见 `docs/evidence/S6/multilistener-phase*.json`。
+- 已知限制：feature 默认关闭；autotest 失焦窗口跳过 pause 镜像；用户听感/零扰动/长跑未验收；相机通道创建在 tick 同步等待 worker，可能启动 hitch。
 
 ## 十、参数（config）
 
