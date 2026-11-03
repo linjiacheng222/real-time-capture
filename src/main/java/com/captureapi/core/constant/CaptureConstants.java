@@ -87,6 +87,8 @@ public final class CaptureConstants {
     public static final String DEBUG_MULTILISTENER_MIRROR_PROPERTY = "captureapi.debug.multilistener_mirror";
     /** Phase 3 流式镜像 self-test 开关（dev JVM 属性）。 */
     public static final String DEBUG_MULTILISTENER_STREAM_PROPERTY = "captureapi.debug.multilistener_stream";
+    /** dev：强制开启多 listener feature（不写 TOML）。 */
+    public static final String DEBUG_MULTILISTENER_FEATURE_PROPERTY = "captureapi.debug.multilistener_feature";
     /** Phase 2 镜像 self-test 前等待 sound engine 完成初始化（毫秒）。 */
     public static final long MULTILISTENER_MIRROR_STARTUP_WAIT_MS = 3000L;
     /** Phase 2 镜像 self-test 等待（毫秒；短于铃声尾音，取活跃段）。 */
@@ -94,6 +96,10 @@ public final class CaptureConstants {
     /** Phase 3 流式 self-test 最低 RMS。 */
     public static final long MULTILISTENER_STREAM_TEST_MS = 300L;
     public static final double MULTILISTENER_STREAM_MIN_RMS = 0.00005D;
+    /** 相机/虚拟 listener 通道同步间隔（毫秒）。 */
+    public static final long AUDIO_CHANNEL_SYNC_INTERVAL_MS = 250L;
+    /** 音频截面等待拍数之外的静默余量（毫秒）。 */
+    public static final long AUDIO_SECTION_MARGIN_MS = 80L;
     /** Phase 2 镜像 self-test 最低 RMS（避免只有 1 LSB 噪声也判定非静音）。 */
     public static final double MULTILISTENER_MIRROR_MIN_RMS = 0.0001D;
     /** 多 listener worker 线程优先级（略低于主音频采集）。 */

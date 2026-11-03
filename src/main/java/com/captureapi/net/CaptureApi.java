@@ -3,6 +3,8 @@ package com.captureapi.net;
 import com.captureapi.audio.AudioCaptureManager;
 import com.captureapi.audio.AudioListenerSync;
 import com.captureapi.audio.AudioRingBuffer;
+import com.captureapi.audio.multi.AudioChannelInfo;
+import com.captureapi.audio.multi.AudioChannelRegistry;
 import com.captureapi.audio.timestamp.AudioChunk;
 import com.captureapi.core.config.CaptureParams;
 import com.captureapi.core.constant.CaptureConstants;
@@ -279,9 +281,30 @@ public final class CaptureApi {
 
     // ===== 音频 =====
 
-    /** @return 最近写入的音频块（非阻塞、非消费；无数据时 null） */
+    /** @return 主出口最近音频块（非阻塞、非消费；无数据时 null） */
     public static AudioChunk latestAudioChunk() {
-        return AudioRingBuffer.get().peekLatest();
+        int primary = AudioChannelRegistry.get().primaryChannelId();
+        return AudioChannelRegistry.get().latestChunk(primary);
+    }
+
+    /** @return 指定通道最近音频块（0=player；相机=cameraId；无数据 null） */
+    public static AudioChunk latestAudioChunk(int channelId) {
+        return AudioChannelRegistry.get().latestChunk(channelId);
+    }
+
+    /** @return 当前音频通道信息（Phase 4） */
+    public static List<AudioChannelInfo> audioChannels() {
+        return AudioChannelRegistry.get().channels();
+    }
+
+    /** @return 主出口通道 id（0=player；>0=camera） */
+    public static int primaryAudioChannelId() {
+        return AudioChannelRegistry.get().primaryChannelId();
+    }
+
+    /** @return 多 listener feature 是否开启 */
+    public static boolean multiListenerEnabled() {
+        return AudioChannelRegistry.get().enabled();
     }
 
     /**
@@ -304,6 +327,15 @@ public final class CaptureApi {
         }
         if (!Double.isFinite(x) || !Double.isFinite(y) || !Double.isFinite(z)) {
             return CompletableFuture.failedFuture(new IllegalArgumentException("音频截面坐标必须为有限数"));
+        }
+        if (AudioChannelRegistry.get().enabled()) {
+            return CompletableFuture.supplyAsync(() -> {
+                AudioChunk chunk = AudioChannelRegistry.get().grabVirtualSection(x, y, z, chunkCount);
+                if (chunk == null) {
+                    throw new IllegalStateException("虚拟 listener 音频截面失败");
+                }
+                return chunk;
+            });
         }
         if (!AudioCaptureManager.get().isLoopbackActive()) {
             return CompletableFuture.failedFuture(new IllegalStateException("环回音频捕获未激活"));

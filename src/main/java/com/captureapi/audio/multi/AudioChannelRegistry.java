@@ -3,7 +3,13 @@ package com.captureapi.audio.multi;
 import com.captureapi.core.config.CaptureParams;
 import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.core.time.CaptureClock;
+import com.captureapi.audio.AudioRingBuffer;
+import com.captureapi.audio.timestamp.AudioChunk;
+import com.captureapi.video.camera.CameraManager;
+import com.captureapi.video.camera.CameraSpec;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +29,8 @@ public final class AudioChannelRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureConstants.LOG_MARKER);
     private static final AudioChannelRegistry INSTANCE = new AudioChannelRegistry();
 
+    private static final int VIRTUAL_CHANNEL_ID = -1;
+    private static final Object VIRTUAL_LOCK = new Object();
     private final Map<Integer, AudioListenerChannel> channels = new ConcurrentHashMap<>();
     private final AtomicLong createdTotal = new AtomicLong();
     private final AtomicLong destroyedTotal = new AtomicLong();
@@ -49,7 +57,155 @@ public final class AudioChannelRegistry {
 
     /** @return 多 listener 功能是否开启 */
     public boolean enabled() {
-        return CaptureParams.get().audioMultiListenerEnabled();
+        return CaptureParams.get().audioMultiListenerEnabled()
+                || Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_FEATURE_PROPERTY);
+    }
+
+    /** 相机通道便捷创建（无测试音）。 */
+    public AudioListenerChannel createCameraChannel(int cameraId, AudioListenerPose pose) {
+        return createCameraChannel(cameraId, pose, 0.0D, 0.0D);
+    }
+
+    /**
+     * 相机通道确保存在并更新 listener pose（Phase 4 coordinator 调用）。
+     */
+    public AudioListenerChannel ensureCameraChannel(int cameraId, AudioListenerPose pose) {
+        if (!enabled()) {
+            return null;
+        }
+        AudioListenerChannel channel = channels.get(cameraId);
+        if (channel != null && channel.kind() == AudioChannelKind.CAMERA) {
+            channel.setListenerPose(pose);
+            return channel;
+        }
+        AudioListenerChannel created = createCameraChannel(cameraId, pose);
+        if (created != null) {
+            created.setListenerPose(pose);
+        }
+        return created;
+    }
+
+    /**
+     * 确保虚拟 listener 通道存在（audio section 专用）。id=-1，不计入相机上限。
+     */
+    public AudioListenerChannel ensureVirtualChannel() {
+        if (!enabled()) {
+            return null;
+        }
+        AudioListenerChannel existing = channels.get(VIRTUAL_CHANNEL_ID);
+        if (existing != null && existing.active()) {
+            return existing;
+        }
+        AudioPcmRing ring = newRing();
+        AudioContextWorker worker = new AudioContextWorker(
+                "captureapi-audio-virtual", ring, ring.sampleRate(), ring.channels(),
+                CaptureParams.get().pollIntervalMs());
+        AudioListenerChannel channel = new AudioListenerChannel(VIRTUAL_CHANNEL_ID,
+                AudioChannelKind.VIRTUAL, -1, ring, worker);
+        if (!channel.start(0.0D, 0.0D)) {
+            failures.incrementAndGet();
+            return null;
+        }
+        channels.put(VIRTUAL_CHANNEL_ID, channel);
+        createdTotal.incrementAndGet();
+        LOGGER.info("{} [AUDIO/CH] 虚拟 listener 通道启动：id=-1", CaptureConstants.LOG_MARKER);
+        return channel;
+    }
+
+    /** 仅保留给定 id 的相机通道（虚拟/player 不动）。 */
+    public void retainCameraChannels(Set<Integer> cameraIds) {
+        for (Integer id : new ArrayList<>(channels.keySet())) {
+            AudioListenerChannel channel = channels.get(id);
+            if (channel != null && channel.kind() == AudioChannelKind.CAMERA
+                    && !cameraIds.contains(id)) {
+                removeChannel(id);
+            }
+        }
+    }
+
+    /** 删除所有相机/虚拟 listener 通道（世界退出）。 */
+    public synchronized void removeWorldChannels() {
+        for (Integer id : new ArrayList<>(channels.keySet())) {
+            AudioListenerChannel channel = channels.get(id);
+            if (channel != null && channel.kind() != AudioChannelKind.PLAYER) {
+                removeChannel(id);
+            }
+        }
+    }
+
+    /**
+     * Phase 4 音频截面：虚拟 listener 采样，不移动 player listener。
+     *
+     * @return PCM chunk；feature 关闭/失败返回 null
+     */
+    public AudioChunk grabVirtualSection(double x, double y, double z, int chunks) {
+        if (!enabled() || chunks < 1) {
+            return null;
+        }
+        AudioListenerChannel virtual = ensureVirtualChannel();
+        if (virtual == null) {
+            return null;
+        }
+        synchronized (VIRTUAL_LOCK) {
+            virtual.setListenerPose(new AudioListenerPose(x, y, z, 0.0F, 0.0F, 0.0F));
+            long waitNanos = (long) chunks * CaptureParams.get().pollIntervalMs()
+                    * CaptureConstants.NANOS_PER_MILLI + CaptureConstants.AUDIO_SECTION_MARGIN_MS
+                    * CaptureConstants.NANOS_PER_MILLI;
+            long deadline = CaptureClock.get().nowNanos() + Math.max(1L, waitNanos);
+            while (CaptureClock.get().nowNanos() < deadline) {
+                try {
+                    Thread.sleep(CaptureParams.get().pollIntervalMs());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return null;
+                }
+            }
+            return virtual.ring().snapshotRecent(chunks);
+        }
+    }
+
+    /**
+     * 主出口读取：audio_primary_channel=camera 时读 active 相机 ring，否则读 player ring。
+     */
+    public AudioChunk readPrimaryChunk(long timeoutMillis) {
+        if (enabled() && "camera".equalsIgnoreCase(CaptureParams.get().audioPrimaryChannel())) {
+            int activeCamera = CameraManager.get().activeCameraId();
+            AudioListenerChannel camera = activeCamera > 0 ? channels.get(activeCamera) : null;
+            if (camera != null && camera.active()) {
+                return camera.ring().readChunk(timeoutMillis);
+            }
+        }
+        AudioRingBuffer.ReadChunkResult result = AudioRingBuffer.get().readChunk(timeoutMillis);
+        return result.status() == AudioRingBuffer.ReadStatus.DATA ? result.chunk() : null;
+    }
+
+    /** @return 主出口通道 id（0=player，>0=camera） */
+    public int primaryChannelId() {
+        if (enabled() && "camera".equalsIgnoreCase(CaptureParams.get().audioPrimaryChannel())) {
+            int activeCamera = CameraManager.get().activeCameraId();
+            if (activeCamera > 0 && channels.containsKey(activeCamera)) {
+                return activeCamera;
+            }
+        }
+        return 0;
+    }
+
+    /** 快照指定通道最近 chunks 拍（录像/调试；不消费）。 */
+    public AudioChunk snapshotChannel(int channelId, int chunks) {
+        if (channelId == 0) {
+            return AudioRingBuffer.get().snapshotRecent(chunks);
+        }
+        AudioListenerChannel channel = channels.get(channelId);
+        return channel == null ? null : channel.ring().snapshotRecent(chunks);
+    }
+
+    /** @return 指定通道最新 PCM（不消费）。 */
+    public AudioChunk latestChunk(int channelId) {
+        if (channelId == 0) {
+            return AudioRingBuffer.get().peekLatest();
+        }
+        AudioListenerChannel channel = channels.get(channelId);
+        return channel == null ? null : channel.ring().peekLatest();
     }
 
     /** 创建并启动相机 listener 通道（Phase 4 使用；Phase 1 self-test 也用）。 */
@@ -200,6 +356,8 @@ public final class AudioChannelRegistry {
 
     public List<AudioChannelInfo> channels() {
         List<AudioChannelInfo> result = new ArrayList<>();
+        result.add(new AudioChannelInfo(0, AudioChannelKind.PLAYER, -1, true,
+                AudioRingBuffer.get().writtenPolls(), AudioRingBuffer.get().droppedPolls(), 0L));
         for (AudioListenerChannel channel : channels.values()) {
             result.add(channel.info());
         }

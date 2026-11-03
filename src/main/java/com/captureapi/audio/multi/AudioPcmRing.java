@@ -2,6 +2,7 @@ package com.captureapi.audio.multi;
 
 import com.captureapi.audio.timestamp.AudioChunk;
 import com.captureapi.audio.timestamp.AudioTimestamp;
+import java.util.concurrent.locks.LockSupport;
 import com.captureapi.core.time.CaptureClock;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -26,6 +27,7 @@ public final class AudioPcmRing {
     private int writeIndex;
     private int readIndex;
     private volatile boolean sealed;
+    private volatile AudioChunk lastWritten;
     private final AtomicLong writtenPolls = new AtomicLong();
     private final AtomicLong droppedPolls = new AtomicLong();
 
@@ -59,6 +61,7 @@ public final class AudioPcmRing {
         slotEndNanos[write] = endNanos;
         slotSampleCounts[write] = sampleCount;
         writeIndex = (write + 1) % slotCount;
+        lastWritten = new AudioChunk(startNanos, endNanos, sampleCount, pcm.clone());
         writtenPolls.incrementAndGet();
         return true;
     }
@@ -87,16 +90,42 @@ public final class AudioPcmRing {
         return new AudioChunk(start, end, sampleCount, pcm);
     }
 
-    /** @return 最新一拍，无数据 null。 */
-    public synchronized AudioChunk peekLatest() {
-        if (sealed || writeIndex == readIndex) {
-            return null;
+    /**
+     * 阻塞读取下一拍（主出口消费；超时返回 null）。
+     */
+    public AudioChunk readChunk(long timeoutMillis) {
+        long deadline = CaptureClock.get().nowNanos()
+                + Math.max(0L, timeoutMillis) * com.captureapi.core.constant.CaptureConstants.NANOS_PER_MILLI;
+        while (true) {
+            int read;
+            int write;
+            synchronized (this) {
+                read = readIndex;
+                write = writeIndex;
+                if (read != write) {
+                    byte[] pcm = new byte[slotBytes];
+                    System.arraycopy(slots, read * slotBytes, pcm, 0, slotBytes);
+                    AudioChunk chunk = new AudioChunk(slotStartNanos[read], slotEndNanos[read],
+                            slotSampleCounts[read], pcm);
+                    readIndex = (read + 1) % slotCount;
+                    return chunk;
+                }
+            }
+            long remaining = deadline - CaptureClock.get().nowNanos();
+            if (remaining <= 0L) {
+                return null;
+            }
+            LockSupport.parkNanos(this, Math.min(remaining, 1_000_000L));
+            if (Thread.interrupted()) {
+                Thread.currentThread().interrupt();
+                return null;
+            }
         }
-        int index = (writeIndex - 1 + slotCount) % slotCount;
-        byte[] pcm = new byte[slotBytes];
-        System.arraycopy(slots, index * slotBytes, pcm, 0, slotBytes);
-        return new AudioChunk(slotStartNanos[index], slotEndNanos[index],
-                slotSampleCounts[index], pcm);
+    }
+
+    /** @return 最新一拍，无数据 null。 */
+    public AudioChunk peekLatest() {
+        return lastWritten;
     }
 
     /** 写端口封口；之后写失败、快照返回 null。 */

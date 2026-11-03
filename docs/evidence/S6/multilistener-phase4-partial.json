@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-03T20:37:42+08:00",
+  "phase": "Phase 4 routing/API/virtual audio section (partial)",
+  "result": "CORE PASS / P1.1 finite smoke pending",
+  "feature_property": "captureapi.debug.multilistener_feature=true",
+  "channels": [
+    {
+      "id": 0,
+      "kind": "PLAYER",
+      "written": 5511
+    },
+    {
+      "id": -1,
+      "kind": "VIRTUAL",
+      "written": 5143
+    },
+    {
+      "id": 1,
+      "kind": "CAMERA",
+      "written": 179
+    }
+  ],
+  "primary": 1,
+  "cameraDelete": {
+    "primary_after": 0,
+    "camera_removed": true
+  },
+  "audioSection": {
+    "samples": 2205,
+    "bytes": 8820,
+    "rms": 863.8278316167736,
+    "peak": 2901
+  },
+  "notes": "Camera/virtual channels created by AudioChannelCoordinator from CameraManager; audio.channels.list + audio.channels.peek added; audio.section uses virtual channel; primary switches camera->player on delete. Camera peek sampled after source tail (peak=1), so P1.1 camera PCM needs retest early; WS 0x03/subscriptions not yet done; player zero-disturbance not yet automatically proven."
+}

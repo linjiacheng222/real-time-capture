@@ -1,6 +1,6 @@
 package com.captureapi.net.recording;
 
-import com.captureapi.audio.AudioRingBuffer;
+import com.captureapi.audio.multi.AudioChannelRegistry;
 import com.captureapi.audio.timestamp.AudioChunk;
 import com.captureapi.core.config.CaptureParams;
 import com.captureapi.core.constant.CaptureConstants;
@@ -64,6 +64,7 @@ public final class RecordingSession {
     private volatile boolean audioAvailable;
     private volatile boolean includeAudio;
     private volatile int requestedJpegQuality;
+    private volatile int audioChannelId = -1;
     private Path finalOutputPath;
     private Path videoTempPath;
     private Path audioTempPath;
@@ -131,6 +132,7 @@ public final class RecordingSession {
             finalOutputPath = output;
             includeAudio = params.includeAudio();
             requestedJpegQuality = params.jpegQuality();
+            audioChannelId = params.audioChannelId();
             Path videoOutput = output;
             if (includeAudio) {
                 // 先录纯视频临时文件，停止时再用第二输入流把 PCM 合流为最终 mp4
@@ -240,7 +242,10 @@ public final class RecordingSession {
     private void audioLoop() {
         while (running) {
             try {
-                AudioChunk chunk = AudioRingBuffer.get().snapshotRecent(1);
+                AudioChunk chunk = audioChannelId < 0
+                        ? AudioChannelRegistry.get().snapshotChannel(
+                                AudioChannelRegistry.get().primaryChannelId(), 1)
+                        : AudioChannelRegistry.get().snapshotChannel(audioChannelId, 1);
                 if (chunk != null && chunk.endNanos() > lastAudioEndNanos) {
                     if (lastAudioEndNanos > 0L
                             && chunk.startNanos() - lastAudioEndNanos > AUDIO_GAP_WARN_MS * NANOS_PER_MS) {

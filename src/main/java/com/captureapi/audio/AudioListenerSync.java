@@ -1,5 +1,6 @@
 package com.captureapi.audio;
 
+import com.captureapi.audio.multi.AudioChannelRegistry;
 import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.video.camera.CameraPose;
 import com.captureapi.video.camera.CameraSpec;
@@ -97,6 +98,11 @@ public final class AudioListenerSync implements CameraSyncHook.Listener {
         if (!AudioCaptureManager.get().isLoopbackActive()) {
             return;
         }
+        // 多 listener 模式下 player context 永远固定在玩家；相机/虚拟 listener 在各自 context。
+        if (AudioChannelRegistry.get().enabled()) {
+            applyPlayerListener();
+            return;
+        }
         long now = com.captureapi.core.time.CaptureClock.get().nowNanos();
         if (now < virtualUntilNanos) {
             LocalPlayer player = Minecraft.getInstance().player;
@@ -121,6 +127,18 @@ public final class AudioListenerSync implements CameraSyncHook.Listener {
             syncCount++;
             return;
         }
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) {
+            return;
+        }
+        Vec3 eye = player.getEyePosition(1.0F);
+        AL10.alListener3f(AL10.AL_POSITION, (float) eye.x, (float) eye.y, (float) eye.z);
+        AL10.alListener3f(AL10.AL_VELOCITY, 0.0F, 0.0F, 0.0F);
+        fillOrientation(player.getViewYRot(1.0F), player.getViewXRot(1.0F), 0.0F,
+                (float) eye.x, (float) eye.y, (float) eye.z);
+    }
+
+    private void applyPlayerListener() {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) {
             return;

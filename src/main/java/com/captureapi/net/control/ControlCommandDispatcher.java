@@ -116,6 +116,8 @@ public final class ControlCommandDispatcher {
             case "camera.list" -> list();
             case "camera.status" -> status();
             case "audio.section" -> audioSection(params);
+            case "audio.channels.list" -> audioChannels();
+            case "audio.channels.peek" -> audioChannelPeek(params);
             case "shader.status" -> shaderStatus();
             case "recording.start" -> recordingStart(params);
             case "recording.stop" -> recordingStop();
@@ -558,6 +560,69 @@ public final class ControlCommandDispatcher {
     }
 
     /** 测试辅助：音频截面（W-071）调用并返回 PCM 统计，不返回原始大数组。 */
+    private JsonElement audioChannelPeek(JsonObject params) {
+        int channel = optInt(params, "channel", 0);
+        AudioChunk chunk = CaptureApi.latestAudioChunk(channel);
+        JsonObject result = new JsonObject();
+        result.addProperty("channel", channel);
+        if (chunk == null) {
+            result.addProperty("found", false);
+            return result;
+        }
+        result.addProperty("found", true);
+        result.addProperty("startNanos", chunk.startNanos());
+        result.addProperty("endNanos", chunk.endNanos());
+        result.addProperty("sampleCount", chunk.sampleCount());
+        result.addProperty("rms", rms(chunk.pcm()));
+        result.addProperty("peak", peak(chunk.pcm()));
+        return result;
+    }
+
+    private static double rms(byte[] pcm) {
+        if (pcm == null || pcm.length < 2) {
+            return 0.0D;
+        }
+        double sum = 0.0D;
+        int count = pcm.length / 2;
+        for (int i = 0; i < count; i++) {
+            short sample = (short) (((pcm[i * 2 + 1] & 0xFF) << 8) | (pcm[i * 2] & 0xFF));
+            double value = sample / (double) Short.MAX_VALUE;
+            sum += value * value;
+        }
+        return Math.sqrt(sum / count);
+    }
+
+    private static int peak(byte[] pcm) {
+        int peak = 0;
+        if (pcm != null) {
+            for (int i = 0; i + 1 < pcm.length; i += 2) {
+                int value = Math.abs((short) (((pcm[i + 1] & 0xFF) << 8) | (pcm[i] & 0xFF)));
+                peak = Math.max(peak, value);
+            }
+        }
+        return peak;
+    }
+
+    private JsonElement audioChannels() {
+        JsonObject result = new JsonObject();
+        JsonArray array = new JsonArray();
+        for (com.captureapi.audio.multi.AudioChannelInfo info
+                : com.captureapi.audio.multi.AudioChannelRegistry.get().channels()) {
+            JsonObject item = new JsonObject();
+            item.addProperty("id", info.id());
+            item.addProperty("kind", info.kind().name());
+            item.addProperty("cameraId", info.cameraId());
+            item.addProperty("active", info.active());
+            item.addProperty("written", info.written());
+            item.addProperty("dropped", info.dropped());
+            item.addProperty("errors", info.errors());
+            array.add(item);
+        }
+        result.add("channels", array);
+        result.addProperty("primary", com.captureapi.audio.multi.AudioChannelRegistry.get().primaryChannelId());
+        return result;
+    }
+
     private JsonElement audioSection(JsonObject params) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) {
@@ -610,9 +675,10 @@ public final class ControlCommandDispatcher {
         }
         String outputPath = params.has("outputPath") && !params.get("outputPath").isJsonNull()
                 ? params.get("outputPath").getAsString() : null;
+        int audioChannel = optInt(params, "audioChannel", -1);
         try {
             RecordingStatus status = RecordingSession.get().start(
-                    new RecordingParams(cameraId, fps, quality, includeAudio, outputPath));
+                    new RecordingParams(cameraId, fps, quality, includeAudio, outputPath, audioChannel));
             return recordingStatusJson(status);
         } catch (RuntimeException e) {
             throw new ControlException(ControlErrorCode.E_INTERNAL, e.getMessage());

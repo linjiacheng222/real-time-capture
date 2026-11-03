@@ -319,6 +319,8 @@ public final class NetworkServiceManager {
                 com.captureapi.audio.multi.AudioChannelRegistry.get().droppedTotal());
         json.addProperty("audio_listener_failures",
                 com.captureapi.audio.multi.AudioChannelRegistry.get().failures());
+        json.addProperty("audio_primary_channel",
+                com.captureapi.audio.multi.AudioChannelRegistry.get().primaryChannelId());
         json.addProperty("offscreen_rendered_frames", com.captureapi.video.render.OffscreenRenderPipeline.renderedFrames());
         json.addProperty("readback_frames", com.captureapi.video.render.OffscreenRenderPipeline.readbackFrames());
         json.addProperty("encoded_frames", com.captureapi.video.encode.EncodingPipeline.get().encodedFrames());
