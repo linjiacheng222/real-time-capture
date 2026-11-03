@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-03T20:52:00+08:00",
+  "phase": "Phase 4c magic-prefix 0x03 verification",
+  "result": "PASS for non-primary subscribed channel",
+  "magic": "0x03 C A P",
+  "subscribedChannel": -1,
+  "magicFrames": 266,
+  "frameBytes": 1792,
+  "headerBytes": 28,
+  "primaryChannel": 1,
+  "notes": "Primary channel uses legacy 0x02; virtual (-1) subscription yields typed 0x03 frames with magic, channelId, start/end/sampleCount, PCM. Legacy video/audio frames lack type; clients must detect magic for 0x03. Camera 1 as primary is not duplicated on 0x03 by design; subscribe to non-primary channels for 0x03."
+}
