@@ -1,0 +1,57 @@
+{
+  "date": "2026-11-04T00:50:36",
+  "phases": [
+    {
+      "name": "boot+net",
+      "ok": true,
+      "detail": "端口就绪"
+    },
+    {
+      "name": "main_menu",
+      "ok": true,
+      "detail": "SoundEngine"
+    },
+    {
+      "name": "enter_world",
+      "ok": true,
+      "detail": "x=-39.67"
+    },
+    {
+      "name": "far_camera_create",
+      "ok": true,
+      "detail": "pos=(160,117,92) yaw=180 +200格"
+    },
+    {
+      "name": "far_capture",
+      "ok": true,
+      "detail": "36407B"
+    },
+    {
+      "name": "far_http_frame",
+      "ok": true,
+      "detail": "36407B ts=297286271330300"
+    },
+    {
+      "name": "rec_start",
+      "ok": true,
+      "detail": "running"
+    },
+    {
+      "name": "rec_stop",
+      "ok": true,
+      "detail": "frames=311 audio=True"
+    },
+    {
+      "name": "rec_audio_track_ffprobe",
+      "ok": true,
+      "detail": "Stream#0:1 Audio: aac(LC) 44100Hz stereo 127kb/s; Duration 10.73s"
+    },
+    {
+      "name": "far_pixel_analysis",
+      "ok": true,
+      "detail": "下半部出现暗色地形像素(53,76,93)/(66,86,111)+亮度全范围YMIN=0 YMAX=244（对比S8纯天空YMIN=171）——远处地形已渲染"
+    }
+  ],
+  "summary": "10/10",
+  "manual_checklist": "见 人工验证清单.md"
+}
