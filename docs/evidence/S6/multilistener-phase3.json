@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-03T20:24:16+08:00",
+  "phase": "Phase 3 streaming/music mirror",
+  "result": "PASS",
+  "selfTest": {
+    "sound": "minecraft:music_disc.cat (streaming)",
+    "channels": 2,
+    "samplesA": 2205,
+    "samplesB": 2205,
+    "rmsA": 0.00010465305383482146,
+    "rmsB": 0.00010461975038722562,
+    "nonSilent": true,
+    "different": true,
+    "streamDataFlow": true
+  },
+  "notes": "TeeAudioStream wraps Channel.attachBufferStream; streaming PCM queued to independent AL sources per listener; dataFlow=true and both rings non-silent/different. Test runs with unfocused-window pause skipped; real pause path needs focused-window test. Player unaffected not user-verified."
+}

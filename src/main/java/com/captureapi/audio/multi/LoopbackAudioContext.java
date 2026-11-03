@@ -15,6 +15,7 @@ import org.lwjgl.openal.SOFTLoopback;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -182,6 +183,33 @@ public final class LoopbackAudioContext {
         int buffer = AL10.alGenBuffers();
         AL10.alBufferData(buffer, alFormat, data, sampleRate);
         return buffer;
+    }
+
+    /** 上传 PCM 并排队到 streaming source，返回 buffer id（worker 线程）。 */
+    public int queuePcmBuffer(int source, byte[] pcm, int alFormat, int sampleRate) {
+        int buffer = createBuffer(pcm, alFormat, sampleRate);
+        AL10.alSourceQueueBuffers(source, buffer);
+        return buffer;
+    }
+
+    /** 回收已处理 buffer 并删除，返回被删除的 buffer id。 */
+    public int[] unqueueProcessed(int source) {
+        int count = AL10.alGetSourcei(source, AL10.AL_BUFFERS_PROCESSED);
+        if (count <= 0) {
+            return new int[0];
+        }
+        int[] ids = new int[count];
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            java.nio.IntBuffer buffer = stack.mallocInt(count);
+            AL10.alSourceUnqueueBuffers(source, buffer);
+            buffer.get(ids);
+        }
+        for (int id : ids) {
+            if (id != 0) {
+                AL10.alDeleteBuffers(id);
+            }
+        }
+        return ids;
     }
 
     /** 删除 buffer（worker 线程）。 */

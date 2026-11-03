@@ -148,6 +148,14 @@ public final class AudioCaptureManager {
             test.start();
             LOGGER.info("{} Phase 2 静态镜像 self-test 已调度", CaptureConstants.LOG_MARKER);
         }
+        if (Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_STREAM_PROPERTY)) {
+            Thread test = new Thread(
+                    () -> com.captureapi.audio.multi.AudioChannelRegistry.get().runStreamSelfTestIfEnabled(),
+                    "captureapi-multilistener-streamtest");
+            test.setDaemon(true);
+            test.start();
+            LOGGER.info("{} Phase 3 流式镜像 self-test 已调度", CaptureConstants.LOG_MARKER);
+        }
     }
 
     /** {@code Library#cleanup} 之前停止采集线程（Mixin Inject HEAD）。 */

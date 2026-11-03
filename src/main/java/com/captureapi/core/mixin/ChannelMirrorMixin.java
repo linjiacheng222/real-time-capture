@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 /**
  * Channel 镜像钩子骨架（Phase 0 只做探针；Phase 2 接入真实镜像）。
@@ -28,6 +29,11 @@ public abstract class ChannelMirrorMixin {
     @Inject(method = "attachBufferStream", at = @At("HEAD"))
     private void captureapi$probeStream(AudioStream stream, CallbackInfo ci) {
         AudioMirrorProbe.onStream();
+    }
+
+    @ModifyVariable(method = "attachBufferStream", at = @At("HEAD"), argsOnly = true, index = 1)
+    private AudioStream captureapi$teeStream(AudioStream stream) {
+        return AudioSourceMirror.wrapStream((Channel) (Object) this, stream);
     }
 
     @Inject(method = "play", at = @At("HEAD"))

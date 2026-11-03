@@ -56,7 +56,8 @@ public final class AudioChannelRegistry {
     public AudioListenerChannel createCameraChannel(int cameraId, AudioListenerPose pose,
                                                     double testFrequency, double testX) {
         if (!enabled() && !Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_CHANNELS_PROPERTY)
-                && !Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_MIRROR_PROPERTY)) {
+                && !Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_MIRROR_PROPERTY)
+                && !Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_STREAM_PROPERTY)) {
             return null;
         }
         int existing = channels.size();
@@ -241,6 +242,89 @@ public final class AudioChannelRegistry {
             total += channel.ring().droppedPolls();
         }
         return total;
+    }
+
+    /**
+     * Phase 3 dev self-test：两个 listener channel，播放流式音乐，等待 tee 数据后采样。
+     */
+    public boolean runStreamSelfTestIfEnabled() {
+        if (!Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_STREAM_PROPERTY)) {
+            return true;
+        }
+        LOGGER.info("{} [AUDIO/STREAM] Phase 3 流式镜像 self-test 开始", CaptureConstants.LOG_MARKER);
+        AudioListenerChannel first = null;
+        AudioListenerChannel second = null;
+        try {
+            first = createCameraChannel(1, new AudioListenerPose(0.0D, 64.0D, 0.0D, 0.0F, 0.0F, 0.0F),
+                    0.0D, 0.0D);
+            second = createCameraChannel(2, new AudioListenerPose(
+                    CaptureConstants.MULTILISTENER_SPIKE_SOURCE_X, 64.0D, 0.0D, 0.0F, 0.0F, 0.0F),
+                    0.0D, 0.0D);
+            if (first == null || second == null) {
+                failures.incrementAndGet();
+                LOGGER.error("{} [AUDIO/STREAM] self-test FAIL：通道创建失败", CaptureConstants.LOG_MARKER);
+                return false;
+            }
+            Thread.sleep(CaptureConstants.MULTILISTENER_MIRROR_STARTUP_WAIT_MS);
+            AudioSourceMirror.resetPlayCommands();
+            net.minecraft.client.Minecraft minecraft = net.minecraft.client.Minecraft.getInstance();
+            minecraft.execute(() -> {
+                minecraft.options.pauseOnLostFocus = false;
+                if (minecraft.screen != null && minecraft.screen.isPauseScreen()) {
+                    minecraft.setScreen(null);
+                }
+                minecraft.getSoundManager().resume();
+                minecraft.getSoundManager().play(
+                        new net.minecraft.client.resources.sounds.SimpleSoundInstance(
+                                net.minecraft.sounds.SoundEvents.MUSIC_DISC_CAT,
+                                net.minecraft.sounds.SoundSource.RECORDS, 1.0F, 1.0F,
+                                net.minecraft.util.RandomSource.create(),
+                                CaptureConstants.MULTILISTENER_SPIKE_SOURCE_X, 64.0D, 0.0D));
+            });
+            long deadline = CaptureClock.get().nowNanos()
+                    + CaptureConstants.MULTILISTENER_MIRROR_STARTUP_WAIT_MS
+                    * CaptureConstants.NANOS_PER_MILLI;
+            while (AudioSourceMirror.streamDataCommands() == 0L
+                    && CaptureClock.get().nowNanos() < deadline) {
+                Thread.sleep(10L);
+            }
+            Thread.sleep(CaptureConstants.MULTILISTENER_STREAM_TEST_MS);
+            var a = first.ring().snapshotRecent(5);
+            var b = second.ring().snapshotRecent(5);
+            boolean dataFlow = AudioSourceMirror.streamDataCommands() > 0L;
+            if (a == null || b == null) {
+                failures.incrementAndGet();
+                LOGGER.error("{} [AUDIO/STREAM] self-test FAIL：ring 快照为空，streamData={}",
+                        CaptureConstants.LOG_MARKER, dataFlow);
+                return false;
+            }
+            boolean nonSilent = rms(a.pcm()) > CaptureConstants.MULTILISTENER_STREAM_MIN_RMS
+                    && rms(b.pcm()) > CaptureConstants.MULTILISTENER_STREAM_MIN_RMS;
+            boolean different = !Arrays.equals(a.pcm(), b.pcm());
+            LOGGER.info("{} [AUDIO/STREAM] self-test dataFlow={} samplesA={} samplesB={} "
+                            + "rmsA={} rmsB={} nonSilent={} different={}",
+                    CaptureConstants.LOG_MARKER, dataFlow, a.sampleCount(), b.sampleCount(),
+                    rms(a.pcm()), rms(b.pcm()), nonSilent, different);
+            if (dataFlow && nonSilent && different) {
+                LOGGER.info("{} [AUDIO/STREAM] self-test PASS：流式 PCM 镜像到双 listener",
+                        CaptureConstants.LOG_MARKER);
+                return true;
+            }
+            LOGGER.error("{} [AUDIO/STREAM] self-test FAIL：dataFlow={} nonSilent={} different={}",
+                    CaptureConstants.LOG_MARKER, dataFlow, nonSilent, different);
+            return false;
+        } catch (Throwable t) {
+            failures.incrementAndGet();
+            LOGGER.error("{} [AUDIO/STREAM] self-test FAIL：{}", CaptureConstants.LOG_MARKER, t.toString());
+            return false;
+        } finally {
+            if (first != null) {
+                removeChannel(first.id());
+            }
+            if (second != null) {
+                removeChannel(second.id());
+            }
+        }
     }
 
     /**

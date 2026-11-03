@@ -4,7 +4,9 @@ import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.core.mixin.SoundBufferAccessor;
 import com.mojang.blaze3d.audio.Channel;
 import com.mojang.blaze3d.audio.SoundBuffer;
+import net.minecraft.client.sounds.AudioStream;
 import java.nio.ByteBuffer;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.HashMap;
@@ -28,7 +30,9 @@ public final class AudioSourceMirror {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureConstants.LOG_MARKER);
     private static final Map<Channel, MirrorSet> SETS = new IdentityHashMap<>();
+    private static final int MAX_STREAM_QUEUE = 8;
     private static final AtomicLong PLAY_COMMANDS = new AtomicLong();
+    private static final AtomicLong STREAM_DATA_COMMANDS = new AtomicLong();
 
     private AudioSourceMirror() {
         throw new AssertionError("no instances");
@@ -37,7 +41,101 @@ public final class AudioSourceMirror {
     /** @return 是否启用镜像（feature 或 dev mirror self-test）。 */
     private static boolean active() {
         return AudioChannelRegistry.get().enabled()
-                || Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_MIRROR_PROPERTY);
+                || Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_MIRROR_PROPERTY)
+                || Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_STREAM_PROPERTY);
+    }
+
+    /** 供 TeeAudioStream 回调。 */
+    @FunctionalInterface
+    public interface StreamSink {
+        void onPcm(byte[] pcm);
+    }
+
+    /** 包装流式 AudioStream（Channel.attachBufferStream @ModifyVariable）。 */
+    public static AudioStream wrapStream(Channel channel, AudioStream stream) {
+        if (!active() || channel == null || stream == null) {
+            return stream;
+        }
+        AudioFormat format = stream.getFormat();
+        int alFormat = alFormat(format);
+        if (alFormat == 0) {
+            return stream;
+        }
+        List<AudioListenerChannel> channels = AudioChannelRegistry.get().mirrorChannels();
+        if (channels.isEmpty()) {
+            return stream;
+        }
+        MirrorSet set;
+        synchronized (SETS) {
+            set = SETS.computeIfAbsent(channel, key -> new MirrorSet());
+        }
+        for (AudioListenerChannel listener : channels) {
+            Handle handle;
+            synchronized (set) {
+                handle = set.handles.computeIfAbsent(listener.id(), id -> new Handle(listener));
+            }
+            handle.streaming = true;
+            handle.playRequested = false;
+            listener.worker().submit(context -> {
+                handle.release(context);
+                handle.streaming = true;
+                handle.source = context.createSource();
+                LOGGER.debug("{} [AUDIO/MIRROR] stream-create ch={} source={}",
+                        CaptureConstants.LOG_MARKER, listener.id(), handle.source);
+            });
+        }
+        int sampleRate = (int) format.getSampleRate();
+        return new TeeAudioStream(stream,
+                pcm -> onStreamData(channel, pcm, alFormat, sampleRate));
+    }
+
+    private static void onStreamData(Channel channel, byte[] pcm, int alFormat, int sampleRate) {
+        if (!active() || channel == null || pcm == null || pcm.length == 0) {
+            return;
+        }
+        MirrorSet set;
+        synchronized (SETS) {
+            set = SETS.get(channel);
+        }
+        if (set == null) {
+            return;
+        }
+        List<Map.Entry<Integer, Handle>> entries;
+        synchronized (set) {
+            entries = new ArrayList<>(set.handles.entrySet());
+        }
+        byte[] copy = pcm.clone();
+        for (Map.Entry<Integer, Handle> entry : entries) {
+            Handle handle = entry.getValue();
+            AudioListenerChannel listener = handle.listener;
+            listener.worker().submit(context -> {
+                if (!handle.streaming || handle.source == 0) {
+                    return;
+                }
+                int buffer = context.queuePcmBuffer(handle.source, copy, alFormat, sampleRate);
+                handle.ownedBuffers.add(buffer);
+                handle.queuedBuffers++;
+                if (STREAM_DATA_COMMANDS.get() < 3L) {
+                    LOGGER.debug("{} [AUDIO/MIRROR] stream-data ch={} source={} buffer={} queued={} playReq={}",
+                            CaptureConstants.LOG_MARKER, listener.id(), handle.source, buffer,
+                            handle.queuedBuffers, handle.playRequested);
+                }
+                while (handle.queuedBuffers > MAX_STREAM_QUEUE) {
+                    int[] removed = context.unqueueProcessed(handle.source);
+                    if (removed.length == 0) {
+                        break;
+                    }
+                    handle.queuedBuffers = Math.max(0, handle.queuedBuffers - removed.length);
+                    for (int id : removed) {
+                        handle.ownedBuffers.remove(id);
+                    }
+                }
+                if (handle.playRequested) {
+                    context.sourcePlay(handle.source);
+                }
+                STREAM_DATA_COMMANDS.incrementAndGet();
+            });
+        }
     }
 
     /** 静态 buffer 镜像。 */
@@ -87,8 +185,11 @@ public final class AudioSourceMirror {
             synchronized (set) {
                 handle = set.handles.computeIfAbsent(listener.id(), id -> new Handle(listener));
             }
+            handle.streaming = false;
+            handle.playRequested = false;
             listener.worker().submit(context -> {
                 handle.release(context);
+                handle.streaming = false;
                 int bufferId = context.createBuffer(pcm, alFormat, sampleRate);
                 int sourceId = context.createSource();
                 context.sourceBuffer(sourceId, bufferId);
@@ -114,9 +215,18 @@ public final class AudioSourceMirror {
             LOGGER.debug("{} [AUDIO/MIRROR] play-command ch={} source={}",
                     CaptureConstants.LOG_MARKER, listener.id(), handle.source);
             if (handle.source != 0) {
-                context.sourcePlay(handle.source);
-                LOGGER.debug("{} [AUDIO/MIRROR] after-play ch={} state=0x{} err=0x{}",
-                        CaptureConstants.LOG_MARKER, listener.id(),
+                if (handle.streaming) {
+                    handle.playRequested = true;
+                    LOGGER.debug("{} [AUDIO/MIRROR] stream-play ch={} source={} queued={}",
+                            CaptureConstants.LOG_MARKER, listener.id(), handle.source, handle.queuedBuffers);
+                    if (handle.queuedBuffers > 0) {
+                        context.sourcePlay(handle.source);
+                    }
+                } else {
+                    context.sourcePlay(handle.source);
+                }
+                LOGGER.debug("{} [AUDIO/MIRROR] after-play ch={} streaming={} state=0x{} err=0x{}",
+                        CaptureConstants.LOG_MARKER, listener.id(), handle.streaming,
                         Integer.toHexString(context.sourceState(handle.source)),
                         Integer.toHexString(context.alError()));
                 PLAY_COMMANDS.incrementAndGet();
@@ -132,6 +242,12 @@ public final class AudioSourceMirror {
     /** 重置镜像 play 计数（dev smoke）。 */
     public static void resetPlayCommands() {
         PLAY_COMMANDS.set(0L);
+        STREAM_DATA_COMMANDS.set(0L);
+    }
+
+    /** @return 已执行的流式 PCM 命令数（dev smoke）。 */
+    public static long streamDataCommands() {
+        return STREAM_DATA_COMMANDS.get();
     }
 
     /** Channel pause 广播。 */
@@ -169,6 +285,7 @@ public final class AudioSourceMirror {
             return;
         }
         forEachHandle(channel, (listener, handle) -> listener.worker().submit(context -> {
+            handle.playRequested = false;
             if (handle.source != 0) {
                 context.sourceStop(handle.source);
             }
@@ -326,8 +443,12 @@ public final class AudioSourceMirror {
 
     private static final class Handle {
         private final AudioListenerChannel listener;
+        private final ArrayDeque<Integer> ownedBuffers = new ArrayDeque<>();
         private int source;
         private int buffer;
+        private boolean streaming;
+        private boolean playRequested;
+        private int queuedBuffers;
 
         private Handle(AudioListenerChannel listener) {
             this.listener = listener;
@@ -342,6 +463,13 @@ public final class AudioSourceMirror {
                 context.deleteBuffer(buffer);
                 buffer = 0;
             }
+            for (Integer id : ownedBuffers) {
+                context.deleteBuffer(id);
+            }
+            ownedBuffers.clear();
+            queuedBuffers = 0;
+            streaming = false;
+            playRequested = false;
         }
     }
 }
