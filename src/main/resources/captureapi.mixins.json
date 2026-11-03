@@ -16,7 +16,8 @@
     "AudioFilterMixin",
     "ChannelMirrorMixin",
     "ChannelAccessor",
-    "SoundBufferAccessor"
+    "SoundBufferAccessor",
+    "ChunkMapAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

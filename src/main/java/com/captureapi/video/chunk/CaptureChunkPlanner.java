@@ -25,8 +25,8 @@ import org.slf4j.LoggerFactory;
  * {@code sound_range} 水平半径内的区块；集合 = 画面 ∪ 声音。相机移动/转向/参数变化或
  * {@code chunk_rescan_ms} 到期才重算（节流）。</p>
  *
- * <p>本类仅做几何求取，不申请 ticket；单机 ticket 与远程 MP 申请分别在 T2.7.2/T2.7.3
- * （W-046~051 待 Spike）实现。</p>
+ * <p>本类只做几何求取；单机 ticket 由 {@link SingleplayerTicketHolder} 持有，
+ * 客户端按需同步由 {@link ChunkSyncRequester} 处理；远程 MP 走 RemoteCaptureClient/M9。</p>
  */
 @OnlyIn(Dist.CLIENT)
 public final class CaptureChunkPlanner {
@@ -134,6 +134,7 @@ public final class CaptureChunkPlanner {
 
         current = new CaptureChunkSet(chunks, chunks.size(), false, nowNanos);
         SingleplayerTicketHolder.update(chunks);
+        ChunkSyncRequester.update(chunks);
         RemoteCaptureClient.onChunks(current.chunks());
         lastScanNanos = nowNanos;
         lastX = pose.eyePosition().x;

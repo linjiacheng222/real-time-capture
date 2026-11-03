@@ -315,6 +315,8 @@ public final class NetworkServiceManager {
                 com.captureapi.video.camera.MultiCameraRenderer.renderedFrames());
         json.addProperty("multi_consumers",
                 com.captureapi.video.camera.CameraFrameStore.consumerCount(healthNow));
+        json.addProperty("chunk_synced",
+                com.captureapi.video.chunk.ChunkSyncRequester.syncedCount());
         long multiLast = com.captureapi.video.camera.MultiCameraRenderer.lastFrameNanos();
         json.addProperty("multi_last_frame_ms", multiLast == 0L
                 ? -1L : Math.max(0L, (healthNow - multiLast) / 1_000_000L));

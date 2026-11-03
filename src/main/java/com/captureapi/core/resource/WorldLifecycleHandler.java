@@ -4,6 +4,7 @@ import com.captureapi.CaptureInterface;
 import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.core.thread.GlThreadGuard;
 import com.captureapi.video.camera.CameraManager;
+import com.captureapi.video.chunk.ChunkSyncRequester;
 import com.captureapi.video.chunk.SingleplayerTicketHolder;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
@@ -69,6 +70,7 @@ public final class WorldLifecycleHandler {
         Runnable task = join ? manager::onWorldJoin : () -> {
             // 缺陷1/3：退出世界时释放单机区块 ticket，并清空跨世界遗留相机（max_cameras 防绕过）
             SingleplayerTicketHolder.releaseAll();
+            ChunkSyncRequester.releaseAll();
             CameraManager.get().clear();
             manager.onWorldLeave();
         };
