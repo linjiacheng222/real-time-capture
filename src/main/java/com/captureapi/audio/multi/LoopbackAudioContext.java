@@ -175,6 +175,87 @@ public final class LoopbackAudioContext {
         return channels;
     }
 
+    /** 上传 PCM 为独立 buffer，返回 AL buffer id（worker 线程）。 */
+    public int createBuffer(byte[] pcm, int alFormat, int sampleRate) {
+        ByteBuffer data = ByteBuffer.allocateDirect(pcm.length).order(ByteOrder.nativeOrder());
+        data.put(pcm).flip();
+        int buffer = AL10.alGenBuffers();
+        AL10.alBufferData(buffer, alFormat, data, sampleRate);
+        return buffer;
+    }
+
+    /** 删除 buffer（worker 线程）。 */
+    public void deleteBuffer(int buffer) {
+        if (buffer != 0) {
+            AL10.alDeleteBuffers(buffer);
+        }
+    }
+
+    /** 创建空 source（worker 线程）。 */
+    public int createSource() {
+        return AL10.alGenSources();
+    }
+
+    /** 删除 source（worker 线程）。 */
+    public void deleteSource(int source) {
+        if (source != 0) {
+            AL10.alSourceStop(source);
+            AL10.alDeleteSources(source);
+        }
+    }
+
+    public void sourceBuffer(int source, int buffer) {
+        AL10.alSourcei(source, AL10.AL_BUFFER, buffer);
+    }
+
+    public void sourcePlay(int source) {
+        AL10.alSourcePlay(source);
+    }
+
+    public int sourceState(int source) {
+        return AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE);
+    }
+
+    public int alError() {
+        return AL10.alGetError();
+    }
+
+    public void sourcePause(int source) {
+        AL10.alSourcePause(source);
+    }
+
+    public void sourceStop(int source) {
+        AL10.alSourceStop(source);
+    }
+
+    public void sourcePosition(int source, double x, double y, double z) {
+        AL10.alSource3f(source, AL10.AL_POSITION, (float) x, (float) y, (float) z);
+    }
+
+    public void sourcePitch(int source, float pitch) {
+        AL10.alSourcef(source, AL10.AL_PITCH, pitch);
+    }
+
+    public void sourceVolume(int source, float volume) {
+        AL10.alSourcef(source, AL10.AL_GAIN, volume);
+    }
+
+    public void sourceLooping(int source, boolean looping) {
+        AL10.alSourcei(source, AL10.AL_LOOPING, looping ? AL10.AL_TRUE : AL10.AL_FALSE);
+    }
+
+    public void sourceDisableAttenuation(int source) {
+        AL10.alSourcei(source, AL10.AL_SOURCE_RELATIVE, AL10.AL_TRUE);
+    }
+
+    public void sourceLinearAttenuation(int source, float factor) {
+        AL10.alSourcef(source, AL10.AL_ROLLOFF_FACTOR, factor);
+    }
+
+    public void sourceRelative(int source, boolean relative) {
+        AL10.alSourcei(source, AL10.AL_SOURCE_RELATIVE, relative ? AL10.AL_TRUE : AL10.AL_FALSE);
+    }
+
     /** 生成一个循环正弦测试源（Phase 0/1 使用）。 */
     public int createSineSource(float frequencyHz, float x) {
         int samples = CaptureConstants.MULTILISTENER_SPIKE_SAMPLES;

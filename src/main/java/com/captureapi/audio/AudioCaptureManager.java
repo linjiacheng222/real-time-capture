@@ -140,6 +140,14 @@ public final class AudioCaptureManager {
             test.start();
             LOGGER.info("{} Phase 1 多通道合成 self-test 已调度", CaptureConstants.LOG_MARKER);
         }
+        if (Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_MIRROR_PROPERTY)) {
+            Thread test = new Thread(
+                    () -> com.captureapi.audio.multi.AudioChannelRegistry.get().runMirrorSelfTestIfEnabled(),
+                    "captureapi-multilistener-mirrortest");
+            test.setDaemon(true);
+            test.start();
+            LOGGER.info("{} Phase 2 静态镜像 self-test 已调度", CaptureConstants.LOG_MARKER);
+        }
     }
 
     /** {@code Library#cleanup} 之前停止采集线程（Mixin Inject HEAD）。 */

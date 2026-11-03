@@ -2,7 +2,11 @@ package com.captureapi.audio.multi;
 
 import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.core.time.CaptureClock;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.concurrent.locks.LockSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +31,16 @@ public final class AudioContextWorker {
 
     private volatile AudioListenerPose pose = new AudioListenerPose(0.0D, 0.0D, 0.0D, 0.0F, 0.0F, 0.0F);
     private volatile boolean running;
+    private volatile boolean contextReady;
     private volatile Throwable lastError;
+    private final CountDownLatch ready = new CountDownLatch(1);
+    private volatile double startTestFrequency;
+    private volatile double startTestX;
+    private int testSource;
     private final AtomicLong renderedPolls = new AtomicLong();
     private final AtomicLong errors = new AtomicLong();
+    private final ConcurrentLinkedQueue<Consumer<LoopbackAudioContext>> commands =
+            new ConcurrentLinkedQueue<>();
     private Thread thread;
     private LoopbackAudioContext context;
 
@@ -55,29 +66,34 @@ public final class AudioContextWorker {
         if (running) {
             return true;
         }
-        context = new LoopbackAudioContext(sampleRate, channels);
-        if (!context.open()) {
-            lastError = new IllegalStateException("loopback context open 失败");
-            errors.incrementAndGet();
-            return false;
-        }
-        if (testFrequency > 0.0D) {
-            try {
-                context.createSineSource((float) testFrequency, (float) testX);
-            } catch (Throwable t) {
-                lastError = t;
-                errors.incrementAndGet();
-                context.close();
-                return false;
-            }
-        }
         running = true;
+        startTestFrequency = testFrequency;
+        startTestX = testX;
         thread = new Thread(this::run, name);
         thread.setDaemon(true);
         thread.setPriority(Math.max(Thread.MIN_PRIORITY,
                 Math.min(Thread.MAX_PRIORITY - 1, CaptureConstants.AUDIO_CHANNEL_THREAD_PRIORITY)));
         thread.start();
-        return true;
+        try {
+            if (!ready.await(CaptureConstants.AUDIO_CHANNEL_START_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+                lastError = new IllegalStateException("worker context 启动超时");
+                errors.incrementAndGet();
+                stop();
+                return false;
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            stop();
+            return false;
+        }
+        return contextReady && running;
+    }
+
+    /** 投递镜像命令到 worker 线程（Phase 2；线程安全）。 */
+    public void submit(Consumer<LoopbackAudioContext> command) {
+        if (command != null && running) {
+            commands.add(command);
+        }
     }
 
     /** 设置 listener 位姿（下一拍生效）。 */
@@ -88,9 +104,43 @@ public final class AudioContextWorker {
     }
 
     private void run() {
+        // 所有 OpenAL context 创建/current/capabilities/source 操作必须在本 worker 线程执行；
+        // 否则 LWJGL thread-local context 会缺失，source 状态/渲染异常。
+        try {
+            context = new LoopbackAudioContext(sampleRate, channels);
+            if (!context.open()) {
+                lastError = new IllegalStateException("loopback context open 失败");
+                errors.incrementAndGet();
+                running = false;
+                ready.countDown();
+                return;
+            }
+            if (startTestFrequency > 0.0D) {
+                testSource = context.createSineSource((float) startTestFrequency, (float) startTestX);
+            }
+            contextReady = true;
+        } catch (Throwable t) {
+            lastError = t;
+            errors.incrementAndGet();
+            running = false;
+            ready.countDown();
+            return;
+        } finally {
+            ready.countDown();
+        }
         long next = CaptureClock.get().nowNanos();
         try {
             while (running) {
+                Consumer<LoopbackAudioContext> command;
+                while ((command = commands.poll()) != null) {
+                    try {
+                        command.accept(context);
+                    } catch (Throwable t) {
+                        errors.incrementAndGet();
+                        LOGGER.warn("{} [AUDIO/CH] worker {} 镜像命令失败：{}",
+                                CaptureConstants.LOG_MARKER, name, t.toString());
+                    }
+                }
                 AudioListenerPose current = pose;
                 context.setListener(current);
                 byte[] pcm = context.render(samplesPerSlot);
@@ -113,7 +163,12 @@ public final class AudioContextWorker {
             errors.incrementAndGet();
             LOGGER.warn("{} [AUDIO/CH] worker {} 异常退出：{}", CaptureConstants.LOG_MARKER, name, t.toString());
         } finally {
+            contextReady = false;
             if (context != null) {
+                if (testSource != 0) {
+                    context.destroySource(testSource);
+                    testSource = 0;
+                }
                 context.close();
             }
             running = false;
@@ -123,6 +178,7 @@ public final class AudioContextWorker {
     /** 停止并等待 worker/context 回收。 */
     public synchronized void stop() {
         running = false;
+        commands.clear();
         Thread current = thread;
         thread = null;
         if (current != null && current != Thread.currentThread()) {
@@ -136,7 +192,7 @@ public final class AudioContextWorker {
     }
 
     public boolean isRunning() {
-        return running;
+        return running && contextReady;
     }
 
     public long renderedPolls() {

@@ -2,6 +2,7 @@ package com.captureapi.audio.multi;
 
 import com.captureapi.core.config.CaptureParams;
 import com.captureapi.core.constant.CaptureConstants;
+import com.captureapi.core.time.CaptureClock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -54,7 +55,8 @@ public final class AudioChannelRegistry {
     /** 创建并启动相机 listener 通道（Phase 4 使用；Phase 1 self-test 也用）。 */
     public AudioListenerChannel createCameraChannel(int cameraId, AudioListenerPose pose,
                                                     double testFrequency, double testX) {
-        if (!enabled() && !Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_CHANNELS_PROPERTY)) {
+        if (!enabled() && !Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_CHANNELS_PROPERTY)
+                && !Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_MIRROR_PROPERTY)) {
             return null;
         }
         int existing = channels.size();
@@ -100,6 +102,98 @@ public final class AudioChannelRegistry {
     public synchronized void stopAll() {
         for (Integer id : new ArrayList<>(channels.keySet())) {
             removeChannel(id);
+        }
+    }
+
+    /** @return 供镜像层使用的活动 listener 通道。 */
+    public List<AudioListenerChannel> mirrorChannels() {
+        List<AudioListenerChannel> result = new ArrayList<>();
+        for (AudioListenerChannel channel : channels.values()) {
+            if (channel.active()) {
+                result.add(channel);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Phase 2 dev self-test：创建 2 个 listener channel，播放一个位置测试音，
+     * 等待静态 buffer 镜像后读取两路 ring。仅 dev 属性触发。
+     */
+    public boolean runMirrorSelfTestIfEnabled() {
+        if (!Boolean.getBoolean(CaptureConstants.DEBUG_MULTILISTENER_MIRROR_PROPERTY)) {
+            return true;
+        }
+        LOGGER.info("{} [AUDIO/MIRROR] Phase 2 静态声源镜像 self-test 开始", CaptureConstants.LOG_MARKER);
+        AudioListenerChannel first = null;
+        AudioListenerChannel second = null;
+        try {
+            first = createCameraChannel(1, new AudioListenerPose(0.0D, 64.0D, 0.0D, 0.0F, 0.0F, 0.0F),
+                    0.0D, 0.0D);
+            second = createCameraChannel(2, new AudioListenerPose(
+                    CaptureConstants.MULTILISTENER_SPIKE_SOURCE_X, 64.0D, 0.0D, 0.0F, 0.0F, 0.0F),
+                    0.0D, 0.0D);
+            if (first == null || second == null) {
+                failures.incrementAndGet();
+                LOGGER.error("{} [AUDIO/MIRROR] self-test FAIL：通道创建失败", CaptureConstants.LOG_MARKER);
+                return false;
+            }
+            Thread.sleep(CaptureConstants.MULTILISTENER_MIRROR_STARTUP_WAIT_MS);
+            AudioSourceMirror.resetPlayCommands();
+            net.minecraft.client.Minecraft minecraft = net.minecraft.client.Minecraft.getInstance();
+            minecraft.execute(() -> {
+                minecraft.options.pauseOnLostFocus = false;
+                if (minecraft.screen != null && minecraft.screen.isPauseScreen()) {
+                    minecraft.setScreen(null);
+                }
+                minecraft.getSoundManager().resume();
+                minecraft.getSoundManager().play(
+                        new net.minecraft.client.resources.sounds.SimpleSoundInstance(
+                                net.minecraft.sounds.SoundEvents.NOTE_BLOCK_BELL.value(),
+                                net.minecraft.sounds.SoundSource.BLOCKS, 1.0F, 1.0F,
+                                net.minecraft.util.RandomSource.create(),
+                                CaptureConstants.MULTILISTENER_SPIKE_SOURCE_X, 64.0D, 0.0D));
+            });
+            long deadline = CaptureClock.get().nowNanos()
+                    + CaptureConstants.MULTILISTENER_MIRROR_STARTUP_WAIT_MS
+                    * CaptureConstants.NANOS_PER_MILLI;
+            while (AudioSourceMirror.playCommands() == 0L
+                    && CaptureClock.get().nowNanos() < deadline) {
+                Thread.sleep(10L);
+            }
+            Thread.sleep(CaptureConstants.MULTILISTENER_MIRROR_TEST_MS);
+            var a = first.ring().snapshotRecent(5);
+            var b = second.ring().snapshotRecent(5);
+            if (a == null || b == null) {
+                failures.incrementAndGet();
+                LOGGER.error("{} [AUDIO/MIRROR] self-test FAIL：ring 快照为空", CaptureConstants.LOG_MARKER);
+                return false;
+            }
+            boolean nonSilent = rms(a.pcm()) > CaptureConstants.MULTILISTENER_MIRROR_MIN_RMS
+                    && rms(b.pcm()) > CaptureConstants.MULTILISTENER_MIRROR_MIN_RMS;
+            boolean different = !Arrays.equals(a.pcm(), b.pcm());
+            LOGGER.info("{} [AUDIO/MIRROR] self-test samplesA={} samplesB={} rmsA={} rmsB={} "
+                            + "nonSilent={} different={}",
+                    CaptureConstants.LOG_MARKER, a.sampleCount(), b.sampleCount(), rms(a.pcm()),
+                    rms(b.pcm()), nonSilent, different);
+            if (nonSilent && different) {
+                LOGGER.info("{} [AUDIO/MIRROR] self-test PASS：静态声源镜像到双 listener",
+                        CaptureConstants.LOG_MARKER);
+                return true;
+            }
+            LOGGER.error("{} [AUDIO/MIRROR] self-test FAIL：未满足非静音/差异", CaptureConstants.LOG_MARKER);
+            return false;
+        } catch (Throwable t) {
+            failures.incrementAndGet();
+            LOGGER.error("{} [AUDIO/MIRROR] self-test FAIL：{}", CaptureConstants.LOG_MARKER, t.toString());
+            return false;
+        } finally {
+            if (first != null) {
+                removeChannel(first.id());
+            }
+            if (second != null) {
+                removeChannel(second.id());
+            }
         }
     }
 
@@ -182,7 +276,8 @@ public final class AudioChannelRegistry {
                 LOGGER.error("{} [AUDIO/CH] self-test FAIL：ring 快照为空", CaptureConstants.LOG_MARKER);
                 return false;
             }
-            boolean nonSilent = rms(a.pcm()) > 0.0D && rms(b.pcm()) > 0.0D;
+            boolean nonSilent = rms(a.pcm()) > CaptureConstants.MULTILISTENER_MIRROR_MIN_RMS
+                    && rms(b.pcm()) > CaptureConstants.MULTILISTENER_MIRROR_MIN_RMS;
             boolean different = !Arrays.equals(a.pcm(), b.pcm());
             boolean mono = a.startNanos() > 0L && b.startNanos() > 0L;
             LOGGER.info("{} [AUDIO/CH] self-test samplesA={} samplesB={} rmsA={} rmsB={} "

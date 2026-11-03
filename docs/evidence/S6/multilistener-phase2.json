@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-03T20:16:26+08:00",
+  "phase": "Phase 2 static Minecraft source mirror",
+  "result": "PASS",
+  "selfTest": {
+    "channels": 2,
+    "samplesA": 2205,
+    "samplesB": 2205,
+    "rmsA": 0.0005401750959161345,
+    "rmsB": 0.0005399523874351881,
+    "nonSilent": true,
+    "different": true,
+    "sourceState": "0x1012 (AL_PLAYING)",
+    "alError": "0x0"
+  },
+  "source": {
+    "format": "PCM_SIGNED 48000 Hz 16bit mono",
+    "bytes": 42134,
+    "peak": 7125
+  },
+  "notes": "Channel/SoundBuffer accessors and static buffer mirror work; two listener rings receive playable PCM. Self-test runs with unfocused-window pause skipped; real pause/unpause mirror path requires focused-window test. Streaming (attachBufferStream) still Phase 3."
+}
