@@ -9,6 +9,11 @@ EV = os.path.join(REPO, 'docs', 'evidence', 'S11')
 os.makedirs(os.path.join(EV, 'artifacts'), exist_ok=True)
 RESULTS = []
 
+# 禁用系统代理（本机代理会劫持 127.0.0.1 请求 → 502）
+_proxy_handler = urllib.request.ProxyHandler({})
+_opener = urllib.request.build_opener(_proxy_handler)
+urllib.request.install_opener(_opener)
+
 def log(name, ok, detail):
     RESULTS.append({'name': name, 'ok': bool(ok), 'detail': str(detail)[:500]})
     print(f"{'PASS' if ok else 'FAIL'} {name}: {str(detail)[:240]}")
@@ -114,7 +119,9 @@ def jpeg_size(path):
     raise RuntimeError('JPEG 尺寸解析失败')
 
 def read_log():
-    for enc in ('utf-8', 'gb18030', 'latin1'):
+    # 日志实际为 GBK（Windows 控制台默认）：utf-8+ignore 会静默乱码导致中文匹配失败，
+    # 因此直接用 GBK 家族解码（gb18030 兼容 GBK）
+    for enc in ('gb18030', 'gbk', 'utf-8'):
         try:
             return open(os.path.join(REPO, 'run', 'logs', 'latest.log'), 'r', encoding=enc, errors='ignore').read()
         except OSError:
@@ -187,7 +194,7 @@ def main():
         proc.kill(); sys.exit(1)
     log('boot+net', True, 'HTTP/WS 端口就绪')
     try:
-        r = ws_send({'id': 'lw', 'action': 'client.loadWorld', 'params': {'name': 's1test'}}, timeout=40)
+        r = ws_send({'id': 'lw', 'action': 'client.loadWorld', 'params': {'name': 'clean_s12'}}, timeout=40)
         log('load_world', r.get('ok', False), r)
     except Exception as e:
         log('load_world', False, e)
@@ -209,6 +216,28 @@ def main():
     log('enter_world', True, f"pose=({pose['x']:.1f},{pose['y']:.1f},{pose['z']:.1f})")
     px, py, pz = pose['x'], pose['y'], pose['z']
 
+    # 防 Forge LootModifierManager 竞态：世界生成/水流 postProcess 会在资源未就绪窗口触发掉落崩溃。
+    # 对策：loadWorld 后等待足够久——世界生成完（Preparing spawn）+ 资源就绪 + 静置观察无 ERROR。
+    print('等待世界生成与资源就绪（最长 120s）...')
+    res_dl = time.time() + 120
+    settled = False
+    while time.time() < res_dl:
+        try:
+            t = read_log()
+            if 'Preparing spawn area' in t and 'logged in' in t:
+                # 玩家已进入后，再观察 25s 无新 ERROR 才放行
+                if not settled:
+                    settled = True
+                    settle_start = time.time()
+                if time.time() - settle_start >= 25:
+                    break
+            elif settled and 'unexpected exception' in t:
+                settled = False  # 有异常重置，继续等
+        except Exception:
+            pass
+        time.sleep(5)
+    time.sleep(5)
+
     # 清残留相机
     try:
         lst = ws_send({'id': 'cl', 'action': 'camera.list'}, timeout=8)
@@ -217,10 +246,17 @@ def main():
     except Exception:
         pass
 
+    # 放宽远裁剪面（渲染距离8→far仅128格，+200格外的已同步区块会被裁掉）
+    try:
+        r = ws_send({'id': 'fp', 'action': 'config.set', 'params': {'key': 'far_plane', 'value': 512}}, timeout=10)
+        print('far_plane=512:', r.get('ok'))
+    except Exception as e:
+        print('far_plane 设置失败:', e)
+
     # +200 格，水平朝向玩家
     far_x = px + 200.0
     r = ws_send({'id': 'c1', 'action': 'camera.create', 'params': {
-        'x': far_x, 'y': py + 30.0, 'z': pz, 'yaw': 180.0, 'pitch': 10.0, 'fov': 70}}, timeout=20)
+        'x': far_x, 'y': py + 30.0, 'z': pz, 'yaw': 180.0, 'pitch': 55.0, 'fov': 70}}, timeout=20)
     log('far_camera_create', r.get('ok', False), r)
     cam_id = r.get('result', {}).get('id', 1) if r.get('ok') else 1
 
@@ -235,10 +271,19 @@ def main():
     else:
         log('sync_log', False, '未找到 [CHUNK/SYNC] 已同步 日志')
 
+    # 取帧前查 health
+    try:
+        import urllib.request as _ur
+        h = json.loads(_ur.urlopen(f'{HTTP}/health', timeout=8).read())
+        print('health: rendered=', h.get('video_rendered_frames'), 'failed=', h.get('video_failed_frames'),
+              'readback=', h.get('video_readback_frames'), 'multi=', h.get('multi_rendered'))
+    except Exception as e:
+        print('health 查询失败:', e)
+
     # HTTP 取帧（重试）
     jpg = os.path.join(EV, 'artifacts', 'far-terrain.jpg')
     frame = None
-    for _ in range(30):
+    for _ in range(90):
         try:
             with urllib.request.urlopen(f'{HTTP}/camera/{cam_id}/frame', timeout=8) as resp:
                 if resp.status == 200:

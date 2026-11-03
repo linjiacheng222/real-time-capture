@@ -1,0 +1,9 @@
+{
+  "width": 1280,
+  "height": 1024,
+  "lower_rows": 512,
+  "lower_rows_non_sky_60": 0,
+  "lower_row_ratio": 0.0,
+  "all_rows_avg_non_sky": 0.052,
+  "signalstats_YAVG": null
+}

@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-04T02:13:03",
+  "phases": [
+    {
+      "name": "boot+net",
+      "ok": true,
+      "detail": "HTTP/WS 端口就绪"
+    },
+    {
+      "name": "load_world",
+      "ok": true,
+      "detail": "{'id': 'lw', 'ok': True, 'result': {'loading': 'clean_s12'}}"
+    },
+    {
+      "name": "enter_world",
+      "ok": true,
+      "detail": "pose=(9.5,67.0,-2.5)"
+    },
+    {
+      "name": "far_camera_create",
+      "ok": true,
+      "detail": "{'id': 'c1', 'ok': True, 'result': {'id': 1, 'x': 209.5, 'y': 97.0, 'z': -2.5, 'yaw': 180.0, 'pitch': 10.0, 'roll': 0.0, 'fov': 70.0, 'width': 1280, 'height': 1024, 'paused': False, 'shape': 'rect'}}"
+    },
+    {
+      "name": "sync_log",
+      "ok": true,
+      "detail": "synced=1178 desired=1178 samples=148"
+    },
+    {
+      "name": "http_frame",
+      "ok": true,
+      "detail": "39777B -> E:\\捕获接口\\docs\\evidence\\S11\\artifacts\\far-terrain.jpg"
+    },
+    {
+      "name": "terrain_pixels",
+      "ok": false,
+      "detail": "{'width': 1280, 'height': 1024, 'lower_rows': 512, 'lower_rows_non_sky_60': 0, 'lower_row_ratio': 0.0, 'all_rows_avg_non_sky': 0.052, 'signalstats_YAVG': None}"
+    },
+    {
+      "name": "unload_log",
+      "ok": true,
+      "detail": "unload_last=1153 samples=293"
+    }
+  ],
+  "summary": "7/8",
+  "pixel_analysis": {
+    "width": 1280,
+    "height": 1024,
+    "lower_rows": 512,
+    "lower_rows_non_sky_60": 0,
+    "lower_row_ratio": 0.0,
+    "all_rows_avg_non_sky": 0.052,
+    "signalstats_YAVG": null
+  }
+}

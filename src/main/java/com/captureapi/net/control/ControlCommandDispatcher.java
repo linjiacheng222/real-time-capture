@@ -545,11 +545,34 @@ public final class ControlCommandDispatcher {
         return result;
     }
 
-    /** 测试辅助：从标题界面加载指定存档（S1.4 进出世界自动化）。 */
+    /** 测试辅助：从标题界面加载指定存档（S1.4 进出世界自动化）；不存在时自动创建全新世界。 */
     private JsonElement clientLoadWorld(JsonObject params) {
         String name = optString(params, "name", "s1test");
         Minecraft minecraft = Minecraft.getInstance();
-        minecraft.execute(() -> minecraft.createWorldOpenFlows().loadLevel(new TitleScreen(), name));
+        minecraft.execute(() -> {
+            try {
+                boolean exists = java.nio.file.Files.isDirectory(
+                        minecraft.getLevelSource().getBaseDir().resolve(name))
+                        && java.nio.file.Files.exists(
+                        minecraft.getLevelSource().getBaseDir().resolve(name).resolve("level.dat"));
+                if (exists) {
+                    minecraft.createWorldOpenFlows().loadLevel(new TitleScreen(), name);
+                } else {
+                    // 全新默认世界（固定种子便于复现）
+                    long seed = 3257840380004955789L;
+                    var settings = new net.minecraft.world.level.LevelSettings(
+                            name, net.minecraft.world.level.GameType.SURVIVAL,
+                            true, net.minecraft.world.Difficulty.NORMAL, true,
+                            new net.minecraft.world.level.GameRules(),
+                            net.minecraft.world.level.WorldDataConfiguration.DEFAULT);
+                    var options = new net.minecraft.world.level.levelgen.WorldOptions(seed, true, false);
+                    minecraft.createWorldOpenFlows().createFreshLevel(name, settings, options,
+                            ctx -> net.minecraft.world.level.levelgen.presets.WorldPresets.createNormalWorldDimensions(ctx));
+                }
+            } catch (Exception e) {
+                LOGGER.warn("{} [TEST] 创建/加载世界失败：{}", CaptureConstants.LOG_MARKER, e.getMessage());
+            }
+        });
         JsonObject result = new JsonObject();
         result.addProperty("loading", name);
         return result;
