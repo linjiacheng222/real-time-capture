@@ -161,6 +161,7 @@ public final class ControlCommandDispatcher {
             case "client.loadWorld" -> clientLoadWorld(params);
             case "client.playTestSound" -> clientPlayTestSound();
             case "client.playPosSound" -> clientPlayPosSound(params);
+            case "client.command" -> clientCommand(params);
             default -> throw new ControlException(ControlErrorCode.E_UNKNOWN_ACTION, "未知 action：" + action);
         };
     }
@@ -479,6 +480,23 @@ public final class ControlCommandDispatcher {
         });
         JsonObject result = new JsonObject();
         result.addProperty("unpaused", true);
+        return result;
+    }
+
+    private JsonElement clientCommand(JsonObject params) {
+        String command = params.has("command") ? params.get("command").getAsString() : "";
+        if (command.isBlank()) {
+            throw new ControlException(ControlErrorCode.E_MISSING_PARAM, "缺少 command");
+        }
+        Minecraft minecraft = Minecraft.getInstance();
+        minecraft.execute(() -> {
+            if (minecraft.player != null) {
+                minecraft.player.connection.sendCommand(command);
+            }
+        });
+        JsonObject result = new JsonObject();
+        result.addProperty("queued", true);
+        result.addProperty("command", command);
         return result;
     }
 

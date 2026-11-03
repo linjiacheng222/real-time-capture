@@ -1,7 +1,7 @@
 {
   "date": "2026-11-03T21:56:00+08:00",
   "plan": "docs/多路视频流落地计划.md V1-V7",
-  "result": "V1-V5/V7 automatic smoke PASS; V6 command code only (game-console untested)",
+  "result": "V1-V7 automatic smoke PASS",
   "v1_http": {
     "camera0": {
       "status": 200,
@@ -62,12 +62,21 @@
     "multi_rendered": 14,
     "multi_last_frame_ms": 122
   },
-  "notes": "0x04 frames carry magic 0x04 CAP, cameraId, timestamp, width/height and JPEG. HTTP camera1/camera0 share active source; camera2 distinct. V6 /captureapi camera: not automatically exercised; V3 game command mapping and filter/quality combo need game-console test. CameraFrameStore consumer TTL=2000ms. Final rerun: 0x04 header 22B with reserved short, JPEG SOI at offset22, 90/90 frames valid; camera2 grab/capture next-frame returns distinct timestamps with grayscale/quality90; config hot-reload fps 4->2 updates interval 250->500ms; recording camera2 3 frames audioAvailable. V6 /captureapi capture camera:2 remains game-console untested.",
+  "notes": "0x04 frames carry magic 0x04 CAP, cameraId, timestamp, width/height and JPEG. HTTP camera1/camera0 share active source; camera2 distinct. V6 /captureapi game command verified via test-only client.command. CameraFrameStore consumer TTL=2000ms. Final rerun: 0x04 header 22B with reserved short, JPEG SOI at offset22, 90/90 frames valid; camera2 grab/capture next-frame returns distinct timestamps with grayscale/quality90; config hot-reload fps 4->2 updates interval 250->500ms; recording camera2 3 frames audioAvailable. V6 game command PASS via test-only client.command: capture camera:2 filter+quality produced v6_cmd.jpg (38279B); record start camera:2 produced 4 frames/16208B.",
   "v4_hot_config": {
     "key": "multi_camera_fps",
     "before": 4,
     "after": 2,
     "multicam_interval_ms_before": 250,
     "multicam_interval_ms_after": 500
+  },
+  "v6_game_command": {
+    "capture_command": "captureapi capture camera:2 filter:grayscale quality:90 out:E:\\捕获接口\\run\\v6_cmd.jpg",
+    "capture_file_bytes": 38279,
+    "capture_file_sha256_prefix": "50C89DABCB294F9A",
+    "record_command": "captureapi record start camera:2 fps:30 out:E:\\捕获接口\\run\\v6_rec.mp4",
+    "record_frames": 4,
+    "record_file_bytes": 16208,
+    "chat": "[CaptureAPI] 截取成功 1280x1024 ts=287243892286900 38279B → E:\\捕获接口\\run\\v6_cmd.jpg"
   }
 }
