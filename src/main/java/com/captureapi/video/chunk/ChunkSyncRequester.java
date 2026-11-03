@@ -71,14 +71,26 @@ public final class ChunkSyncRequester {
         }
         Set<Long> capped = new HashSet<>(desiredChunks);
         if (capped.size() > MAX_SYNCED) {
+            // 内存护栏：按距相机由近到远排序，优先保留近处（防海量 LevelChunk 撑爆客户端堆）
+            var active = com.captureapi.video.camera.CameraManager.get().active();
+            final int fcx = active != null ? ((int) Math.floor(active.positionX())) >> 4 : 0;
+            final int fcz = active != null ? ((int) Math.floor(active.positionZ())) >> 4 : 0;
+            java.util.List<Long> sorted = new java.util.ArrayList<>(capped);
+            sorted.sort((a, b) -> {
+                int ax = net.minecraft.world.level.ChunkPos.getX(a) - fcx;
+                int az = net.minecraft.world.level.ChunkPos.getZ(a) - fcz;
+                int bx = net.minecraft.world.level.ChunkPos.getX(b) - fcx;
+                int bz = net.minecraft.world.level.ChunkPos.getZ(b) - fcz;
+                return Integer.compare(ax * ax + az * az, bx * bx + bz * bz);
+            });
             Set<Long> limited = new HashSet<>();
-            for (Long encoded : capped) {
+            for (Long encoded : sorted) {
                 if (limited.size() >= MAX_SYNCED) {
                     break;
                 }
                 limited.add(encoded);
             }
-            LOGGER.warn("{} [CHUNK/SYNC] 目标区块 {} 超过上限 {}，截断",
+            LOGGER.warn("{} [CHUNK/SYNC] 目标区块 {} 超过上限 {}，按距离截断保留近处",
                     CaptureConstants.LOG_MARKER, capped.size(), MAX_SYNCED);
             capped = limited;
         }

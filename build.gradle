@@ -69,6 +69,8 @@ minecraft {
         }
         client {
             // 纯客户端模组：仅提供 client 运行配置（附录E §2.1）
+            // dev 内存基线：多路区块同步（512 chunk LevelChunk）+ 世界生成需要更大堆
+            jvmArgs '-Xmx4G'
         }
         server {
             // 仅用于验证 M9 服务端组件；不加载客户端主模组

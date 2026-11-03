@@ -229,7 +229,7 @@ def main():
                 if not settled:
                     settled = True
                     settle_start = time.time()
-                if time.time() - settle_start >= 25:
+                if time.time() - settle_start >= 40:
                     break
             elif settled and 'unexpected exception' in t:
                 settled = False  # 有异常重置，继续等
@@ -246,6 +246,13 @@ def main():
     except Exception:
         pass
 
+    # 防失焦暂停（headless 窗口无焦点→游戏暂停→AFTER_LEVEL 停止→离屏渲染停）
+    try:
+        ws_send({'id': 'up', 'action': 'client.unpause'}, timeout=10)
+        print('client.unpause 已发')
+    except Exception as e:
+        print('unpause 失败:', e)
+
     # 放宽远裁剪面（渲染距离8→far仅128格，+200格外的已同步区块会被裁掉）
     try:
         r = ws_send({'id': 'fp', 'action': 'config.set', 'params': {'key': 'far_plane', 'value': 512}}, timeout=10)
@@ -256,7 +263,7 @@ def main():
     # +200 格，水平朝向玩家
     far_x = px + 200.0
     r = ws_send({'id': 'c1', 'action': 'camera.create', 'params': {
-        'x': far_x, 'y': py + 30.0, 'z': pz, 'yaw': 180.0, 'pitch': 55.0, 'fov': 70}}, timeout=20)
+        'x': far_x, 'y': py + 30.0, 'z': pz, 'yaw': -90.0, 'pitch': 30.0, 'fov': 70}}, timeout=20)
     log('far_camera_create', r.get('ok', False), r)
     cam_id = r.get('result', {}).get('id', 1) if r.get('ok') else 1
 
@@ -338,4 +345,18 @@ def main():
     print('report:', os.path.join(EV, 'report.json'))
 
 if __name__ == '__main__':
-    main()
+    import sys as _sys
+    for _attempt in range(3):
+        try:
+            main()
+            break
+        except ConnectionRefusedError:
+            print(f'\n[RETRY] 游戏中途崩溃（第 {_attempt+1}/3 次尝试），清理后重试...')
+            import subprocess as _sp, time as _time
+            _sp.run(['taskkill','/F','/IM','java.exe'], capture_output=True)
+            _time.sleep(5)
+            if _attempt == 2:
+                print('[FAIL] 3 次尝试全部失败')
+                _sys.exit(1)
+        else:
+            break

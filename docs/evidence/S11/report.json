@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-04T02:13:03",
+  "date": "2026-11-04T02:52:18",
   "phases": [
     {
       "name": "boot+net",
@@ -14,42 +14,34 @@
     {
       "name": "enter_world",
       "ok": true,
-      "detail": "pose=(9.5,67.0,-2.5)"
+      "detail": "pose=(-4.5,68.0,5.5)"
     },
     {
       "name": "far_camera_create",
       "ok": true,
-      "detail": "{'id': 'c1', 'ok': True, 'result': {'id': 1, 'x': 209.5, 'y': 97.0, 'z': -2.5, 'yaw': 180.0, 'pitch': 10.0, 'roll': 0.0, 'fov': 70.0, 'width': 1280, 'height': 1024, 'paused': False, 'shape': 'rect'}}"
+      "detail": "{'id': 'c1', 'ok': True, 'result': {'id': 1, 'x': 195.5, 'y': 98.0, 'z': 5.5, 'yaw': -90.0, 'pitch': 30.0, 'roll': 0.0, 'fov': 70.0, 'width': 1280, 'height': 1024, 'paused': False, 'shape': 'rect'}}"
     },
     {
       "name": "sync_log",
       "ok": true,
-      "detail": "synced=1178 desired=1178 samples=148"
+      "detail": "synced=464 desired=512 samples=58"
     },
     {
       "name": "http_frame",
-      "ok": true,
-      "detail": "39777B -> E:\\捕获接口\\docs\\evidence\\S11\\artifacts\\far-terrain.jpg"
+      "ok": false,
+      "detail": "HTTP 帧超时/过小"
     },
     {
       "name": "terrain_pixels",
       "ok": false,
-      "detail": "{'width': 1280, 'height': 1024, 'lower_rows': 512, 'lower_rows_non_sky_60': 0, 'lower_row_ratio': 0.0, 'all_rows_avg_non_sky': 0.052, 'signalstats_YAVG': None}"
+      "detail": "无帧"
     },
     {
       "name": "unload_log",
-      "ok": true,
-      "detail": "unload_last=1153 samples=293"
+      "ok": false,
+      "detail": "unload_last=0 samples=58"
     }
   ],
-  "summary": "7/8",
-  "pixel_analysis": {
-    "width": 1280,
-    "height": 1024,
-    "lower_rows": 512,
-    "lower_rows_non_sky_60": 0,
-    "lower_row_ratio": 0.0,
-    "all_rows_avg_non_sky": 0.052,
-    "signalstats_YAVG": null
-  }
+  "summary": "5/8",
+  "pixel_analysis": null
 }
