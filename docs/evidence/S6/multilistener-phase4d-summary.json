@@ -1,0 +1,78 @@
+{
+  "date": "2026-11-03T20:54:00+08:00",
+  "phase": "Phase 4d channel/recording smoke",
+  "result": "PASS (backend)",
+  "camera_peek": {
+    "channel": 1,
+    "found": true,
+    "startNanos": 283111770555500,
+    "endNanos": 283111780555500,
+    "sampleCount": 441,
+    "rms": 0.0002196975104502121,
+    "peak": 14
+  },
+  "player_before": {
+    "channel": 0,
+    "found": true,
+    "startNanos": 283111774230500,
+    "endNanos": 283111784230500,
+    "sampleCount": 441,
+    "rms": 0.03081661132974054,
+    "peak": 1921
+  },
+  "audio_section": {
+    "start": 283111876961700,
+    "end": 283111927073700,
+    "samples": 2205,
+    "bytes": 8820,
+    "rms": 436.18906425223753,
+    "peak": 1478
+  },
+  "player_after": {
+    "channel": 0,
+    "found": true,
+    "startNanos": 283112020983000,
+    "endNanos": 283112030983000,
+    "sampleCount": 441,
+    "rms": 0.011682398431651789,
+    "peak": 852
+  },
+  "recording": {
+    "start": {
+      "running": true,
+      "frames": 0,
+      "path": "E:\\捕获接口\\run\\config\\captureapi\\recordings\\recording_283112159899300.mp4",
+      "audioAvailable": false
+    },
+    "stop": {
+      "running": false,
+      "frames": 37,
+      "path": "E:\\捕获接口\\run\\config\\captureapi\\recordings\\recording_283112159899300.mp4",
+      "audioAvailable": true
+    }
+  },
+  "channels_after_delete": {
+    "channels": [
+      {
+        "id": 0,
+        "kind": "PLAYER",
+        "cameraId": -1,
+        "active": true,
+        "written": 6987,
+        "dropped": 0,
+        "errors": 0
+      },
+      {
+        "id": -1,
+        "kind": "VIRTUAL",
+        "cameraId": -1,
+        "active": true,
+        "written": 6653,
+        "dropped": 0,
+        "errors": 0
+      }
+    ],
+    "primary": 0
+  },
+  "notes": "Automated smoke: camera channel non-silent (rms 2.19e-4/peak14), audio.section virtual 2205 samples, recording audioChannel=1 stopped with audioAvailable=true (37 frames), camera delete removes channel and primary falls back 0. Player timestamps before/after section monotonic; user zero-disturbance hearing still pending. Recording/audio FFmpeg dev PASS."
+}

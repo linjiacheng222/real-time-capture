@@ -1,0 +1,207 @@
+﻿{
+    "time":  "2026-11-03T20:53:23.3724458+08:00",
+    "channels_initial":  {
+                             "id":  "ch0",
+                             "ok":  true,
+                             "result":  {
+                                            "channels":  [
+                                                             {
+                                                                 "id":  0,
+                                                                 "kind":  "PLAYER",
+                                                                 "cameraId":  -1,
+                                                                 "active":  true,
+                                                                 "written":  6563,
+                                                                 "dropped":  0,
+                                                                 "errors":  0
+                                                             },
+                                                             {
+                                                                 "id":  -1,
+                                                                 "kind":  "VIRTUAL",
+                                                                 "cameraId":  -1,
+                                                                 "active":  true,
+                                                                 "written":  6229,
+                                                                 "dropped":  0,
+                                                                 "errors":  0
+                                                             }
+                                                         ],
+                                            "primary":  0
+                                        }
+                         },
+    "unpause":  {
+                    "id":  "u",
+                    "ok":  true,
+                    "result":  {
+                                   "unpaused":  true
+                               }
+                },
+    "camera":  {
+                   "id":  "c",
+                   "ok":  true,
+                   "result":  {
+                                  "id":  1,
+                                  "x":  -39.671014924513116,
+                                  "y":  88.62000000476837,
+                                  "z":  92.20669017002949,
+                                  "yaw":  1.499997,
+                                  "pitch":  76.949974,
+                                  "roll":  0.0,
+                                  "fov":  70.0,
+                                  "width":  1280,
+                                  "height":  1024,
+                                  "paused":  false,
+                                  "shape":  "rect"
+                              }
+               },
+    "channels_ready":  {
+                           "id":  "ch1",
+                           "ok":  true,
+                           "result":  {
+                                          "channels":  [
+                                                           {
+                                                               "id":  0,
+                                                               "kind":  "PLAYER",
+                                                               "cameraId":  -1,
+                                                               "active":  true,
+                                                               "written":  6721,
+                                                               "dropped":  0,
+                                                               "errors":  0
+                                                           },
+                                                           {
+                                                               "id":  -1,
+                                                               "kind":  "VIRTUAL",
+                                                               "cameraId":  -1,
+                                                               "active":  true,
+                                                               "written":  6386,
+                                                               "dropped":  0,
+                                                               "errors":  0
+                                                           },
+                                                           {
+                                                               "id":  1,
+                                                               "kind":  "CAMERA",
+                                                               "cameraId":  1,
+                                                               "active":  true,
+                                                               "written":  135,
+                                                               "dropped":  0,
+                                                               "errors":  0
+                                                           }
+                                                       ],
+                                          "primary":  1
+                                      }
+                       },
+    "play":  {
+                 "id":  "s",
+                 "ok":  true,
+                 "result":  {
+                                "x":  -39.671014924513116,
+                                "y":  88.62000000476837,
+                                "z":  92.20669017002949,
+                                "volume":  1.0
+                            }
+             },
+    "camera_peek":  {
+                        "id":  "pc",
+                        "ok":  true,
+                        "result":  {
+                                       "channel":  1,
+                                       "found":  true,
+                                       "startNanos":  283111770555500,
+                                       "endNanos":  283111780555500,
+                                       "sampleCount":  441,
+                                       "rms":  0.00021969751045021211,
+                                       "peak":  14
+                                   }
+                    },
+    "player_before":  {
+                          "id":  "pb",
+                          "ok":  true,
+                          "result":  {
+                                         "channel":  0,
+                                         "found":  true,
+                                         "startNanos":  283111774230500,
+                                         "endNanos":  283111784230500,
+                                         "sampleCount":  441,
+                                         "rms":  0.03081661132974054,
+                                         "peak":  1921
+                                     }
+                      },
+    "audio_section":  {
+                          "id":  "sec",
+                          "ok":  true,
+                          "result":  {
+                                         "start":  283111876961700,
+                                         "end":  283111927073700,
+                                         "samples":  2205,
+                                         "bytes":  8820,
+                                         "rms":  436.18906425223753,
+                                         "peak":  1478
+                                     }
+                      },
+    "player_after":  {
+                         "id":  "pa",
+                         "ok":  true,
+                         "result":  {
+                                        "channel":  0,
+                                        "found":  true,
+                                        "startNanos":  283112020983000,
+                                        "endNanos":  283112030983000,
+                                        "sampleCount":  441,
+                                        "rms":  0.011682398431651789,
+                                        "peak":  852
+                                    }
+                     },
+    "recording_start":  {
+                            "id":  "rs",
+                            "ok":  true,
+                            "result":  {
+                                           "running":  true,
+                                           "frames":  0,
+                                           "path":  "E:\\捕获接口\\run\\config\\captureapi\\recordings\\recording_283112159899300.mp4",
+                                           "audioAvailable":  false
+                                       }
+                        },
+    "recording_stop":  {
+                           "id":  "rt",
+                           "ok":  true,
+                           "result":  {
+                                          "running":  false,
+                                          "frames":  37,
+                                          "path":  "E:\\捕获接口\\run\\config\\captureapi\\recordings\\recording_283112159899300.mp4",
+                                          "audioAvailable":  true
+                                      }
+                       },
+    "delete":  {
+                   "id":  "d",
+                   "ok":  true,
+                   "result":  {
+                                  "deleted":  1,
+                                  "active":  0
+                              }
+               },
+    "channels_after_delete":  {
+                                  "id":  "ch2",
+                                  "ok":  true,
+                                  "result":  {
+                                                 "channels":  [
+                                                                  {
+                                                                      "id":  0,
+                                                                      "kind":  "PLAYER",
+                                                                      "cameraId":  -1,
+                                                                      "active":  true,
+                                                                      "written":  6987,
+                                                                      "dropped":  0,
+                                                                      "errors":  0
+                                                                  },
+                                                                  {
+                                                                      "id":  -1,
+                                                                      "kind":  "VIRTUAL",
+                                                                      "cameraId":  -1,
+                                                                      "active":  true,
+                                                                      "written":  6653,
+                                                                      "dropped":  0,
+                                                                      "errors":  0
+                                                                  }
+                                                              ],
+                                                 "primary":  0
+                                             }
+                              }
+}
