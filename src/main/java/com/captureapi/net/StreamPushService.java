@@ -5,9 +5,12 @@ import com.captureapi.audio.timestamp.AudioChunk;
 import com.captureapi.audio.sync.SyncDeviationMonitor;
 import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.net.protocol.AudioChunkCodec;
+import com.captureapi.net.protocol.MultiChannelAudioCodec;
 import com.captureapi.net.protocol.VideoFrameCodec;
 import com.captureapi.video.frame.JpegFrame;
 import com.captureapi.video.frame.VideoFrameBus;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -80,6 +83,7 @@ public final class StreamPushService {
 
     private void pushLoop() {
         long lastVideoTimestamp = 0L;
+        Map<Integer, Long> lastChannelTimestamps = new HashMap<>();
         while (running) {
             try {
                 AudioChunk chunk = AudioChannelRegistry.get().readPrimaryChunk(AUDIO_READ_TIMEOUT_MS);
@@ -88,6 +92,24 @@ public final class StreamPushService {
                     if (server.connectionCount() > 0) {
                         server.broadcastBinary(AudioChunkCodec.encode(chunk));
                         audioChunks.incrementAndGet();
+                    }
+                }
+                if (server != null) {
+                    int primary = AudioChannelRegistry.get().primaryChannelId();
+                    for (Integer channel : server.subscribedAudioChannels()) {
+                        if (channel == primary) {
+                            continue;
+                        }
+                        AudioChunk extra = AudioChannelRegistry.get().latestChunk(channel);
+                        if (extra == null) {
+                            continue;
+                        }
+                        long previous = lastChannelTimestamps.getOrDefault(channel, 0L);
+                        if (extra.endNanos() > previous) {
+                            lastChannelTimestamps.put(channel, extra.endNanos());
+                            server.broadcastBinaryToSubscribers(channel,
+                                    MultiChannelAudioCodec.encode(channel, extra));
+                        }
                     }
                 }
                 JpegFrame frame = VideoFrameBus.get().latest();

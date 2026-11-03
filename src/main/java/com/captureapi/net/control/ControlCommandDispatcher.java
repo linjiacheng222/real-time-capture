@@ -76,6 +76,12 @@ public final class ControlCommandDispatcher {
      * @param response 响应发送器（客户端 WS 文本发送）
      */
     public void handle(String message, Consumer<String> response) {
+        handle(message, response, null);
+    }
+
+    /** 控制消息入口；audioSubscription 非空时支持 audio.subscribe/unsubscribe。 */
+    public void handle(String message, Consumer<String> response,
+                       java.util.function.Consumer<java.util.List<Integer>> audioSubscription) {
         String id = "";
         try {
             JsonObject root = JsonParser.parseString(message).getAsJsonObject();
@@ -87,7 +93,7 @@ public final class ControlCommandDispatcher {
                 response.accept(error(id, ControlErrorCode.E_MISSING_PARAM, "缺少 action"));
                 return;
             }
-            JsonElement result = dispatch(action, params);
+            JsonElement result = dispatch(action, params, audioSubscription);
             JsonObject ok = new JsonObject();
             ok.addProperty("id", id);
             ok.addProperty("ok", true);
@@ -103,7 +109,8 @@ public final class ControlCommandDispatcher {
         }
     }
 
-    private JsonElement dispatch(String action, JsonObject params) {
+    private JsonElement dispatch(String action, JsonObject params,
+                                 java.util.function.Consumer<java.util.List<Integer>> audioSubscription) {
         TestCommandGate.require(action);
         return switch (action) {
             case "capture" -> unifiedCapture(params);
@@ -118,6 +125,8 @@ public final class ControlCommandDispatcher {
             case "audio.section" -> audioSection(params);
             case "audio.channels.list" -> audioChannels();
             case "audio.channels.peek" -> audioChannelPeek(params);
+            case "audio.subscribe" -> audioSubscribe(params, audioSubscription);
+            case "audio.unsubscribe" -> audioUnsubscribe(params, audioSubscription);
             case "shader.status" -> shaderStatus();
             case "recording.start" -> recordingStart(params);
             case "recording.stop" -> recordingStop();
@@ -454,6 +463,7 @@ public final class ControlCommandDispatcher {
             if (minecraft.screen != null && minecraft.screen.isPauseScreen()) {
                 minecraft.setScreen(null);
             }
+            minecraft.getSoundManager().resume();
         });
         JsonObject result = new JsonObject();
         result.addProperty("unpaused", true);
@@ -560,6 +570,42 @@ public final class ControlCommandDispatcher {
     }
 
     /** 测试辅助：音频截面（W-071）调用并返回 PCM 统计，不返回原始大数组。 */
+    private JsonElement audioSubscribe(JsonObject params,
+                                       java.util.function.Consumer<java.util.List<Integer>> sink) {
+        if (sink == null) {
+            throw new ControlException(ControlErrorCode.E_INTERNAL, "当前连接不支持音频订阅");
+        }
+        java.util.List<Integer> channels = new java.util.ArrayList<>();
+        if (params.has("channels") && params.get("channels").isJsonArray()) {
+            for (var element : params.getAsJsonArray("channels")) {
+                int id = element.getAsInt();
+                if (id >= 0 || id == -1) {
+                    channels.add(id);
+                }
+            }
+        }
+        sink.accept(channels);
+        JsonObject result = new JsonObject();
+        JsonArray array = new JsonArray();
+        channels.forEach(array::add);
+        result.add("channels", array);
+        result.addProperty("subscribed", true);
+        return result;
+    }
+
+    private JsonElement audioUnsubscribe(JsonObject params,
+                                         java.util.function.Consumer<java.util.List<Integer>> sink) {
+        if (sink == null) {
+            throw new ControlException(ControlErrorCode.E_INTERNAL, "当前连接不支持音频订阅");
+        }
+        java.util.List<Integer> channels = new java.util.ArrayList<>();
+        sink.accept(channels);
+        JsonObject result = new JsonObject();
+        result.add("channels", new JsonArray());
+        result.addProperty("subscribed", false);
+        return result;
+    }
+
     private JsonElement audioChannelPeek(JsonObject params) {
         int channel = optInt(params, "channel", 0);
         AudioChunk chunk = CaptureApi.latestAudioChunk(channel);

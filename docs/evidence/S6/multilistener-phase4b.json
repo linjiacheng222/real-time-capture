@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-03T20:48:12+08:00",
+  "phase": "Phase 4b camera active-window/WS subscribe",
+  "result": "P1.1 non-silent / 0x03 protocol detection pending",
+  "feature_property": "captureapi.debug.multilistener_feature=true",
+  "channels": [
+    "PLAYER",
+    "VIRTUAL",
+    "CAMERA"
+  ],
+  "cameraPeek": {
+    "rms": 0.00022844433710709678,
+    "peak": 15,
+    "found": true
+  },
+  "virtualPeek": {
+    "rms": 0.028953673362134343,
+    "peak": 1431
+  },
+  "audioSection": {
+    "samples": 2205,
+    "bytes": 8820
+  },
+  "subscribeResponse": {
+    "ok": true,
+    "channels": [
+      1
+    ],
+    "subscribed": true
+  },
+  "notes": "Without debug mirror self-test conflict, camera channel receives non-silent PCM. WS audio.subscribe works. Binary 0x03 frames cannot be reliably identified by clients because existing VideoFrameCodec/AudioChunkCodec do not carry a type byte; a versioned/magic prefix is required before claiming 0x03 PASS. Pause mirror path still test-only skipped in self-tests."
+}

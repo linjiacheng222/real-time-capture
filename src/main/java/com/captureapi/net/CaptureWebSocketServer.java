@@ -18,7 +18,10 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Collection;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
@@ -254,6 +257,24 @@ public final class CaptureWebSocketServer {
         }
     }
 
+    /** @return 所有连接订阅的额外音频通道并集。 */
+    public Set<Integer> subscribedAudioChannels() {
+        Set<Integer> result = ConcurrentHashMap.newKeySet();
+        for (Client client : connections.keySet()) {
+            result.addAll(client.audioSubscriptions());
+        }
+        return result;
+    }
+
+    /** 只向订阅了指定通道的连接发送多通道音频。 */
+    public void broadcastBinaryToSubscribers(int channelId, byte[] payload) {
+        for (Client client : connections.keySet()) {
+            if (client.audioSubscriptions().contains(channelId)) {
+                client.sendBinary(payload);
+            }
+        }
+    }
+
     /** @return 因发送队列满被断开的慢连接数 */
     public long slowDisconnectCount() {
         return slowDisconnects.get();
@@ -287,6 +308,7 @@ public final class CaptureWebSocketServer {
         private final OutputStream output;
         private final ArrayBlockingQueue<Outbound> outbound = new ArrayBlockingQueue<>(SEND_QUEUE_CAPACITY);
         private final Thread writer;
+        private final Set<Integer> audioSubscriptions = ConcurrentHashMap.newKeySet();
         private volatile boolean open = true;
 
         private Client(Socket socket, BufferedInputStream input, OutputStream output) {
@@ -368,7 +390,16 @@ public final class CaptureWebSocketServer {
         }
 
         private void handleText(String message) {
-            ControlCommandDispatcher.get().handle(message, this::sendText);
+            ControlCommandDispatcher.get().handle(message, this::sendText, this::setAudioSubscriptions);
+        }
+
+        private void setAudioSubscriptions(Collection<Integer> channelIds) {
+            audioSubscriptions.clear();
+            audioSubscriptions.addAll(channelIds);
+        }
+
+        private Set<Integer> audioSubscriptions() {
+            return audioSubscriptions;
         }
 
         private void sendText(String message) {

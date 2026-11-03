@@ -72,6 +72,9 @@ public final class CaptureConstants {
     /** 音频块头固定长度（起止时间戳 8B×2 + 采样数 4B＝20B；协议常量）。 */
     public static final int AUDIO_CHUNK_HEADER_BYTES = 20;
 
+    /** 多通道音频头（type 1B + channelId 4B + start 8B + end 8B + samples 4B＝25B）。 */
+    public static final int MULTI_AUDIO_CHANNEL_HEADER_BYTES = 25;
+
     /** MJPEG multipart 边界串（T4.4 冻结前占位；改动须先改契约文档）。 */
     public static final String MJPEG_BOUNDARY = "captureapi-frame-boundary";
 
