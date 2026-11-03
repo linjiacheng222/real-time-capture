@@ -62,6 +62,8 @@ public final class CaptureConfig {
     static final ForgeConfigSpec.ConfigValue<String> AUDIO_BLACKLIST_FILE;
     static final ForgeConfigSpec.ConfigValue<String> AUDIO_WHITELIST_FILE;
     static final ForgeConfigSpec.IntValue MAX_CAMERAS;
+    static final ForgeConfigSpec.IntValue MULTI_CAMERA_FPS;
+    static final ForgeConfigSpec.IntValue MULTI_CAMERA_BUDGET_MS;
     static final ForgeConfigSpec.ConfigValue<String> FFMPEG_PATH;
     static final ForgeConfigSpec.ConfigValue<String> RECORDING_FORMAT;
     static final ForgeConfigSpec.BooleanValue SYNC_MONITOR_ENABLED;
@@ -193,6 +195,12 @@ public final class CaptureConfig {
         MAX_CAMERAS = builder
                 .comment("多相机并发上限（T8.5，默认 1=单路）")
                 .defineInRange("max_cameras", 1, 1, 8);
+        MULTI_CAMERA_FPS = builder
+                .comment("非 active 相机时间片目标帧率（V4；0=关闭时间片）")
+                .defineInRange("multi_camera_fps", 4, 0, 60);
+        MULTI_CAMERA_BUDGET_MS = builder
+                .comment("每帧 AFTER_LEVEL 多路渲染总预算（毫秒，V4）")
+                .defineInRange("multi_camera_budget_ms", 4, 1, 50);
         FFMPEG_PATH = builder
                 .comment("FFmpeg 可执行路径（默认 PATH 中的 ffmpeg）")
                 .define("ffmpeg_path", "ffmpeg");

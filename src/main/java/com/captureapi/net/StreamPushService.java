@@ -6,6 +6,8 @@ import com.captureapi.audio.sync.SyncDeviationMonitor;
 import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.net.protocol.AudioChunkCodec;
 import com.captureapi.net.protocol.MultiChannelAudioCodec;
+import com.captureapi.net.protocol.MultiChannelVideoCodec;
+import com.captureapi.video.camera.CameraFrameStore;
 import com.captureapi.net.protocol.VideoFrameCodec;
 import com.captureapi.video.frame.JpegFrame;
 import com.captureapi.video.frame.VideoFrameBus;
@@ -84,6 +86,7 @@ public final class StreamPushService {
     private void pushLoop() {
         long lastVideoTimestamp = 0L;
         Map<Integer, Long> lastChannelTimestamps = new HashMap<>();
+        Map<Integer, Long> lastCameraTimestamps = new HashMap<>();
         while (running) {
             try {
                 AudioChunk chunk = AudioChannelRegistry.get().readPrimaryChunk(AUDIO_READ_TIMEOUT_MS);
@@ -113,11 +116,28 @@ public final class StreamPushService {
                     }
                 }
                 JpegFrame frame = VideoFrameBus.get().latest();
+                byte[] legacyPayload = null;
                 if (frame != null && frame.timestampNanos() > lastVideoTimestamp) {
                     lastVideoTimestamp = frame.timestampNanos();
                     SyncDeviationMonitor.get().onVideo(lastVideoTimestamp);
-                    if (server.connectionCount() > 0) {
-                        server.broadcastBinary(VideoFrameCodec.encode(frame));
+                    legacyPayload = VideoFrameCodec.encode(frame);
+                }
+                Map<Integer, byte[]> cameraPayloads = new HashMap<>();
+                if (server.connectionCount() > 0) {
+                    for (Integer cameraId : server.subscribedCameras()) {
+                        JpegFrame cameraFrame = CameraFrameStore.get(cameraId);
+                        if (cameraFrame == null) {
+                            continue;
+                        }
+                        long previous = lastCameraTimestamps.getOrDefault(cameraId, 0L);
+                        if (cameraFrame.timestampNanos() > previous) {
+                            lastCameraTimestamps.put(cameraId, cameraFrame.timestampNanos());
+                            cameraPayloads.put(cameraId,
+                                    MultiChannelVideoCodec.encode(cameraId, cameraFrame));
+                        }
+                    }
+                    if (legacyPayload != null || !cameraPayloads.isEmpty()) {
+                        server.broadcastVideoFrame(legacyPayload, cameraPayloads);
                         videoFrames.incrementAndGet();
                     }
                 }

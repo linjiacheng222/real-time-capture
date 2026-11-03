@@ -275,6 +275,40 @@ public final class CaptureWebSocketServer {
         }
     }
 
+    /** @return 所有连接订阅的视频相机并集。 */
+    public Set<Integer> subscribedCameras() {
+        Set<Integer> result = ConcurrentHashMap.newKeySet();
+        for (Client client : connections.keySet()) {
+            result.addAll(client.videoSubscriptions());
+        }
+        return result;
+    }
+
+    /**
+     * 向订阅连接发送 0x04；无订阅连接继续收旧 0x01。
+     *
+     * @param legacyPayload 旧格式视频帧（可空）
+     * @param cameraPayloads cameraId -> 0x04 负载
+     */
+    public void broadcastVideoFrame(byte[] legacyPayload,
+                                    java.util.Map<Integer, byte[]> cameraPayloads) {
+        for (Client client : connections.keySet()) {
+            Set<Integer> cameras = client.videoSubscriptions();
+            if (cameras.isEmpty()) {
+                if (legacyPayload != null) {
+                    client.sendBinary(legacyPayload);
+                }
+            } else {
+                for (Integer cameraId : cameras) {
+                    byte[] payload = cameraPayloads.get(cameraId);
+                    if (payload != null) {
+                        client.sendBinary(payload);
+                    }
+                }
+            }
+        }
+    }
+
     /** @return 因发送队列满被断开的慢连接数 */
     public long slowDisconnectCount() {
         return slowDisconnects.get();
@@ -309,6 +343,7 @@ public final class CaptureWebSocketServer {
         private final ArrayBlockingQueue<Outbound> outbound = new ArrayBlockingQueue<>(SEND_QUEUE_CAPACITY);
         private final Thread writer;
         private final Set<Integer> audioSubscriptions = ConcurrentHashMap.newKeySet();
+        private final Set<Integer> videoSubscriptions = ConcurrentHashMap.newKeySet();
         private volatile boolean open = true;
 
         private Client(Socket socket, BufferedInputStream input, OutputStream output) {
@@ -390,7 +425,17 @@ public final class CaptureWebSocketServer {
         }
 
         private void handleText(String message) {
-            ControlCommandDispatcher.get().handle(message, this::sendText, this::setAudioSubscriptions);
+            ControlCommandDispatcher.get().handle(message, this::sendText,
+                    this::setAudioSubscriptions, this::setVideoSubscriptions);
+        }
+
+        private void setVideoSubscriptions(Collection<Integer> cameraIds) {
+            videoSubscriptions.clear();
+            videoSubscriptions.addAll(cameraIds);
+        }
+
+        private Set<Integer> videoSubscriptions() {
+            return videoSubscriptions;
         }
 
         private void setAudioSubscriptions(Collection<Integer> channelIds) {

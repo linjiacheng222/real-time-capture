@@ -11,6 +11,7 @@ import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.core.thread.GlThreadGuard;
 import com.captureapi.core.time.CaptureClock;
 import com.captureapi.video.camera.CameraCreateParams;
+import com.captureapi.video.camera.CameraFrameStore;
 import com.captureapi.video.camera.CameraManager;
 import com.captureapi.video.camera.CameraSpec;
 import com.captureapi.video.encode.JpegEncoder;
@@ -89,6 +90,20 @@ public final class CaptureApi {
     }
 
     /**
+     * 直接等待指定已存在相机的下一帧（V1/V3；不新建临时相机）。
+     *
+     * @param cameraId      相机 id
+     * @param timeoutMillis 超时
+     * @return JPEG Future；相机不存在/超时异常完成
+     */
+    public static CompletableFuture<JpegFrame> grabFrame(int cameraId, long timeoutMillis) {
+        if (CameraManager.get().get(cameraId) == null) {
+            return CompletableFuture.failedFuture(new IllegalArgumentException("相机不存在：" + cameraId));
+        }
+        return CameraFrameStore.awaitNextFrame(cameraId, timeoutMillis);
+    }
+
+    /**
      * 统一帧获取入口（T4.9 / I4.9.1）：同步阻塞至帧就绪，按请求输出文件或 HTTP URL。
      *
      * <p>不可在渲染线程调用（临时调取依赖渲染线程完成 Future，阻塞会死锁）。</p>
@@ -137,42 +152,65 @@ public final class CaptureApi {
                 com.captureapi.video.overlay.OverlayRegistry.get().show(model);
             }
         }
-        CameraSpec active = CameraManager.get().active();
-        boolean oneShot = request.temporary() || request.hasExplicitCamera() || active == null;
+        boolean oneShot = false;
         JpegFrame frame;
-        if (oneShot) {
-            if (active == null && !request.hasExplicitCamera()) {
-                throw new IOException("无 active 相机且未提供相机参数");
+        Integer requestedCamera = request.cameraId();
+        if (requestedCamera != null) {
+            CameraSpec spec = CameraManager.get().get(requestedCamera);
+            if (spec == null) {
+                throw new IOException("相机不存在：" + requestedCamera);
             }
             try {
-                frame = VideoStreamHub.get().requestOneShot(request.toCameraParams(active), request.timeoutMillis())
+                frame = CameraFrameStore.awaitNextFrame(requestedCamera, request.timeoutMillis())
                         .get(request.timeoutMillis(), TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new IOException("帧获取被中断", e);
+                throw new IOException("等待相机帧被中断", e);
             } catch (TimeoutException e) {
-                throw new IOException("帧获取超时（" + request.timeoutMillis() + "ms）", e);
+                throw new IOException("等待相机帧超时（" + request.timeoutMillis() + "ms）", e);
             } catch (ExecutionException e) {
-                throw new IOException("实时调取失败：" + e.getCause(), e.getCause());
+                throw new IOException("等待相机帧失败：" + e.getCause(), e.getCause());
             }
             if (frame == null) {
-                throw new IOException("实时调取未返回帧");
+                throw new IOException("相机帧不可用");
             }
         } else {
-            long deadline = com.captureapi.core.time.CaptureClock.get().nowNanos()
-                    + request.timeoutMillis() * 1_000_000L;
-            frame = VideoFrameBus.get().latest();
-            while (frame == null && com.captureapi.core.time.CaptureClock.get().nowNanos() < deadline) {
+            CameraSpec active = CameraManager.get().active();
+            oneShot = request.temporary() || request.hasExplicitCamera() || active == null;
+            if (oneShot) {
+                if (active == null && !request.hasExplicitCamera()) {
+                    throw new IOException("无 active 相机且未提供相机参数");
+                }
                 try {
-                    Thread.sleep(10L);
+                    frame = VideoStreamHub.get().requestOneShot(request.toCameraParams(active), request.timeoutMillis())
+                            .get(request.timeoutMillis(), TimeUnit.MILLISECONDS);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    throw new IOException("等待帧被中断", e);
+                    throw new IOException("帧获取被中断", e);
+                } catch (TimeoutException e) {
+                    throw new IOException("帧获取超时（" + request.timeoutMillis() + "ms）", e);
+                } catch (ExecutionException e) {
+                    throw new IOException("实时调取失败：" + e.getCause(), e.getCause());
                 }
+                if (frame == null) {
+                    throw new IOException("实时调取未返回帧");
+                }
+            } else {
+                long deadline = com.captureapi.core.time.CaptureClock.get().nowNanos()
+                        + request.timeoutMillis() * 1_000_000L;
                 frame = VideoFrameBus.get().latest();
-            }
-            if (frame == null) {
-                throw new IOException("等待帧超时（无流式帧）");
+                while (frame == null && com.captureapi.core.time.CaptureClock.get().nowNanos() < deadline) {
+                    try {
+                        Thread.sleep(10L);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new IOException("等待帧被中断", e);
+                    }
+                    frame = VideoFrameBus.get().latest();
+                }
+                if (frame == null) {
+                    throw new IOException("等待帧超时（无流式帧）");
+                }
             }
         }
         // request-level quality override: re-encode only when explicitly requested and different
@@ -186,13 +224,16 @@ public final class CaptureApi {
             if (!service.isRunning()) {
                 throw new IOException("网络服务未运行，无法返回 HTTP URL");
             }
-            if (oneShot) {
+            if (requestedCamera != null) {
+                CameraFrameStore.put(requestedCamera, frame);
+            } else if (oneShot) {
                 long ttlMs = Math.max(1L, CaptureParams.get().frameCacheTtlSec()) * 1000L;
                 VideoFrameBus.get().publishTemporary(frame, ttlMs);
             }
             String host = CaptureParams.get().bindLocalOnly() || !CaptureParams.get().lanEnabled()
                     ? "127.0.0.1" : localHost();
-            String url = "http://" + host + ":" + service.httpPort() + "/camera/0/frame";
+            int urlCamera = requestedCamera == null ? 0 : requestedCamera;
+            String url = "http://" + host + ":" + service.httpPort() + "/camera/" + urlCamera + "/frame";
             return FrameResult.http(url, frame.timestampNanos(), frame.width(), frame.height(), frame.jpeg().length);
         }
         byte[] output = request.format() == FrameRequest.Format.PNG ? toPng(frame) : frame.jpeg();

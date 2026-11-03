@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraftforge.api.distmarker.Dist;
@@ -47,10 +48,11 @@ public final class MultiCameraRenderer implements CaptureRenderHook.AfterLevelLi
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureConstants.LOG_MARKER);
     private static final MultiCameraRenderer INSTANCE = new MultiCameraRenderer();
     private static final AtomicBoolean RENDERING = new AtomicBoolean(false);
-    private static final long INTERVAL_NANOS = CaptureConstants.MULTI_CAMERA_INTERVAL_MS * 1_000_000L;
+    private static final AtomicLong RENDERED = new AtomicLong();
 
     private final Map<Integer, CameraTarget> targets = new HashMap<>();
     private long lastRenderNanos;
+    private static volatile long lastFrameNanos;
     private int roundRobin;
 
     private MultiCameraRenderer() {
@@ -72,29 +74,58 @@ public final class MultiCameraRenderer implements CaptureRenderHook.AfterLevelLi
             return;
         }
         long now = CaptureClock.get().nowNanos();
-        if (now - lastRenderNanos < INTERVAL_NANOS) {
+        int targetFps = CaptureParams.get().multiCameraFps();
+        if (targetFps <= 0) {
+            return;
+        }
+        long intervalNanos = 1_000_000_000L / targetFps;
+        if (now - lastRenderNanos < intervalNanos) {
             return;
         }
         lastRenderNanos = now;
         List<CameraSpec> cameras = CameraManager.get().list();
         if (cameras.size() <= 1) {
-            CameraFrameStore.clear();
+            cleanupStale(cameras);
             return;
         }
         int active = CameraManager.get().activeCameraId();
         List<CameraSpec> candidates = new ArrayList<>();
         for (CameraSpec spec : cameras) {
-            if (spec.id() > 0 && spec.id() != active && !spec.paused()) {
+            if (spec.id() > 0 && spec.id() != active && !spec.paused()
+                    && CameraFrameStore.hasConsumer(spec.id(), now)) {
                 candidates.add(spec);
             }
         }
         if (candidates.isEmpty()) {
-            CameraFrameStore.clear();
+            cleanupStale(cameras);
             return;
         }
-        int index = Math.floorMod(roundRobin++, candidates.size());
-        renderCamera(candidates.get(index), event.getPartialTick());
-        // 清理已删除相机的 GL 资源和缓存
+        long budgetNanos = Math.max(1L, CaptureParams.get().multiCameraBudgetMs())
+                * CaptureConstants.NANOS_PER_MILLI;
+        long deadline = now + budgetNanos;
+        int rendered = 0;
+        int index = Math.floorMod(roundRobin, candidates.size());
+        while (CaptureClock.get().nowNanos() < deadline && rendered < candidates.size()) {
+            CameraSpec spec = candidates.get(index % candidates.size());
+            index++;
+            rendered++;
+            renderCamera(spec, event.getPartialTick());
+        }
+        roundRobin = index;
+        cleanupStale(cameras);
+    }
+
+    /** @return 累计多路渲染帧数（V4 诊断） */
+    public static long renderedFrames() {
+        return RENDERED.get();
+    }
+
+    /** @return 最近一帧多路渲染时间戳（0=无） */
+    public static long lastFrameNanos() {
+        return lastFrameNanos;
+    }
+
+    private void cleanupStale(List<CameraSpec> cameras) {
         List<Integer> valid = new ArrayList<>();
         for (CameraSpec spec : cameras) {
             valid.add(spec.id());
@@ -150,8 +181,11 @@ public final class MultiCameraRenderer implements CaptureRenderHook.AfterLevelLi
             RawFrame filtered = FilterRegistry.get().applySelected(raw);
             RawFrame composited = OverlayRegistry.get().apply(filtered);
             byte[] jpeg = target.encoder.encode(composited, CaptureParams.get().jpegQuality());
-            CameraFrameStore.put(spec.id(), new JpegFrame(jpeg, composited.width(),
-                    composited.height(), composited.timestampNanos()));
+            JpegFrame published = new JpegFrame(jpeg, composited.width(),
+                    composited.height(), composited.timestampNanos());
+            CameraFrameStore.put(spec.id(), published);
+            lastFrameNanos = published.timestampNanos();
+            RENDERED.incrementAndGet();
         } catch (Throwable t) {
             LOGGER.warn("{} [MULTICAM] 相机 {} 独立渲染失败（已隔离）：{}",
                     CaptureConstants.LOG_MARKER, spec.id(), t.toString());

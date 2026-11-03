@@ -76,12 +76,19 @@ public final class ControlCommandDispatcher {
      * @param response 响应发送器（客户端 WS 文本发送）
      */
     public void handle(String message, Consumer<String> response) {
-        handle(message, response, null);
+        handle(message, response, null, null);
     }
 
     /** 控制消息入口；audioSubscription 非空时支持 audio.subscribe/unsubscribe。 */
     public void handle(String message, Consumer<String> response,
                        java.util.function.Consumer<java.util.List<Integer>> audioSubscription) {
+        handle(message, response, audioSubscription, null);
+    }
+
+    /** 控制消息入口；支持音频/视频订阅回调。 */
+    public void handle(String message, Consumer<String> response,
+                       java.util.function.Consumer<java.util.List<Integer>> audioSubscription,
+                       java.util.function.Consumer<java.util.List<Integer>> videoSubscription) {
         String id = "";
         try {
             JsonObject root = JsonParser.parseString(message).getAsJsonObject();
@@ -93,7 +100,7 @@ public final class ControlCommandDispatcher {
                 response.accept(error(id, ControlErrorCode.E_MISSING_PARAM, "缺少 action"));
                 return;
             }
-            JsonElement result = dispatch(action, params, audioSubscription);
+            JsonElement result = dispatch(action, params, audioSubscription, videoSubscription);
             JsonObject ok = new JsonObject();
             ok.addProperty("id", id);
             ok.addProperty("ok", true);
@@ -110,7 +117,8 @@ public final class ControlCommandDispatcher {
     }
 
     private JsonElement dispatch(String action, JsonObject params,
-                                 java.util.function.Consumer<java.util.List<Integer>> audioSubscription) {
+                                 java.util.function.Consumer<java.util.List<Integer>> audioSubscription,
+                                 java.util.function.Consumer<java.util.List<Integer>> videoSubscription) {
         TestCommandGate.require(action);
         return switch (action) {
             case "capture" -> unifiedCapture(params);
@@ -127,6 +135,8 @@ public final class ControlCommandDispatcher {
             case "audio.channels.peek" -> audioChannelPeek(params);
             case "audio.subscribe" -> audioSubscribe(params, audioSubscription);
             case "audio.unsubscribe" -> audioUnsubscribe(params, audioSubscription);
+            case "video.subscribe" -> videoSubscribe(params, videoSubscription);
+            case "video.unsubscribe" -> videoUnsubscribe(params, videoSubscription);
             case "shader.status" -> shaderStatus();
             case "recording.start" -> recordingStart(params);
             case "recording.stop" -> recordingStop();
@@ -217,6 +227,8 @@ public final class ControlCommandDispatcher {
             if (params.has("bound")) builder.boundEntity(UUID.fromString(params.get("bound").getAsString()));
             if (params.has("temporary")) builder.temporary(params.get("temporary").getAsBoolean());
             if (params.has("timeout")) builder.timeoutMillis(params.get("timeout").getAsLong());
+            if (params.has("camera")) builder.cameraId(params.get("camera").getAsInt());
+            if (params.has("cameraId")) builder.cameraId(params.get("cameraId").getAsInt());
             var outcome = com.captureapi.net.CaptureApi.capture(builder.build());
             JsonObject result = new JsonObject();
             result.addProperty("outputMethod", outcome.frame().outputMethod().name());
@@ -606,6 +618,41 @@ public final class ControlCommandDispatcher {
         return result;
     }
 
+    private JsonElement videoSubscribe(JsonObject params,
+                                       java.util.function.Consumer<java.util.List<Integer>> sink) {
+        if (sink == null) {
+            throw new ControlException(ControlErrorCode.E_INTERNAL, "当前连接不支持视频订阅");
+        }
+        java.util.List<Integer> cameras = new java.util.ArrayList<>();
+        if (params.has("cameras") && params.get("cameras").isJsonArray()) {
+            for (var element : params.getAsJsonArray("cameras")) {
+                cameras.add(element.getAsInt());
+            }
+        }
+        sink.accept(cameras);
+        for (Integer cameraId : cameras) {
+            com.captureapi.video.camera.CameraFrameStore.markConsumer(cameraId);
+        }
+        JsonObject result = new JsonObject();
+        JsonArray array = new JsonArray();
+        cameras.forEach(array::add);
+        result.add("cameras", array);
+        result.addProperty("subscribed", true);
+        return result;
+    }
+
+    private JsonElement videoUnsubscribe(JsonObject params,
+                                         java.util.function.Consumer<java.util.List<Integer>> sink) {
+        if (sink == null) {
+            throw new ControlException(ControlErrorCode.E_INTERNAL, "当前连接不支持视频订阅");
+        }
+        sink.accept(java.util.List.of());
+        JsonObject result = new JsonObject();
+        result.add("cameras", new JsonArray());
+        result.addProperty("subscribed", false);
+        return result;
+    }
+
     private JsonElement audioChannelPeek(JsonObject params) {
         int channel = optInt(params, "channel", 0);
         AudioChunk chunk = CaptureApi.latestAudioChunk(channel);
@@ -707,7 +754,7 @@ public final class ControlCommandDispatcher {
     }
 
     private JsonElement recordingStart(JsonObject params) {
-        int cameraId = optInt(params, "cameraId", 0);
+        int cameraId = optInt(params, "cameraId", optInt(params, "camera", 0));
         int fps = optInt(params, "fps", com.captureapi.core.config.CaptureParams.get().fpsMax());
         int quality = optInt(params, "jpegQuality",
                 com.captureapi.core.config.CaptureParams.get().jpegQuality());

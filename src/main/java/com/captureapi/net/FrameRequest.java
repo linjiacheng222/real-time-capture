@@ -50,6 +50,7 @@ public final class FrameRequest {
     private final int audioChunks;
     private final String filter;
     private final List<OverlayModel> overlays;
+    private final Integer cameraId;
 
     private FrameRequest(Builder builder) {
         this.outputMethod = builder.outputMethod;
@@ -76,6 +77,7 @@ public final class FrameRequest {
         this.audioChunks = builder.audioChunks;
         this.filter = builder.filter;
         this.overlays = builder.overlays == null ? null : Collections.unmodifiableList(new ArrayList<>(builder.overlays));
+        this.cameraId = builder.cameraId;
         if (builder.positionSet && builder.boundEntity != null) {
             throw new IllegalArgumentException("position 与 boundEntity 互斥，不能同时指定");
         }
@@ -139,6 +141,11 @@ public final class FrameRequest {
     /** @return 叠加覆盖（null=不覆盖沿用全局；空列表=清空；非空=替换为该列表） */
     public List<OverlayModel> overlays() {
         return overlays;
+    }
+
+    /** @return 指定已存在相机 id；null=active/临时参数路径 */
+    public Integer cameraId() {
+        return cameraId;
     }
 
     /**
@@ -208,6 +215,7 @@ public final class FrameRequest {
         private int audioChunks = 1;
         private String filter;
         private List<OverlayModel> overlays;
+        private Integer cameraId;
 
         public Builder outputMethod(OutputMethod outputMethod) {
             this.outputMethod = outputMethod;
@@ -293,6 +301,12 @@ public final class FrameRequest {
         /** 叠加覆盖（null=不覆盖；空列表=清空；非空=替换） */
         public Builder overlays(List<OverlayModel> overlays) {
             this.overlays = overlays;
+            return this;
+        }
+
+        /** 指定已存在相机（不新建临时相机）。 */
+        public Builder cameraId(Integer cameraId) {
+            this.cameraId = cameraId;
             return this;
         }
 

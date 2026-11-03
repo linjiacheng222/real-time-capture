@@ -188,6 +188,15 @@ public final class CaptureCommand {
                 } catch (Exception e) { warnings.add("分辨率格式错误：" + res + "（正确：1280x1024）"); }
             }
 
+            // V6：指定已存在相机
+            if (p.containsKey("camera")) {
+                try {
+                    builder.cameraId(Integer.parseInt(p.get("camera").trim()));
+                } catch (NumberFormatException e) {
+                    warnings.add("camera 参数格式错误：" + p.get("camera"));
+                }
+            }
+
             // 音频
             double audioSec = ParamParser.getDouble(p, "audio", 0, 0, MAX_AUDIO_SECONDS);
             if (audioSec > 0) builder.audio(true, (int) Math.ceil(audioSec * 100));
@@ -367,12 +376,20 @@ public final class CaptureCommand {
     }
 
     private static int cameraStatus(CommandContext<CommandSourceStack> ctx) {
-        CameraSpec a = CameraManager.get().active();
-        if (a == null) { info(ctx, "无 active 相机"); return 1; }
-        info(ctx, "active #" + a.id() + " (" + f2(a.positionX()) + "," + f2(a.positionY()) + "," + f2(a.positionZ())
-                + ") rot=" + f2(a.yawDegrees()) + "," + f2(a.pitchDegrees()) + "," + f2(a.rollDegrees())
-                + " fov=" + f2(a.fovDegrees()) + " " + a.width() + "x" + a.height()
-                + (a.paused() ? " §e[暂停]§r" : ""));
+        var cameras = CameraManager.get().list();
+        int active = CameraManager.get().activeCameraId();
+        if (cameras.isEmpty()) { info(ctx, "无相机"); return 1; }
+        long now = com.captureapi.core.time.CaptureClock.get().nowNanos();
+        info(ctx, "相机状态（active=" + active + "）：");
+        for (CameraSpec spec : cameras) {
+            var frame = com.captureapi.video.camera.CameraFrameStore.get(spec.id());
+            long ageMs = frame == null ? -1L
+                    : Math.max(0L, (now - frame.timestampNanos()) / 1_000_000L);
+            info(ctx, "  #" + spec.id() + " " + spec.width() + "x" + spec.height()
+                    + (spec.id() == active ? " §a←active§r" : "")
+                    + (spec.paused() ? " §e(暂停)§r" : "")
+                    + " lastFrameAgo=" + (ageMs < 0 ? "无" : ageMs + "ms"));
+        }
         info(ctx, "滤镜=" + FilterRegistry.get().selected() + " 叠加层数=" + OverlayRegistry.get().layers().size());
         return 1;
     }
@@ -418,8 +435,13 @@ public final class CaptureCommand {
         int fps = (int) ParamParser.getDouble(p, "fps", DEFAULT_RECORD_FPS, 1, MAX_RECORD_FPS);
         boolean audio = "true".equalsIgnoreCase(p.getOrDefault("audio", "false"));
         String out = p.get("out");
+        int camera = 0;
+        if (p.containsKey("camera")) {
+            try { camera = Integer.parseInt(p.get("camera").trim()); }
+            catch (NumberFormatException e) { err(ctx, "camera 参数格式错误：" + p.get("camera")); return 0; }
+        }
         try {
-            RecordingParams params = new RecordingParams(0, fps,
+            RecordingParams params = new RecordingParams(camera, fps,
                     com.captureapi.core.config.CaptureParams.get().jpegQuality(), audio, out);
             RecordingStatus st = RecordingSession.get().start(params);
             ok(ctx, "录像已启动 → " + st.outputPath() + "（音频=" + st.audioAvailable() + "）");
@@ -570,6 +592,7 @@ public final class CaptureCommand {
         info(ctx, "  §7pos:§fx,y,z§7  §7rot:§fyaw,pitch[,roll]§7  §7fov:§f度数");
         info(ctx, "  §7filter:§f名称§7  §7overlay:§f名称[@x,y,sx,sy,rot,opacity]");
         info(ctx, "  §7quality:§f0-100§7  §7res:§f宽x高§7  §7audio:§f秒数§7  §7out:§f路径");
+        info(ctx, "  §7camera:§f<id>§7 指定已存在相机（capture/record）");
         info(ctx, "  §7bound:§fUUID[@ox,oy,oz]§7  §7fps:§f帧率§7  §7shape:§frect|sphere");
         info(ctx, "§e示例§r：");
         info(ctx, "  /captureapi capture");

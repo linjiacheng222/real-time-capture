@@ -74,6 +74,10 @@ public final class CaptureConstants {
 
     /** 多通道音频头（magic 4B + channelId 4B + start 8B + end 8B + samples 4B＝28B）。 */
     public static final int MULTI_AUDIO_CHANNEL_HEADER_BYTES = 28;
+    /** 多路视频头（magic 4B + cameraId 4B + timestamp 8B + width 2B + height 2B＝22B）。 */
+    public static final int MULTI_VIDEO_CHANNEL_HEADER_BYTES = 22;
+    /** 多路消费者活跃 TTL（毫秒，V4 懒渲染）。 */
+    public static final long MULTI_CAMERA_CONSUMER_TTL_MS = 2000L;
 
     /** MJPEG multipart 边界串（T4.4 冻结前占位；改动须先改契约文档）。 */
     public static final String MJPEG_BOUNDARY = "captureapi-frame-boundary";

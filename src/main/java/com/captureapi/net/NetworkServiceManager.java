@@ -306,7 +306,18 @@ public final class NetworkServiceManager {
         json.addProperty("multicam_cached_cameras",
                 com.captureapi.video.camera.CameraFrameStore.size());
         json.addProperty("multicam_interval_ms",
-                com.captureapi.core.constant.CaptureConstants.MULTI_CAMERA_INTERVAL_MS);
+                1000L / Math.max(1, com.captureapi.core.config.CaptureParams.get().multiCameraFps()));
+        long healthNow = com.captureapi.core.time.CaptureClock.get().nowNanos();
+        json.addProperty("multi_camera_fps", com.captureapi.core.config.CaptureParams.get().multiCameraFps());
+        json.addProperty("multi_camera_budget_ms",
+                com.captureapi.core.config.CaptureParams.get().multiCameraBudgetMs());
+        json.addProperty("multi_rendered",
+                com.captureapi.video.camera.MultiCameraRenderer.renderedFrames());
+        json.addProperty("multi_consumers",
+                com.captureapi.video.camera.CameraFrameStore.consumerCount(healthNow));
+        long multiLast = com.captureapi.video.camera.MultiCameraRenderer.lastFrameNanos();
+        json.addProperty("multi_last_frame_ms", multiLast == 0L
+                ? -1L : Math.max(0L, (healthNow - multiLast) / 1_000_000L));
         json.addProperty("audio_multi_listener_enabled",
                 com.captureapi.core.config.CaptureParams.get().audioMultiListenerEnabled());
         json.addProperty("audio_listener_channels",

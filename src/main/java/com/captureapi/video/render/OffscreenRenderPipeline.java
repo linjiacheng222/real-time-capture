@@ -17,6 +17,7 @@ import com.captureapi.video.filter.FilterRegistry;
 import com.captureapi.video.overlay.GpuOverlayRenderer;
 import com.captureapi.video.overlay.OverlayRegistry;
 import com.captureapi.video.frame.RawFrame;
+import com.captureapi.video.camera.CameraFrameStore;
 import com.captureapi.video.camera.CameraManager;
 import com.captureapi.video.camera.CameraMatrices;
 import com.captureapi.video.camera.CameraPose;
@@ -264,7 +265,8 @@ public final class OffscreenRenderPipeline implements CaptureRenderHook.AfterLev
                             frame.timestampNanos());
                 }
                 long encodeStart = CaptureClock.get().nowNanos();
-                EncodingPipeline.get().accept(frame);
+                EncodingPipeline.get().accept(frame,
+                        published -> CameraFrameStore.put(spec.id(), published));
                 long encodeNanos = CaptureClock.get().nowNanos() - encodeStart;
                 PipelineTimings.record(renderNanos, readbackNanos, encodeNanos);
             }

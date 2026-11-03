@@ -10,6 +10,7 @@ import com.captureapi.video.frame.VideoFrameBus;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.slf4j.Logger;
@@ -35,7 +36,7 @@ public final class EncodingPipeline {
     private final AtomicLong droppedFrames = new AtomicLong();
     private final AtomicLong failedFrames = new AtomicLong();
     private final AtomicBoolean workerRunning = new AtomicBoolean(false);
-    private volatile ArrayBlockingQueue<RawFrame> queue;
+    private volatile ArrayBlockingQueue<EncodeJob> queue;
     private volatile Thread worker;
 
     private EncodingPipeline() {
@@ -51,36 +52,50 @@ public final class EncodingPipeline {
      * @param frame 原始帧（不可变堆数据）
      */
     public void accept(RawFrame frame) {
+        accept(frame, null);
+    }
+
+    /** 接收一帧并允许编码完成回调（多路视频 V1 双写 CameraFrameStore）。 */
+    public void accept(RawFrame frame, Consumer<JpegFrame> onPublished) {
         if (CaptureParams.get().encodeAsync()) {
             ensureWorker();
-            ArrayBlockingQueue<RawFrame> current = queue;
+            ArrayBlockingQueue<EncodeJob> current = queue;
             if (current == null) {
-                encodeAndPublish(frame);
+                encodeAndPublish(frame, onPublished);
                 return;
             }
-            if (!current.offer(frame)) {
+            EncodeJob job = new EncodeJob(frame, onPublished);
+            if (!current.offer(job)) {
                 current.poll(); // 丢最旧
-                if (!current.offer(frame)) {
+                if (!current.offer(job)) {
                     droppedFrames.incrementAndGet();
                     return;
                 }
                 droppedFrames.incrementAndGet();
             }
         } else {
-            encodeAndPublish(frame);
+            encodeAndPublish(frame, onPublished);
         }
     }
 
-    private void encodeAndPublish(RawFrame frame) {
+    private void encodeAndPublish(RawFrame frame, Consumer<JpegFrame> onPublished) {
         try {
             // T8.1：编码前应用当前滤镜（无滤镜/失败则原帧；单滤镜失败不影响链路）
             RawFrame filtered = FilterRegistry.get().applySelected(frame);
             // T8.2：固定顺序 滤镜→叠加→编码
             RawFrame composited = OverlayRegistry.get().apply(filtered);
             byte[] jpeg = encoder.encode(composited, CaptureParams.get().jpegQuality());
-            VideoFrameBus.get().publish(new JpegFrame(jpeg, composited.width(), composited.height(),
-                    composited.timestampNanos()));
+            JpegFrame published = new JpegFrame(jpeg, composited.width(), composited.height(),
+                    composited.timestampNanos());
+            VideoFrameBus.get().publish(published);
             encodedFrames.incrementAndGet();
+            if (onPublished != null) {
+                try {
+                    onPublished.accept(published);
+                } catch (Throwable t) {
+                    LOGGER.warn("{} 编码发布回调失败（已隔离）：{}", CaptureConstants.LOG_MARKER, t.toString());
+                }
+            }
         } catch (Throwable t) {
             failedFrames.incrementAndGet();
             LOGGER.warn("{} JPEG 编码失败（已隔离，丢弃该帧）", CaptureConstants.LOG_MARKER, t);
@@ -107,11 +122,11 @@ public final class EncodingPipeline {
     }
 
     private void workerLoop() {
-        ArrayBlockingQueue<RawFrame> current = queue;
+        ArrayBlockingQueue<EncodeJob> current = queue;
         while (workerRunning.get() && current != null) {
             try {
-                RawFrame frame = current.take();
-                encodeAndPublish(frame);
+                EncodeJob job = current.take();
+                encodeAndPublish(job.frame, job.onPublished);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return;
@@ -145,9 +160,12 @@ public final class EncodingPipeline {
             thread.interrupt();
             worker = null;
         }
-        ArrayBlockingQueue<RawFrame> current = queue;
+        ArrayBlockingQueue<EncodeJob> current = queue;
         if (current != null) {
             current.clear();
         }
+    }
+
+    private record EncodeJob(RawFrame frame, Consumer<JpegFrame> onPublished) {
     }
 }

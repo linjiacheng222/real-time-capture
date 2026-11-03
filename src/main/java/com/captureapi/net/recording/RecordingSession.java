@@ -4,6 +4,7 @@ import com.captureapi.audio.multi.AudioChannelRegistry;
 import com.captureapi.audio.timestamp.AudioChunk;
 import com.captureapi.core.config.CaptureParams;
 import com.captureapi.core.constant.CaptureConstants;
+import com.captureapi.video.camera.CameraFrameStore;
 import com.captureapi.video.camera.CameraManager;
 import com.captureapi.video.encode.JpegEncoder;
 import com.captureapi.video.frame.JpegFrame;
@@ -65,6 +66,7 @@ public final class RecordingSession {
     private volatile boolean includeAudio;
     private volatile int requestedJpegQuality;
     private volatile int audioChannelId = -1;
+    private volatile int videoCameraId;
     private Path finalOutputPath;
     private Path videoTempPath;
     private Path audioTempPath;
@@ -133,6 +135,7 @@ public final class RecordingSession {
             includeAudio = params.includeAudio();
             requestedJpegQuality = params.jpegQuality();
             audioChannelId = params.audioChannelId();
+            videoCameraId = params.cameraId() == 0 ? active : params.cameraId();
             Path videoOutput = output;
             if (includeAudio) {
                 // 先录纯视频临时文件，停止时再用第二输入流把 PCM 合流为最终 mp4
@@ -213,7 +216,11 @@ public final class RecordingSession {
         long lastTimestamp = 0L;
         while (running) {
             try {
-                JpegFrame frame = VideoFrameBus.get().latest();
+                CameraFrameStore.markConsumer(videoCameraId);
+                JpegFrame frame = CameraFrameStore.get(videoCameraId);
+                if (frame == null && videoCameraId == CameraManager.get().activeCameraId()) {
+                    frame = VideoFrameBus.get().latest();
+                }
                 if (frame != null && frame.timestampNanos() > lastTimestamp) {
                     lastTimestamp = frame.timestampNanos();
                     byte[] jpeg = frame.jpeg();

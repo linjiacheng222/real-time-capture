@@ -1,6 +1,7 @@
 # CaptureAPI 完整 API 使用说明（v0.5 第二阶段）
 
 > 2026-11-03 追加：**同客户端多 Listener 音频后端**（见 `docs/多监听器音频架构.md`）。feature 默认关闭；相关 API/WS/配置见本文第九点六节。
+> 2026-11-03 追加：**多路视频流与异步帧获取**（见 `docs/多路视频流说明.md`）；新增 `video.subscribe`/0x04、`FrameRequest.cameraId`、`grabFrame(cameraId)`。
 >
 > 基准代码：2026-11-02 计划端整肃后的 `main`（HEAD `6782b9a`）。本说明以**实际代码**为准；计划端早先的 `docs/API全集与测试指令.md` 部分内容已过时（见文末差异表）。
 > 构建状态：`build.ps1` 24/24 PASS；magic-number audit 0（本轮修复计划端新增代码的数字白名单回归）。
@@ -289,12 +290,15 @@ ws://127.0.0.1:25581/
 | `overlay.clear` | 无 | 清空 |
 | `renderfilter.list/reload` | 无 | 解析摘要；**离屏实体渲染已挂接**（方块/粒子未覆盖） |
 | `audiofilter.list/reload` | 无 | 解析摘要；**SoundEngine.play 全局过滤已挂接**（含主画面音频） |
+| `video.subscribe` | `cameras:[id...]` | 按连接订阅相机；有订阅只收 0x04 |
+| `video.unsubscribe` | 无 | 清空该连接视频订阅 |
+| `audio.subscribe` / `audio.unsubscribe` | `channels:[...]` | 多 listener 额外通道；0x03 |
 
 ### 5.5 录像
 
 | action | params | 说明 |
 |---|---|---|
-| `recording.start` | `cameraId(0=active)`、`fps`、`jpegQuality`、`includeAudio`、`outputPath`、`audioChannel(-1=primary/0=player/>0=camera)` | 需 active 相机 + FFmpeg |
+| `recording.start` | `cameraId`/`camera`(0=active)、`fps`、`jpegQuality`、`includeAudio`、`outputPath`、`audioChannel(-1=primary/0=player/>0=camera)` | 需相机 + FFmpeg |
 | `recording.stop` | 无 | 停止；可能阻塞 |
 | `recording.status` | 无 | running/frames/path/audioAvailable/error |
 
@@ -337,6 +341,29 @@ ws://127.0.0.1:25581/
 20B 小端头: startNanos(long 8) + endNanos(long 8) + sampleCount(int 4)
 + PCM（默认 441 samples × 2ch × 16bit = 1764B/块，10ms）
 ```
+### 6.3 多路视频 0x04（V2）
+
+`video.subscribe` 后，订阅连接只收 0x04：
+
+```text
+[4B magic 0x04 'C' 'A' 'P'][4B cameraId][8B timestamp][2B width][2B height][2B reserved][JPEG]
+```
+
+- 头 22B；JPEG 从 22 开始；
+- 无订阅连接继续收旧 0x01（16B 头）；
+- 客户端按首字节 magic 分流 0x03/0x04/旧格式。
+
+### 6.4 多 listener 音频 0x03
+
+`audio.subscribe` 后，额外通道走 0x03：
+
+```text
+[4B magic 0x03 'C' 'A' 'P'][4B channelId][8B start][8B end][4B sampleCount][PCM]
+```
+
+- 头 28B；primary 仍走旧 0x02；
+- `audio.subscribe`/`video.subscribe` 均按连接生效。
+
 - 头部不含 sampleRate/channels；格式由配置固定/协商，默认 44100Hz/2ch/16bit；
 - PCM 为小端 signed 16-bit interleaved；
 - 慢消费者：服务端每连接发送队列上限 32，满则断开（日志 `慢连接发送队列满`）；测试客户端应快速排空或降低订阅时长。
@@ -362,6 +389,7 @@ ws://127.0.0.1:25581/
 - `quality:1..100`（请求级重编码，已生效）
 - `res:宽x高`
 - `audio:秒数`（最多 60；仅返回/提示采样数，不写音频文件）
+- `camera:<id>` — 指定已存在相机（V6）
 - `out:文件路径`
 
 示例：
@@ -429,6 +457,8 @@ import com.captureapi.net.CaptureApi.CaptureOutcome;
 | `grabFrame(CameraCreateParams,timeoutMs)` | 临时相机渲一帧 Future | 任意线程提交；渲染线程完成 |
 | `captureFrame(FrameRequest)` | 同步取帧（FILE/HTTP），不取音频 | **禁止渲染线程** |
 | `capture(FrameRequest)` | 帧 + 可选音频（推荐统一入口） | **禁止渲染线程**，可能阻塞到音频完成 |
+| `grabFrame(CameraCreateParams, timeout)` | 临时相机异步调帧 | 任意非渲染线程 |
+| `grabFrame(cameraId, timeout)` | 等待指定已存在相机下一帧 | 任意非渲染线程 |
 | `latestAudioChunk()` | primary 最近音频块（非消费） | 任意线程 |
 | `latestAudioChunk(int channelId)` | 指定通道最近音频块（0/相机/-1） | 任意线程 |
 | `audioChannels()` | List<AudioChannelInfo> | 任意线程 |
@@ -597,7 +627,7 @@ dev 实测（2026-11-02）：cam1 active 238,053B、cam2 非 active 203,814B，�
 ```
 
 ### 10.2 即时生效键（示例）
-`fps_max/jpeg_quality/encode_async/near_plane/far_plane/sound_range/chunk_rescan_ms/audio_enabled/poll_interval_ms/max_connections/max_qps/frame_cache_ttl_sec/sync_monitor_enabled/warn_threshold_ms/persist_changes/filter_directory/overlay_directory/overlay_enabled/render_blacklist_file/render_whitelist_file/audio_blacklist_file/audio_whitelist_file/max_cameras/recording_output_dir/ffmpeg_path/log_*`
+`fps_max/jpeg_quality/encode_async/near_plane/far_plane/sound_range/chunk_rescan_ms/audio_enabled/poll_interval_ms/max_connections/max_qps/frame_cache_ttl_sec/sync_monitor_enabled/warn_threshold_ms/persist_changes/filter_directory/overlay_directory/overlay_enabled/render_blacklist_file/render_whitelist_file/audio_blacklist_file/audio_whitelist_file/max_cameras/multi_camera_fps/multi_camera_budget_ms/recording_output_dir/ffmpeg_path/log_*`
 
 ### 10.3 需重启（运行时拒绝）
 `video_resolution/sample_rate/bit_depth/channels/thread_priority/ring_capacity_sec/net_port/bind_local_only/token_enabled/recording_format`

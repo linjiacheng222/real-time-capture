@@ -77,6 +77,8 @@ public final class RuntimeConfigWriter {
         values.put("audio_blacklist_file", p.audioBlacklistFile());
         values.put("audio_whitelist_file", p.audioWhitelistFile());
         values.put("max_cameras", p.maxCameras());
+        values.put("multi_camera_fps", p.multiCameraFps());
+        values.put("multi_camera_budget_ms", p.multiCameraBudgetMs());
         values.put("ffmpeg_path", p.ffmpegPath());
         values.put("recording_format", p.recordingFormat());
         values.put("sync_monitor_enabled", p.syncMonitorEnabled());
@@ -184,6 +186,12 @@ public final class RuntimeConfigWriter {
                 }
                 case "max_cameras" -> {
                     return intValue(key, value, 1, 8, CaptureConfig.MAX_CAMERAS);
+                }
+                case "multi_camera_fps" -> {
+                    return intValue(key, value, 0, 60, CaptureConfig.MULTI_CAMERA_FPS);
+                }
+                case "multi_camera_budget_ms" -> {
+                    return intValue(key, value, 1, 50, CaptureConfig.MULTI_CAMERA_BUDGET_MS);
                 }
                 case "recording_output_dir" -> {
                     return stringValue(key, value, CaptureConfig.RECORDING_OUTPUT_DIR);

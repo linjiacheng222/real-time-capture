@@ -113,6 +113,7 @@ public final class CameraManager {
         if (activeCameraId == id) {
             activeCameraId = 0;
         }
+        CameraFrameStore.remove(id);
         LOGGER.info("{} 相机删除：id={}，active={}", CaptureConstants.LOG_MARKER, id, activeCameraId);
     }
 
@@ -157,6 +158,7 @@ public final class CameraManager {
     public void clear() {
         cameras.clear();
         activeCameraId = 0;
+        CameraFrameStore.clear();
         LOGGER.info("{} 相机全部清空", CaptureConstants.LOG_MARKER);
     }
 

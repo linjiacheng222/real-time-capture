@@ -93,7 +93,9 @@ public final class CaptureParams {
                 CaptureConfig.LOG_PIPELINE_TIMING.get(),
                 CaptureConfig.LOG_BUFFER_WATERMARK.get(),
                 CaptureConfig.LOG_GL_THREAD_VIOLATION.get(),
-                CaptureConfig.CLOCK_LOGGING.get());
+                CaptureConfig.CLOCK_LOGGING.get(),
+                CaptureConfig.MULTI_CAMERA_FPS.get(),
+                CaptureConfig.MULTI_CAMERA_BUDGET_MS.get());
         snapshot = next;
         loadedLatch.countDown();
         applyDiagnosticSwitches(next);
@@ -406,6 +408,16 @@ public final class CaptureParams {
         return current().clockLogging();
     }
 
+    /** @return 非 active 相机时间片目标帧率（0=关闭） */
+    public int multiCameraFps() {
+        return snapshot.multiCameraFps();
+    }
+
+    /** @return 多路渲染每帧预算（毫秒） */
+    public int multiCameraBudgetMs() {
+        return snapshot.multiCameraBudgetMs();
+    }
+
     // ===== 内部 =====
 
     private Snapshot current() {
@@ -478,6 +490,8 @@ public final class CaptureParams {
             boolean logPipelineTiming,
             boolean logBufferWatermark,
             boolean logGlThreadViolation,
-            boolean clockLogging) {
+            boolean clockLogging,
+            int multiCameraFps,
+            int multiCameraBudgetMs) {
     }
 }

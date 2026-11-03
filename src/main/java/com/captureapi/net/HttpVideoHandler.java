@@ -93,8 +93,10 @@ public final class HttpVideoHandler implements HttpHandler {
     private static JpegFrame latestFrame(int cameraId) {
         int active = CameraManager.get().activeCameraId();
         if (cameraId == 0 || cameraId == active) {
-            return VideoFrameBus.get().latest();
+            JpegFrame stored = active > 0 ? CameraFrameStore.get(active) : null;
+            return stored != null ? stored : VideoFrameBus.get().latest();
         }
+        CameraFrameStore.markConsumer(cameraId);
         return CameraFrameStore.get(cameraId);
     }
 

@@ -33,7 +33,7 @@ New-Item -ItemType Directory -Force -Path (Join-Path $out 'scripts') | Out-Null
 
 Copy-Item $clientJar $out
 Copy-Item $serverJar $out
-foreach ($d in @('S6终验报告.md', '专用服部署指南.md', '最终交付清单.md', 'API使用说明.md', '多监听器音频架构.md')) {
+foreach ($d in @('S6终验报告.md', '专用服部署指南.md', '最终交付清单.md', 'API使用说明.md', '多监听器音频架构.md', '多路视频流说明.md')) {
     $p = Join-Path $root "docs\$d"
     if (Test-Path $p) { Copy-Item $p (Join-Path $out 'docs') }
 }
