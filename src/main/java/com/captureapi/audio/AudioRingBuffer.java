@@ -74,6 +74,7 @@ public final class AudioRingBuffer implements ManagedResource {
     private volatile int readIndex;
     private volatile boolean sealed;
     private volatile byte[] silenceFrame;
+    private volatile AudioChunk lastWritten;
 
     private final AtomicLong writtenPolls = new AtomicLong();
     private final AtomicLong droppedPolls = new AtomicLong();
@@ -129,6 +130,7 @@ public final class AudioRingBuffer implements ManagedResource {
     public void destroy() {
         seal();
         slots = null;
+        lastWritten = null;
         slotStartNanos = null;
         slotEndNanos = null;
         slotSampleCounts = null;
@@ -172,6 +174,7 @@ public final class AudioRingBuffer implements ManagedResource {
         slotEndNanos[write] = endNanos;
         slotSampleCounts[write] = sampleCount;
         writeIndex = (write + 1) % slotCount;
+        lastWritten = new AudioChunk(startNanos, endNanos, sampleCount, pcm);
         writtenPolls.incrementAndGet();
         LockSupport.unpark(getWaitThread());
         maybeLogWatermark();
@@ -332,18 +335,8 @@ public final class AudioRingBuffer implements ManagedResource {
         return new AudioChunk(slotStartNanos[first], slotEndNanos[last], samples, pcm);
     }
 
-    public synchronized AudioChunk peekLatest() {
-        byte[] ring = slots;
-        if (ring == null || writeIndex == readIndex) {
-            return null;
-        }
-        int index = (writeIndex - 1 + slotCount) % slotCount;
-        if (slotStartNanos[index] == 0L) {
-            return null;
-        }
-        byte[] pcm = new byte[slotBytes];
-        System.arraycopy(ring, index * slotBytes, pcm, 0, slotBytes);
-        return new AudioChunk(slotStartNanos[index], slotEndNanos[index], slotSampleCounts[index], pcm);
+    public AudioChunk peekLatest() {
+        return lastWritten;
     }
 
     /**

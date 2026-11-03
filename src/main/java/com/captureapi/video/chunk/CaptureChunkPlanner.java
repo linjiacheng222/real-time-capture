@@ -133,6 +133,7 @@ public final class CaptureChunkPlanner {
         }
 
         current = new CaptureChunkSet(chunks, chunks.size(), false, nowNanos);
+        SingleplayerTicketHolder.update(chunks);
         RemoteCaptureClient.onChunks(current.chunks());
         lastScanNanos = nowNanos;
         lastX = pose.eyePosition().x;

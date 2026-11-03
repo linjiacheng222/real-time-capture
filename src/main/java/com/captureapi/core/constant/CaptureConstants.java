@@ -78,6 +78,8 @@ public final class CaptureConstants {
     public static final int MULTI_VIDEO_CHANNEL_HEADER_BYTES = 22;
     /** 多路消费者活跃 TTL（毫秒，V4 懒渲染）。 */
     public static final long MULTI_CAMERA_CONSUMER_TTL_MS = 2000L;
+    /** 单机相机强加载 ticket 上限（缺陷1 防御）。 */
+    public static final int SINGLEPLAYER_MAX_CHUNK_TICKETS = 2048;
 
     /** MJPEG multipart 边界串（T4.4 冻结前占位；改动须先改契约文档）。 */
     public static final String MJPEG_BOUNDARY = "captureapi-frame-boundary";

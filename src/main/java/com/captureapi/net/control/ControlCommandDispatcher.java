@@ -783,6 +783,13 @@ public final class ControlCommandDispatcher {
             } catch (RuntimeException e) {
                 throw new ControlException(ControlErrorCode.E_PARAM_RANGE, "includeAudio 必须为布尔值");
             }
+        } else if (params.has("audio") && !params.get("audio").isJsonNull()) {
+            // 缺陷2：兼容 game command / 用户习惯的 audio:true 写法
+            try {
+                includeAudio = params.get("audio").getAsBoolean();
+            } catch (RuntimeException e) {
+                throw new ControlException(ControlErrorCode.E_PARAM_RANGE, "audio 必须为布尔值");
+            }
         }
         String outputPath = params.has("outputPath") && !params.get("outputPath").isJsonNull()
                 ? params.get("outputPath").getAsString() : null;

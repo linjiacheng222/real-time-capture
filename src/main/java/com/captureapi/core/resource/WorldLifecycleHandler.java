@@ -3,6 +3,8 @@ package com.captureapi.core.resource;
 import com.captureapi.CaptureInterface;
 import com.captureapi.core.constant.CaptureConstants;
 import com.captureapi.core.thread.GlThreadGuard;
+import com.captureapi.video.camera.CameraManager;
+import com.captureapi.video.chunk.SingleplayerTicketHolder;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
@@ -64,7 +66,12 @@ public final class WorldLifecycleHandler {
 
     private static void schedule(String reason, boolean join) {
         WorldResourceManager manager = WorldResourceManager.get();
-        Runnable task = join ? manager::onWorldJoin : manager::onWorldLeave;
+        Runnable task = join ? manager::onWorldJoin : () -> {
+            // 缺陷1/3：退出世界时释放单机区块 ticket，并清空跨世界遗留相机（max_cameras 防绕过）
+            SingleplayerTicketHolder.releaseAll();
+            CameraManager.get().clear();
+            manager.onWorldLeave();
+        };
         if (GlThreadGuard.isOnRenderThread()) {
             task.run();
         } else {

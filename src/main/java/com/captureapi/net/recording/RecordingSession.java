@@ -1,5 +1,6 @@
 package com.captureapi.net.recording;
 
+import com.captureapi.audio.AudioRingBuffer;
 import com.captureapi.audio.multi.AudioChannelRegistry;
 import com.captureapi.audio.timestamp.AudioChunk;
 import com.captureapi.core.config.CaptureParams;
@@ -67,6 +68,9 @@ public final class RecordingSession {
     private volatile int requestedJpegQuality;
     private volatile int audioChannelId = -1;
     private volatile int videoCameraId;
+    private final java.util.concurrent.atomic.AtomicLong audioNullPolls =
+            new java.util.concurrent.atomic.AtomicLong();
+    private volatile boolean audioFallbackLogged;
     private Path finalOutputPath;
     private Path videoTempPath;
     private Path audioTempPath;
@@ -249,10 +253,18 @@ public final class RecordingSession {
     private void audioLoop() {
         while (running) {
             try {
-                AudioChunk chunk = audioChannelId < 0
-                        ? AudioChannelRegistry.get().snapshotChannel(
-                                AudioChannelRegistry.get().primaryChannelId(), 1)
-                        : AudioChannelRegistry.get().snapshotChannel(audioChannelId, 1);
+                AudioChunk chunk = readRecordingChunk();
+                if (chunk == null) {
+                    long nulls = audioNullPolls.incrementAndGet();
+                    if (nulls == 1L || nulls % 100L == 0L) {
+                        var ring = AudioRingBuffer.get();
+                        LOGGER.info("{} [REC/AUDIO] 空拍 {} 次：channel={} primary={} written={} "
+                                        + "occupancy={} slots={} sealed={}",
+                                CaptureConstants.LOG_MARKER, nulls, audioChannelId,
+                                AudioChannelRegistry.get().primaryChannelId(), ring.writtenPolls(),
+                                ring.occupancy(), ring.slotCount(), ring.isSealed());
+                    }
+                }
                 if (chunk != null && chunk.endNanos() > lastAudioEndNanos) {
                     if (lastAudioEndNanos > 0L
                             && chunk.startNanos() - lastAudioEndNanos > AUDIO_GAP_WARN_MS * NANOS_PER_MS) {
@@ -275,6 +287,28 @@ public final class RecordingSession {
                 break;
             }
         }
+    }
+
+    /**
+     * 默认配置下优先读 primary ring 快照；快照异常时回退 peekLatest（不推进消费游标）。
+     */
+    private AudioChunk readRecordingChunk() {
+        AudioChunk chunk = audioChannelId < 0
+                ? AudioChannelRegistry.get().snapshotChannel(
+                        AudioChannelRegistry.get().primaryChannelId(), 1)
+                : AudioChannelRegistry.get().snapshotChannel(audioChannelId, 1);
+        if (chunk == null && audioChannelId < 0) {
+            chunk = AudioRingBuffer.get().snapshotRecent(1);
+        }
+        if (chunk == null) {
+            chunk = AudioRingBuffer.get().peekLatest();
+            if (chunk != null && !audioFallbackLogged) {
+                audioFallbackLogged = true;
+                LOGGER.info("{} [REC/AUDIO] snapshot 为空，已回退 peekLatest：channel={}",
+                        CaptureConstants.LOG_MARKER, audioChannelId);
+            }
+        }
+        return chunk;
     }
 
     private void closeAudioOutput() {
